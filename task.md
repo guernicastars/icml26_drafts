@@ -65,3 +65,7 @@ role.
 Skills sought: MARL, stochastic games, optimisation theory; familiarity with Giannou et al. (2022) or
 the LOLA line is a strong signal.
 Estimated effort: ~60–80 hours. Highest theoretical density of any paper in the slate.
+
+Need to replicate \subsection{IPD Environment: Mixed Incentive}
+\subsection{RPS Environment: Competitive} and \subsection{2-Agent HalfCheetah Environment: Cooperative} (5.2, 5.3, 5.4) from arXiv-2011.00382v5/experiment.tex
+with Eugene's dissertation model dissertation/dissertation/technical_report.tex
