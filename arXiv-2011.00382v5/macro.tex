@@ -1,0 +1,97 @@
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{xspace}
+\usepackage[capitalize]{cleveref}
+\usepackage{dsfont}
+\usepackage{bm}
+\usepackage{bbm}
+\usepackage{nicefrac}  % compact symbols for 1/2, etc.
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{mathtools}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{fontawesome}
+\usepackage{thmtools}
+\usepackage{thm-restate}
+\usepackage{lipsum}
+\usepackage{pifont}
+\usepackage{makecell}
+\usepackage[tight-spacing=true]{siunitx}
+\usepackage{multirow}
+\usepackage{afterpage}
+\usepackage{tabularx} 
+\usepackage{url}
+\usepackage{enumitem}  % For removing indent in the numbered list
+\usepackage{wrapfig}  % For wrapping figure
+\usepackage{textcomp}
+
+%% For Cref
+\Crefname{figure}{Figure}{Figures}
+\crefname{figure}{Figure}{Figures}
+\crefname{table}{Table}{Tables}
+\crefformat{table}{Table~#1}
+\crefformat{equation}{Equation (#1)}
+\Crefformat{equation}{Equation (#1)}
+\crefformat{algorithm}{Algorithm~#1}
+\crefformat{appendix}{Appendix~#1}
+\Crefformat{appendix}{Appendix~#1}
+\crefformat{appendices}{Appendices~#1}
+\Crefformat{appendices}{Appendices~#1}
+
+%% Custom Commands
+\newcommand{\header}[1]{\textbf{#1}\,\,}
+\newcommand{\meta}[1]{\widetilde{#1}}
+\newcommand\sdots{\hbox to 1em{.\hss.\hss.}} % dots with smaller horizontal space
+\DeclareMathAlphabet\mathbfcal{OMS}{cmsy}{b}{n}  % For bold mathcal
+\newcommand{\minus}{\scalebox{0.6}[0.7]{$-$}}  % For reducing space for minus sign
+\newcommand{\smallsum}{\textstyle\sum\limits}
+
+%% Defns and proofs 
+\newtheorem{remark}{Remark}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem{prop}{Proposition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{example}{Example}
+\newtheorem{question}{Question}
+\newtheorem{corollary}{Corollary}
+
+%% Change algorithmic indentation
+% \algrenewcommand\algorithmicindent{1.2em}%
+
+% Set same font for \url command
+% Ref: https://tex.stackexchange.com/questions/261434/changing-url-font
+\urlstyle{same}
+
+%% Inline commenting
+\newif\ifcomments
+\commentsfalse
+% \commentstrue
+
+\ifcomments
+	\newcommand{\dXX}[1]{\color{red}DK: (#1)\color{black}\xspace}  % Dong-Ki
+	\newcommand{\mlXX}[1]{\color{cyan}ML: (#1)\color{black}\xspace}  % Miao
+	\newcommand{\mrXX}[1]{\color{blue}MR: (#1)\color{black}}  % Matt
+	\newcommand{\maXX}[1]{\color{red}MA: (#1)\color{black}\xspace}  % Marwa
+	\newcommand{\cXX}[1]{\color{red}CS: (#1)\color{black}\xspace}  % ChuangChuang
+	\newcommand{\ghXX}[1]{\color{olive}GH: (#1)\color{black}}  % Golnaz
+	\newcommand{\slXX}[1]{\color{magenta}SL: (#1)\color{black}}  % Sebastian
+	\newcommand{\gtXX}[1]{\color{purple}GT: (#1)\color{black}\xspace}  % Gerry
+	\newcommand{\jXX}[1]{\color{orange}JH: (#1)\color{black}\xspace}  % Jon
+\else
+    \newcommand{\dXX}[1]{}  % Dong-Ki
+	\newcommand{\mlXX}[1]{}  % Miao
+	\newcommand{\mrXX}[1]{}  % Matt
+	\newcommand{\cXX}[1]{}  % ChuangChuang
+	\newcommand{\maXX}[1]{}  % Marwa
+	\newcommand{\ghXX}[1]{}  % Golnaz
+	\newcommand{\slXX}[1]{}  % Sebastian
+	\newcommand{\gtXX}[1]{}  % Gerry
+	\newcommand{\jXX}[1]{}  % Jon
+\fi
+
+\newcommand*{\QEDB}{\null\nobreak\hfill\ensuremath{\square}}%

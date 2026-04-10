@@ -1,0 +1,307 @@
+\begin{thebibliography}{40}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Al-Shedivat et~al.(2018)Al-Shedivat, Bansal, Burda, Sutskever,
+  Mordatch, and Abbeel]{alshedivat2018continuous}
+Al-Shedivat, M., Bansal, T., Burda, Y., Sutskever, I., Mordatch, I., and
+  Abbeel, P.
+\newblock Continuous adaptation via meta-learning in nonstationary and
+  competitive environments.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2018.
+\newblock URL \url{https://openreview.net/forum?id=Sk2u1g-0-}.
+
+\bibitem[Beaulieu et~al.(2020)Beaulieu, Frati, Miconi, Lehman, Stanley, Clune,
+  and Cheney]{beaulieu2020learning}
+Beaulieu, S., Frati, L., Miconi, T., Lehman, J., Stanley, K.~O., Clune, J., and
+  Cheney, N.
+\newblock Learning to continually learn.
+\newblock \emph{arXiv preprint arXiv:2002.09571}, 2020.
+\newblock URL \url{https://arxiv.org/abs/2002.09571}.
+
+\bibitem[Bengio et~al.(1992)Bengio, Bengio, Cloutier, and
+  Gecsei]{bengio1992optimization}
+Bengio, S., Bengio, Y., Cloutier, J., and Gecsei, J.
+\newblock On the optimization of a synaptic learning rule.
+\newblock In \emph{Preprints Conf. Optimality in Artificial and Biological
+  Neural Networks}, volume~2. Univ. of Texas, 1992.
+
+\bibitem[Bu{\c{s}}oniu et~al.(2010)Bu{\c{s}}oniu, Babu{\v{s}}ka, and
+  De~Schutter]{Busoniu2010}
+Bu{\c{s}}oniu, L., Babu{\v{s}}ka, R., and De~Schutter, B.
+\newblock \emph{Multi-agent Reinforcement Learning: An Overview}, pp.\
+  183--221.
+\newblock Springer Berlin Heidelberg, Berlin, Heidelberg, 2010.
+\newblock ISBN 978-3-642-14435-6.
+\newblock \doi{10.1007/978-3-642-14435-6_7}.
+\newblock URL \url{https://doi.org/10.1007/978-3-642-14435-6_7}.
+
+\bibitem[Caccia et~al.(2020)Caccia, Rodriguez, Ostapenko, Normandin, Lin,
+  Caccia, Laradji, Rish, Lacoste, Vazquez, et~al.]{caccia2020online}
+Caccia, M., Rodriguez, P., Ostapenko, O., Normandin, F., Lin, M., Caccia, L.,
+  Laradji, I., Rish, I., Lacoste, A., Vazquez, D., et~al.
+\newblock Online fast adaptation and knowledge accumulation: a new approach to
+  continual learning.
+\newblock \emph{Neural Information Processing Systems (NeurIPS)}, 2020.
+
+\bibitem[de~Witt et~al.(2020)de~Witt, Peng, Kamienny, Torr, Böhmer, and
+  Whiteson]{dewitt2020deep_multimujoco}
+de~Witt, C.~S., Peng, B., Kamienny, P.-A., Torr, P., Böhmer, W., and Whiteson,
+  S.
+\newblock Deep multi-agent reinforcement learning for decentralized continuous
+  cooperative control.
+\newblock \emph{arXiv preprint arXiv:2003.06709}, 2020.
+
+\bibitem[Duan et~al.(2016{\natexlab{a}})Duan, Chen, Houthooft, Schulman, and
+  Abbeel]{duan-16-linearbaseline}
+Duan, Y., Chen, X., Houthooft, R., Schulman, J., and Abbeel, P.
+\newblock Benchmarking deep reinforcement learning for continuous control.
+\newblock volume~48 of \emph{Proceedings of Machine Learning Research}, pp.\
+  1329--1338, New York, New York, USA, 20--22 Jun 2016{\natexlab{a}}. PMLR.
+\newblock URL \url{http://proceedings.mlr.press/v48/duan16.html}.
+
+\bibitem[Duan et~al.(2016{\natexlab{b}})Duan, Schulman, Chen, Bartlett,
+  Sutskever, and Abbeel]{duan2016rl}
+Duan, Y., Schulman, J., Chen, X., Bartlett, P.~L., Sutskever, I., and Abbeel,
+  P.
+\newblock {RL}2: Fast reinforcement learning via slow reinforcement learning.
+\newblock \emph{arXiv preprint arXiv:1611.02779}, 2016{\natexlab{b}}.
+
+\bibitem[Finn et~al.(2017)Finn, Abbeel, and Levine]{maml}
+Finn, C., Abbeel, P., and Levine, S.
+\newblock Model-agnostic meta-learning for fast adaptation of deep networks.
+\newblock In \emph{ICML}, 2017.
+
+\bibitem[Foerster et~al.(2018{\natexlab{a}})Foerster, Chen, Al-Shedivat,
+  Whiteson, Abbeel, and Mordatch]{foerster17lola}
+Foerster, J., Chen, R.~Y., Al-Shedivat, M., Whiteson, S., Abbeel, P., and
+  Mordatch, I.
+\newblock Learning with opponent-learning awareness.
+\newblock In \emph{International Conference on Autonomous Agents and MultiAgent
+  Systems (AAMAS)}, pp.\  122–130, 2018{\natexlab{a}}.
+
+\bibitem[Foerster et~al.(2018{\natexlab{b}})Foerster, Farquhar, Afouras,
+  Nardelli, and Whiteson]{foerster2017counterfactual}
+Foerster, J., Farquhar, G., Afouras, T., Nardelli, N., and Whiteson, S.
+\newblock Counterfactual multi-agent policy gradients.
+\newblock In \emph{Association for the Advancement of Artificial Intelligence
+  (AAAI)}, February 2018{\natexlab{b}}.
+\newblock URL
+  \url{http://www.cs.ox.ac.uk/people/shimon.whiteson/pubs/foersteraaai18.pdf}.
+
+\bibitem[Foerster et~al.(2018{\natexlab{c}})Foerster, Farquhar, Al-Shedivat,
+  Rockt{\"a}schel, Xing, and Whiteson]{foerster2018dice}
+Foerster, J., Farquhar, G., Al-Shedivat, M., Rockt{\"a}schel, T., Xing, E., and
+  Whiteson, S.
+\newblock {D}i{CE}: The infinitely differentiable {M}onte {C}arlo estimator.
+\newblock In \emph{International Conference on Machine Learning (ICML)},
+  volume~80, pp.\  1524--1533, 10--15 Jul 2018{\natexlab{c}}.
+\newblock URL \url{http://proceedings.mlr.press/v80/foerster18a.html}.
+
+\bibitem[Grover et~al.(2018)Grover, Al-Shedivat, Gupta, Burda, and
+  Edwards]{grover18policy-representation}
+Grover, A., Al-Shedivat, M., Gupta, J., Burda, Y., and Edwards, H.
+\newblock Learning policy representations in multiagent systems.
+\newblock In \emph{International Conference on Machine Learning (ICML)},
+  volume~80, pp.\  1802--1811, 10--15 Jul 2018.
+\newblock URL \url{http://proceedings.mlr.press/v80/grover18a.html}.
+
+\bibitem[Gupta et~al.(2020)Gupta, Yadav, and Paull]{Gupta2020LaMAMLLM}
+Gupta, G., Yadav, K., and Paull, L.
+\newblock La-maml: Look-ahead meta learning for continual learning.
+\newblock 2020.
+\newblock URL \url{https://arxiv.org/abs/2007.13904}.
+
+\bibitem[He et~al.(2016)He, Boyd-Graber, Kwok, and III]{he16opponent-modeling}
+He, H., Boyd-Graber, J., Kwok, K., and III, H.~D.
+\newblock Opponent modeling in deep reinforcement learning.
+\newblock In \emph{International Conference on Machine Learning (ICML)},
+  volume~48, pp.\  1804--1813, 20--22 Jun 2016.
+\newblock URL \url{http://proceedings.mlr.press/v48/he16.html}.
+
+\bibitem[Hernandez{-}Leal et~al.(2017)Hernandez{-}Leal, Kaisers, Baarslag, and
+  de~Cote]{hernandezLealK17survey}
+Hernandez{-}Leal, P., Kaisers, M., Baarslag, T., and de~Cote, E.~M.
+\newblock A survey of learning in multiagent environments: Dealing with
+  non-stationarity.
+\newblock \emph{CoRR}, abs/1707.09183, 2017.
+\newblock URL \url{http://arxiv.org/abs/1707.09183}.
+
+\bibitem[Hospedales et~al.(2020)Hospedales, Antoniou, Micaelli, and
+  Storkey]{hospedales2020meta}
+Hospedales, T., Antoniou, A., Micaelli, P., and Storkey, A.
+\newblock Meta-learning in neural networks: A survey.
+\newblock \emph{arXiv preprint arXiv:2004.05439}, 2020.
+
+\bibitem[Javed \& White(2019)Javed and White]{Javed2019Meta}
+Javed, K. and White, M.
+\newblock Meta-learning representations for continual learning.
+\newblock In Wallach, H., Larochelle, H., Beygelzimer, A., d\textquotesingle
+  Alch\'{e}-Buc, F., Fox, E., and Garnett, R. (eds.), \emph{Neural Information
+  Processing Systems (NeurIPS)}, pp.\  1818--1828. Curran Associates, Inc.,
+  2019.
+
+\bibitem[Letcher et~al.(2019)Letcher, Foerster, Balduzzi, Rocktäschel, and
+  Whiteson]{letcher2018stable}
+Letcher, A., Foerster, J., Balduzzi, D., Rocktäschel, T., and Whiteson, S.
+\newblock Stable opponent shaping in differentiable games.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2019.
+\newblock URL \url{https://openreview.net/forum?id=SyGjjsC5tQ}.
+
+\bibitem[Lowe et~al.(2017)Lowe, Wu, Tamar, Harb, Abbeel, and
+  Mordatch]{lowe17maddpg}
+Lowe, R., Wu, Y., Tamar, A., Harb, J., Abbeel, O.~P., and Mordatch, I.
+\newblock Multi-agent actor-critic for mixed cooperative-competitive
+  environments.
+\newblock In \emph{Neural Information Processing Systems (NeurIPS)}, pp.\
+  6382--6393, 2017.
+
+\bibitem[Mishra et~al.(2017)Mishra, Rohaninejad, Chen, and Abbeel]{snail}
+Mishra, N., Rohaninejad, M., Chen, X., and Abbeel, P.
+\newblock A simple neural attentive meta-learner.
+\newblock \emph{arXiv preprint arXiv:1707.03141}, 2017.
+
+\bibitem[Mnih et~al.(2016)Mnih, Badia, Mirza, Graves, Lillicrap, Harley,
+  Silver, and Kavukcuoglu]{mniha16A3C}
+Mnih, V., Badia, A.~P., Mirza, M., Graves, A., Lillicrap, T., Harley, T.,
+  Silver, D., and Kavukcuoglu, K.
+\newblock Asynchronous methods for deep reinforcement learning.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2016.
+\newblock URL \url{http://proceedings.mlr.press/v48/mniha16.html}.
+
+\bibitem[Nichol \& Schulman(2018)Nichol and Schulman]{Reptile}
+Nichol, A. and Schulman, J.
+\newblock Reptile: a scalable metalearning algorithm.
+\newblock \emph{arXiv preprint arXiv:1803.02999}, 2018.
+
+\bibitem[Papoudakis et~al.(2019)Papoudakis, Christianos, Rahman, and
+  Albrecht]{papoudakis19nonstationarity}
+Papoudakis, G., Christianos, F., Rahman, A., and Albrecht, S.~V.
+\newblock Dealing with non-stationarity in multi-agent deep reinforcement
+  learning.
+\newblock \emph{CoRR}, abs/1906.04737, 2019.
+\newblock URL \url{http://arxiv.org/abs/1906.04737}.
+
+\bibitem[Raileanu et~al.(2018)Raileanu, Denton, Szlam, and
+  Fergus]{raileanu18opponent-modeling}
+Raileanu, R., Denton, E., Szlam, A., and Fergus, R.
+\newblock Modeling others using oneself in multi-agent reinforcement learning.
+\newblock In \emph{International Conference on Machine Learning (ICML)},
+  volume~80, pp.\  4257--4266, 10--15 Jul 2018.
+\newblock URL \url{http://proceedings.mlr.press/v80/raileanu18a.html}.
+
+\bibitem[Riemer et~al.(2019)Riemer, Cases, Ajemian, Liu, Rish, Tu, and
+  Tesauro]{MER}
+Riemer, M., Cases, I., Ajemian, R., Liu, M., Rish, I., Tu, Y., and Tesauro, G.
+\newblock Learning to learn without forgetting by maximizing transfer and
+  minimizing interference.
+\newblock \emph{International Conference on Learning Representations (ICLR)},
+  2019.
+
+\bibitem[Schmidhuber(1987)]{schmidhuber87meta_learning}
+Schmidhuber, J.
+\newblock Evolutionary principles in self-referential learning. on learning now
+  to learn: The meta-meta-meta...-hook.
+\newblock Diploma thesis, Technische Universitat Munchen, Germany, 14 May 1987.
+\newblock URL \url{http://www.idsia.ch/~juergen/diploma.html}.
+
+\bibitem[Schulman et~al.(2016)Schulman, Moritz, Levine, Jordan, and
+  Abbeel]{schulmanetal-16-gae}
+Schulman, J., Moritz, P., Levine, S., Jordan, M., and Abbeel, P.
+\newblock High-dimensional continuous control using generalized advantage
+  estimation.
+\newblock In \emph{Proceedings of the International Conference on Learning
+  Representations (ICLR)}, 2016.
+
+\bibitem[Shapley(1953)]{shapley53stochastic}
+Shapley, L.~S.
+\newblock Stochastic games.
+\newblock \emph{Proceedings of the National Academy of Sciences}, 39\penalty0
+  (10):\penalty0 1095--1100, 1953.
+\newblock ISSN 0027-8424.
+\newblock \doi{10.1073/pnas.39.10.1095}.
+\newblock URL \url{https://www.pnas.org/content/39/10/1095}.
+
+\bibitem[Spigler(2019)]{spigler2019meta}
+Spigler, G.
+\newblock Meta-learnt priors slow down catastrophic forgetting in neural
+  networks.
+\newblock \emph{arXiv preprint arXiv:1909.04170}, 2019.
+\newblock URL \url{https://arxiv.org/pdf/1909.04170.pdf}.
+
+\bibitem[Sutton \& Barto(1998)Sutton and Barto]{Sutton:1998}
+Sutton, R.~S. and Barto, A.~G.
+\newblock \emph{Introduction to Reinforcement Learning}.
+\newblock MIT Press, Cambridge, MA, USA, 1st edition, 1998.
+\newblock ISBN 0262193981.
+
+\bibitem[Vilalta \& Drissi(2002)Vilalta and Drissi]{vilalta2002perspective}
+Vilalta, R. and Drissi, Y.
+\newblock A perspective view and survey of meta-learning.
+\newblock \emph{Artificial intelligence review}, 18\penalty0 (2):\penalty0
+  77--95, 2002.
+
+\bibitem[Wang et~al.(2016{\natexlab{a}})Wang, Kurth-Nelson, Tirumala, Soyer,
+  Leibo, Munos, Blundell, Kumaran, and Botvinick]{wang2016learning}
+Wang, J.~X., Kurth-Nelson, Z., Tirumala, D., Soyer, H., Leibo, J.~Z., Munos,
+  R., Blundell, C., Kumaran, D., and Botvinick, M.
+\newblock Learning to reinforcement learn.
+\newblock \emph{arXiv preprint arXiv:1611.05763}, 2016{\natexlab{a}}.
+
+\bibitem[Wang et~al.(2016{\natexlab{b}})Wang, Bapst, Heess, Mnih, Munos,
+  Kavukcuoglu, and de~Freitas]{wang16acer}
+Wang, Z., Bapst, V., Heess, N., Mnih, V., Munos, R., Kavukcuoglu, K., and
+  de~Freitas, N.
+\newblock Sample efficient actor-critic with experience replay.
+\newblock \emph{CoRR}, abs/1611.01224, 2016{\natexlab{b}}.
+\newblock URL \url{http://arxiv.org/abs/1611.01224}.
+
+\bibitem[Wei et~al.(2018)Wei, Wicke, Freelan, and Luke]{wei18multiagent-softQ}
+Wei, E., Wicke, D., Freelan, D., and Luke, S.
+\newblock Multiagent soft {Q}-learning.
+\newblock \emph{CoRR}, abs/1804.09817, 2018.
+\newblock URL \url{http://arxiv.org/abs/1804.09817}.
+
+\bibitem[Wen et~al.(2019)Wen, Yang, Luo, Wang, and Pan]{wen2018probabilistic}
+Wen, Y., Yang, Y., Luo, R., Wang, J., and Pan, W.
+\newblock Probabilistic recursive reasoning for multi-agent reinforcement
+  learning.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2019.
+\newblock URL \url{https://openreview.net/forum?id=rkl6As0cF7}.
+
+\bibitem[Williams(1992)]{Williams1992}
+Williams, R.~J.
+\newblock Simple statistical gradient-following algorithms for connectionist
+  reinforcement learning.
+\newblock \emph{Machine Learning}, 8\penalty0 (3):\penalty0 229--256, May 1992.
+\newblock ISSN 1573-0565.
+\newblock \doi{10.1007/BF00992696}.
+\newblock URL \url{https://doi.org/10.1007/BF00992696}.
+
+\bibitem[Yang et~al.(2018)Yang, Luo, Li, Zhou, Zhang, and
+  Wang]{yang18mean-field-marl}
+Yang, Y., Luo, R., Li, M., Zhou, M., Zhang, W., and Wang, J.
+\newblock Mean field multi-agent reinforcement learning.
+\newblock In \emph{International Conference on Machine Learning (ICML)},
+  volume~80, pp.\  5571--5580, 10--15 Jul 2018.
+\newblock URL \url{http://proceedings.mlr.press/v80/yang18d.html}.
+
+\bibitem[Yu et~al.(2020)Yu, Kumar, Gupta, Levine, Hausman, and
+  Finn]{yu20pcgrad}
+Yu, T., Kumar, S., Gupta, A., Levine, S., Hausman, K., and Finn, C.
+\newblock Gradient surgery for multi-task learning.
+\newblock \emph{arXiv preprint arXiv:2001.06782}, 2020.
+
+\bibitem[Zhang \& Lesser(2010)Zhang and Lesser]{zhang10lookahead}
+Zhang, C. and Lesser, V.~R.
+\newblock Multi-agent learning with policy prediction.
+\newblock In \emph{Association for the Advancement of Artificial Intelligence
+  (AAAI)}, 2010.
+
+\end{thebibliography}

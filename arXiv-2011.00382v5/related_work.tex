@@ -1,0 +1,17 @@
+\section{Related Work}
+The standard approach for addressing non-stationarity in MARL is to consider information about the other agents and reason about the effects of their joint actions~\citep{hernandezLealK17survey}.
+The literature on opponent modeling, for instance, infers opponents' behaviors and conditions an agent's policy on the inferred behaviors of others~\citep{he16opponent-modeling,raileanu18opponent-modeling,grover18policy-representation}.
+Studies regarding the centralized training with decentralized execution framework~\citep{lowe17maddpg,foerster2017counterfactual,yang18mean-field-marl,wen2018probabilistic}, which accounts for the behaviors of others through a centralized critic, can also be classified into this category.
+While this body of work alleviates non-stationarity, it is generally assumed that each agent will have a stationary policy in the future.
+Because other agents can have different behaviors in the future as a result of learning~\citep{foerster17lola}, this incorrect assumption can cause sample inefficient and improper adaptation.
+In contrast, Meta-MAPG models each agent's learning process, allowing a meta-learning agent to adapt efficiently.
+
+Our approach is also related to prior work that considers the learning of other agents in the environment. 
+This includes~\citet{zhang10lookahead} who attempted to discover the best response adaptation to the anticipated future policy of other agents. Our work is also related, as discussed previously, to LOLA \citep{foerster17lola} and more recent improvements~\citep{foerster2018dice}.
+Another relevant idea explored by~\citet{letcher2018stable} is to interpolate between the frameworks of~\citet{zhang10lookahead} and~\citet{foerster17lola} in a way that guarantees convergence while influencing the opponent's future policy.
+However, all of these approaches only account for the learning processes of other agents and fail to consider an agent's own non-stationary policy dynamics as in the own learning gradient discussed in the previous section. 
+Additionally, these papers do not leverage meta-learning. As a result, these approaches may require many samples to properly adapt to new agents.
+
+Meta-learning \citep{schmidhuber87meta_learning, bengio1992optimization} has recently become very popular as a method for improving sample efficiency in the presence of changing tasks in the deep RL literature \citep{wang2016learning,duan2016rl,maml,snail,Reptile}. See~\citet{vilalta2002perspective} and~\citet{hospedales2020meta} for in-depth surveys of meta-learning. In particular, our work builds on the popular model-agnostic meta-learning framework~\citep{maml}, where gradient-based learning is used both for conducting so called inner-loop learning and to improve this learning by computing gradients through the computational graph. When we train our agents so that the inner loop can accommodate for a dynamic Markov chain of other agent policies, we are leveraging an approach that has recently become popular for supervised learning called meta-continual learning~\citep{MER,Javed2019Meta,spigler2019meta,beaulieu2020learning,caccia2020online,Gupta2020LaMAMLLM}. 
+This means that our agent trains not just to adapt to a single set of policies during meta-training, but rather to adapt to a set of changing policies with Markovian updates. 
+As a result, we avoid an issue of past work \citep{alshedivat2018continuous} that required the use of importance sampling during meta-testing (see~\Cref{sec:meta-pg-difference-details} for more details).

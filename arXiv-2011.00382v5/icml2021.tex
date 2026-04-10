@@ -1,0 +1,122 @@
+%%%%%%%% ICML 2021 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
+
+\documentclass{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}  % for professional tables
+\usepackage{xcolor}
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2021} with \usepackage[nohyperref]{icml2021} above.
+\usepackage{hyperref}
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+% For importing packages and defining commands
+\input{macro}
+
+% Use the following line for the initial blind version submitted for review:
+% \usepackage{icml2021}
+
+% If accepted, instead use the following line for the camera-ready submission:
+\usepackage[accepted]{icml2021}
+
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+\icmltitlerunning{A Policy Gradient Algorithm for Learning to Learn in Multiagent Reinforcement Learning}
+
+% Comment for the first time, but uncomment for second time with commenting out appendix
+% to only have main paper
+% \nofiles
+
+\begin{document}
+
+\twocolumn[
+\icmltitle{A Policy Gradient Algorithm for Learning to Learn \\in Multiagent Reinforcement Learning}
+
+% It is OKAY to include author information, even for blind
+% submissions: the style file will automatically remove it for you
+% unless you've provided the [accepted] option to the icml2021
+% package.
+
+% List of affiliations: The first argument should be a (short)
+% identifier you will use later to specify author affiliations
+% Academic affiliations should list Department, University, City, Region, Country
+% Industry affiliations should list Company, City, Region, Country
+
+% You can specify symbols, otherwise they are numbered in order.
+% Ideally, you should not use this facility. Affiliations will be numbered
+% in order of appearance and this is the preferred way.
+\icmlsetsymbol{equal}{*}
+
+\begin{icmlauthorlist}
+\icmlauthor{Dong-Ki Kim}{mit,mitibm}
+\icmlauthor{Miao Liu}{mitibm,ibm}
+\icmlauthor{Matthew Riemer}{mitibm,ibm}
+\icmlauthor{Chuangchuang Sun}{mit,mitibm}
+\icmlauthor{Marwa Abdulhai}{mit,mitibm}
+\\
+\icmlauthor{Golnaz Habibi}{mit,mitibm}
+\icmlauthor{Sebastian Lopez-Cot}{mit,mitibm}
+\icmlauthor{Gerald Tesauro}{mitibm,ibm}
+\icmlauthor{Jonathan P. How}{mit,mitibm}
+\end{icmlauthorlist}
+
+\icmlaffiliation{mit}{MIT-LIDS}
+\icmlaffiliation{ibm}{IBM-Research}
+\icmlaffiliation{mitibm}{MIT-IBM Watson AI Lab}
+
+\icmlcorrespondingauthor{Dong-Ki Kim}{dkkim93@mit.edu}
+\icmlcorrespondingauthor{Miao Liu}{miao.liu1@ibm.com}
+
+% You may provide any keywords that you
+% find helpful for describing your paper; these are used to populate
+% the "keywords" metadata in the PDF but will not be shown in the document
+\icmlkeywords{Multiagent reinforcement learning, Meta-learning, Non-stationarity}
+
+\vskip 0.3in
+]
+
+% this must go after the closing bracket ] following \twocolumn[ ...
+
+% This command actually creates the footnote in the first column
+% listing the affiliations and the copyright notice.
+% The command takes one argument, which is text to display at the start of the footnote.
+% The \icmlEqualContribution command is standard text for equal contribution.
+% Remove it (just {}) if you do not need this facility.
+
+\printAffiliationsAndNotice{}  % leave blank if no need to mention equal contribution
+%\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
+
+% For reducing spacing between align math
+\setlength{\abovedisplayskip}{3.5pt}
+\setlength{\belowdisplayskip}{3.5pt}
+\setlength{\abovedisplayshortskip}{3.5pt}
+\setlength{\belowdisplayshortskip}{3.5pt}
+
+\begin{abstract}
+A fundamental challenge in multiagent reinforcement learning is to learn beneficial behaviors in a shared environment with other simultaneously learning agents. In particular, each agent perceives the environment as effectively non-stationary due to the changing policies of other agents. Moreover, each agent is itself constantly learning, leading to natural non-stationarity in the distribution of experiences encountered. In this paper, we propose a novel meta-multiagent policy gradient theorem that directly accounts for the non-stationary policy dynamics inherent to multiagent learning settings. This is achieved by modeling our gradient updates to consider both an agent’s own non-stationary policy dynamics and the non-stationary policy dynamics of other agents in the environment. We show that our theoretically grounded approach provides a general solution to the multiagent learning problem, which inherently comprises all key aspects of previous state of the art approaches on this topic. We test our method on a diverse suite of multiagent benchmarks and demonstrate a more efficient ability to adapt to new agents as they learn than baseline methods across the full spectrum of mixed incentive, competitive, and cooperative domains.
+\end{abstract}
+
+\input{introduction}
+\input{problem_statement}
+\input{approach}
+\input{related_work}
+\input{experiment}
+\input{conclusion}
+
+% Acknowledgements
+\section*{Acknowledgements}
+Research funded by IBM, Samsung (as part of the MIT-IBM Watson AI Lab initiative) and computational support through Amazon Web Services. Dong-Ki Kim was also supported by a Kwanjeong Educational Foundation Fellowship. The authors would like to thank anonymous reviewers for their helpful comments.
+
+\bibliography{icml2021}
+\bibliographystyle{icml2021}
+
+\newpage
+\appendix
+\input{appendix}
+\end{document}
