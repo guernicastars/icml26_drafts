@@ -21,3 +21,4 @@ dissertation/latex/build/
 dissertation/latex/%OUTDIR%/
 polymarket/pipeline/.env
 polymarket/dashboard/.env.local
+.venv
