@@ -29,47 +29,24 @@ import pandas as pd
 import torch
 
 BENCHMARK_ROOT = Path(__file__).resolve().parent
-PROJECT_ROOT = BENCHMARK_ROOT.parents[1]
-sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(BENCHMARK_ROOT))
 
-from meta_swag.adapters.state import restore_adapter_state, save_manifest, build_manifest
-from meta_swag.posterior.predictive import PosteriorPredictive
-from meta_swag.posterior.meta_swag import aggregate_adapter_checkpoints
-
-try:
-    from meta_swag.axbench_meta_swag import (
-        FinalMethodResult,
-        aggregate_checkpoint_records,
-        attach_validation_metrics,
-        choose_factor_from_factor_sweep,
-        harmonic_mean,
-        split_validation_test,
-        train_lora_with_retention,
-        train_preference_lora_with_retention,
-    )
-except ImportError:
-    old_meta_swag = PROJECT_ROOT / "axbench_benchmark"
-    sys.path.insert(0, str(old_meta_swag))
-    from meta_swag.axbench_meta_swag import (
-        FinalMethodResult,
-        aggregate_checkpoint_records,
-        attach_validation_metrics,
-        choose_factor_from_factor_sweep,
-        harmonic_mean,
-        split_validation_test,
-        train_lora_with_retention,
-        train_preference_lora_with_retention,
-    )
-
-from axbench_runtime import describe_external_repo, import_axbench
+from meta_swag.adapter_state import restore_adapter_state, save_manifest
+from meta_swag.axbench_meta_swag import (
+    FinalMethodResult,
+    aggregate_checkpoint_records,
+    attach_validation_metrics,
+    choose_factor_from_factor_sweep,
+    harmonic_mean,
+    split_validation_test,
+    train_lora_with_retention,
+    train_preference_lora_with_retention,
+)
+from meta_swag.axbench_runtime import describe_external_repo, import_axbench
 
 
 DEFAULT_FACTORS = [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 2.5, 3.0, 4.0, 5.0]
-DEFAULT_METHODS = [
-    "map", "last_iterate", "uniform", "swa", "ema",
-    "softmax", "ess", "threshold", "laplace",
-]
+DEFAULT_METHODS = ["map", "uniform", "softmax", "ess", "threshold"]
 
 
 def parse_args() -> argparse.Namespace:
@@ -105,10 +82,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--validation-ratio", type=float, default=0.5)
     p.add_argument("--max-validation-examples", type=int, default=32)
     p.add_argument("--max-test-examples", type=int, default=32)
-    p.add_argument("--methods", nargs="+", default=DEFAULT_METHODS)
-    p.add_argument("--posterior-samples", type=int, default=16)
-    p.add_argument("--deterministic-mean", action="store_true",
-                   help="Deploy the weighted mean only (old behavior), skip sampling")
+    p.add_argument("--methods", nargs="+", default=DEFAULT_METHODS, choices=DEFAULT_METHODS)
     p.add_argument("--judge-model", default="gpt-4o-mini")
     p.add_argument("--mock-judge", action="store_true", default=True)
     p.add_argument("--real-judge", dest="mock_judge", action="store_false")
@@ -370,64 +344,6 @@ def restore_aggregated(model, agg, manifest):
     restore_adapter_state(model.ax_model, agg.mean_vector, manifest)
 
 
-def average_factor_sweep_over_posterior(
-    model, eval_df, scheme, agg, manifest,
-    axbench, args, concept_id, num_samples, rng_seed,
-):
-    """Sample S vectors from the posterior, evaluate factor sweep on each,
-    and average composite metrics per-factor. S=1 for point estimates or
-    --deterministic-mean."""
-    if args.deterministic_mean or scheme.lower() in ("map", "last_iterate"):
-        restore_adapter_state(model.ax_model, agg.mean_vector, manifest)
-        rows, working = evaluate_factor_sweep(
-            model, eval_df, model_name=scheme,
-            axbench=axbench, args=args, concept_id=concept_id,
-        )
-        return rows, working, 1
-
-    predictive = PosteriorPredictive(agg, manifest, num_samples=num_samples, seed=rng_seed)
-    accumulated: dict[float, dict[str, float]] = {}
-    last_working = None
-    for _sample_idx, vector in predictive.deploy_iter(model.ax_model):
-        rows, working = evaluate_factor_sweep(
-            model, eval_df, model_name=scheme,
-            axbench=axbench, args=args, concept_id=concept_id,
-        )
-        last_working = working
-        for row in rows:
-            factor = float(row["factor"])
-            bucket = accumulated.setdefault(factor, {
-                "factor": factor, "composite": 0.0,
-                "concept_relevance": 0.0, "instruction_relevance": 0.0,
-                "fluency": 0.0, "perplexity": 0.0,
-                "_perplexity_count": 0,
-            })
-            bucket["composite"] += float(row["composite"])
-            bucket["concept_relevance"] += float(row["concept_relevance"])
-            bucket["instruction_relevance"] += float(row["instruction_relevance"])
-            bucket["fluency"] += float(row["fluency"])
-            ppl = row.get("perplexity", float("nan"))
-            if ppl == ppl:
-                bucket["perplexity"] += float(ppl)
-                bucket["_perplexity_count"] += 1
-
-    n = predictive.effective_num_samples
-    averaged = []
-    for factor in sorted(accumulated):
-        bucket = accumulated[factor]
-        ppl_count = bucket.pop("_perplexity_count")
-        ppl = bucket["perplexity"] / ppl_count if ppl_count > 0 else float("nan")
-        averaged.append({
-            "factor": bucket["factor"],
-            "composite": bucket["composite"] / n,
-            "concept_relevance": bucket["concept_relevance"] / n,
-            "instruction_relevance": bucket["instruction_relevance"] / n,
-            "fluency": bucket["fluency"] / n,
-            "perplexity": ppl,
-        })
-    return averaged, last_working, n
-
-
 def summarize_method(scheme, agg, val_rows, test_rows, unsteered_composite):
     sel_factor, val_comp = choose_factor_from_factor_sweep(val_rows)
     test_row = next(r for r in test_rows if float(r["factor"]) == float(sel_factor))
@@ -650,81 +566,22 @@ def main():
                 print(f"    SKIP: no valid checkpoints after evaluation")
                 continue
 
-            seed_dir = output_dir / f"seed_{seed}" / f"concept_{concept_id}"
-            seed_dir.mkdir(parents=True, exist_ok=True)
-            from meta_swag.adapters.state import save_manifest
-            save_manifest(manifest, seed_dir / "manifest.json")
-            c_vectors = np.stack([r.adapter_vector for r in retained], axis=0)
-            np.savez_compressed(seed_dir / "retained_checkpoints.npz", vectors=c_vectors)
-            pd.DataFrame([r.metadata() for r in retained]).to_csv(seed_dir / "checkpoint_metadata.csv", index=False)
-            print(f"  Saved {len(retained)} checkpoint vectors -> {seed_dir}")
-
             for scheme in args.methods:
                 try:
-                    if scheme == "laplace":
-                        best_idx = int(np.argmax([r.train_loss for r in valid_retained]))
-                        restore_adapter_state(model.ax_model, valid_retained[best_idx].adapter_vector, manifest)
-                        
-                        from torch.utils.data import DataLoader
-                        from meta_swag.training.dpo_trainer import DPODataset
-                        from meta_swag.training.preference import get_batch_logps
-
-                        def ax_loss_fn(mdl, batch):
-                            if args.model_kind == "preference_lora":
-                                c_ids = batch["chosen_input_ids"].to(device)
-                                c_mask = batch["chosen_attention_mask"].to(device)
-                                c_labels = batch["chosen_labels"].to(device)
-                                outs = mdl(input_ids=c_ids, attention_mask=c_mask)
-                                logps = get_batch_logps(outs.logits, c_labels)
-                                return -logps.mean()
-                            else:
-                                ids = batch["input_ids"].to(device)
-                                mask = batch["attention_mask"].to(device)
-                                labels = batch["labels"].to(device)
-                                outs = mdl(input_ids=ids, attention_mask=mask)
-                                loss_f = torch.nn.CrossEntropyLoss()
-                                return loss_f(outs.logits.view(-1, outs.logits.size(-1)), labels.view(-1))
-
-                        # Use a subset of training data for Fisher
-                        fisher_dataset = prepared if isinstance(prepared, torch.utils.data.Dataset) else model.get_dataset(prepared)
-                        fisher_loader = DataLoader(fisher_dataset, batch_size=args.batch_size, shuffle=True)
-                        
-                        from meta_swag.posterior.laplace import compute_diagonal_fisher, tune_prior_precision, laplace_posterior
-                        fisher = compute_diagonal_fisher(model.ax_model, ax_loss_fn, manifest, num_batches=10, dataloader=fisher_loader)
-                        prior_p = tune_prior_precision(model.ax_model, manifest, fisher, loss_fn=ax_loss_fn, val_dataloader=fisher_loader, num_val_batches=5)
-                        agg = laplace_posterior(model.ax_model, manifest, fisher, prior_p)
-                    else:
-                        agg = aggregate_checkpoint_records(
-                            valid_retained, scheme=scheme, beta=1.0,
-                            threshold_quantile=args.threshold_quantile,
-                            low_rank_rank=min(args.keep_last, 20),
-                        )
-
-                    adapter_out = seed_dir / "adapters" / scheme
-                    adapter_out.mkdir(parents=True, exist_ok=True)
-                    restore_adapter_state(model.ax_model, agg.mean_vector, manifest)
-                    try:
-                        if hasattr(model.ax_model, "save_pretrained"):
-                            model.ax_model.save_pretrained(str(adapter_out))
-                        tokenizer.save_pretrained(str(adapter_out))
-                    except Exception as e:
-                        print(f"    WARN: could not save PEFT adapter for {scheme}: {e}")
-                        
-                    np.save(adapter_out / "mean_vector.npy", agg.mean_vector)
-                    if hasattr(agg, "diagonal_variance") and agg.diagonal_variance is not None:
-                        np.save(adapter_out / "diagonal_variance.npy", agg.diagonal_variance)
-
-                    vrows, _, s_used = average_factor_sweep_over_posterior(
-                        model, val_df, scheme, agg, manifest,
-                        axbench=axbench, args=args, concept_id=concept_id,
-                        num_samples=args.posterior_samples,
-                        rng_seed=seed * 1_000_003 + concept_id,
+                    agg = aggregate_checkpoint_records(
+                        valid_retained, scheme=scheme, beta=1.0,
+                        threshold_quantile=args.threshold_quantile,
+                        low_rank_rank=min(args.keep_last, 20),
                     )
-                    trows, _, _ = average_factor_sweep_over_posterior(
-                        model, test_df, scheme, agg, manifest,
+                    restore_aggregated(model, agg, manifest)
+
+                    vrows, _ = evaluate_factor_sweep(
+                        model, val_df, model_name=scheme,
                         axbench=axbench, args=args, concept_id=concept_id,
-                        num_samples=args.posterior_samples,
-                        rng_seed=seed * 1_000_003 + concept_id + 7,
+                    )
+                    trows, _ = evaluate_factor_sweep(
+                        model, test_df, model_name=scheme,
+                        axbench=axbench, args=args, concept_id=concept_id,
                     )
 
                     for r in vrows:
