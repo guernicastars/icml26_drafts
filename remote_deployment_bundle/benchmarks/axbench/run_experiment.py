@@ -29,7 +29,7 @@ import pandas as pd
 import torch
 
 BENCHMARK_ROOT = Path(__file__).resolve().parent
-PROJECT_ROOT = BENCHMARK_ROOT.parents[1]
+PROJECT_ROOT = BENCHMARK_ROOT.parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 sys.path.insert(0, str(BENCHMARK_ROOT))
 

@@ -24,13 +24,12 @@ pip install -r requirements.txt > /dev/null 2>&1
 mkdir -p external
 if [ ! -d "external/axbench" ]; then
     echo "[3/5] Cloning axbench..."
-    git clone --depth 1 https://github.com/stanfordnlp/axbench.git external/axbench
+    git clone --depth 1 https://github.com/FlexCode29/axbench.git external/axbench
 else
     echo "[3/5] axbench already cloned."
 fi
 
-# Install axbench in editable mode so imports resolve
-pip install -e external/axbench > /dev/null 2>&1
+echo "[3/5] AxBench cloned. (No pip install needed; benchmark adds repo to sys.path.)"
 
 # 4. Download AxBench data from HuggingFace
 echo "[4/5] Downloading AxBench concept data..."

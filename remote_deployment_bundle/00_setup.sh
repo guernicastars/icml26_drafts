@@ -16,12 +16,12 @@ pip install --upgrade pip wheel setuptools
 pip install -r requirements.txt
 
 echo "Setup axbench..."
-mkdir -p external
-if [ ! -d "external/axbench" ]; then
-    git clone --depth 1 https://github.com/stanfordnlp/axbench.git external/axbench
+mkdir -p benchmarks/axbench/external
+if [ ! -d "benchmarks/axbench/external/axbench" ]; then
+    git clone --depth 1 https://github.com/FlexCode29/axbench.git benchmarks/axbench/external/axbench
 fi
 echo "Installing axbench in editable mode..."
-pip install -e external/axbench
+pip install -e benchmarks/axbench/external/axbench
 
 echo "Checking system state..."
 python3 -c "import torch; print('CUDA available:', torch.cuda.is_available(), 'Count:', torch.cuda.device_count())"

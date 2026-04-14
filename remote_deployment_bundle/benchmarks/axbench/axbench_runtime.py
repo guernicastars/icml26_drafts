@@ -74,6 +74,9 @@ def ensure_import_path(repo_path: Path, src_subdir: str | None = None) -> None:
 def import_axbench():
     repo_path = axbench_repo_path()
     ensure_import_path(repo_path)
+    # AxBench's `axbench/scripts/*.py` files use imports like `from args...` which
+    # assume the scripts directory is on `sys.path`.
+    ensure_import_path(repo_path / "axbench" / "scripts")
     import axbench  # type: ignore
     return axbench
 
