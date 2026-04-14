@@ -1,0 +1,569 @@
+% Use this file for citations not found in the ACL Anthology (contained in "anthology.bib").
+
+@misc{ha2016hypernetworks,
+      title={HyperNetworks}, 
+      author={David Ha and Andrew Dai and Quoc V. Le},
+      year={2016},
+      eprint={1609.09106},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/1609.09106}, 
+}
+
+@article{Marks:2018,
+  author       = {Samuel Marks and
+                  Max Tegmark},
+  title        = {The Geometry of Truth: Emergent Linear Structure in Large Language
+                  Model Representations of True/False Datasets},
+  journal      = {CoRR},
+  volume       = {abs/2310.06824},
+  year         = {2023},
+  url          = {https://doi.org/10.48550/arXiv.2310.06824},
+  doi          = {10.48550/ARXIV.2310.06824},
+  eprinttype    = {arXiv},
+  eprint       = {2310.06824},
+  timestamp    = {Tue, 24 Oct 2023 14:46:18 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2310-06824.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@InProceedings{pmlr-v202-phang23a,
+  title = 	 {{H}yper{T}uning: Toward Adapting Large Language Models without Back-propagation},
+  author =       {Phang, Jason and Mao, Yi and He, Pengcheng and Chen, Weizhu},
+  booktitle = 	 {Proceedings of the 40th International Conference on Machine Learning},
+  pages = 	 {27854--27875},
+  year = 	 {2023},
+  editor = 	 {Krause, Andreas and Brunskill, Emma and Cho, Kyunghyun and Engelhardt, Barbara and Sabato, Sivan and Scarlett, Jonathan},
+  volume = 	 {202},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {23--29 Jul},
+  publisher =    {PMLR},
+  pdf = 	 {https://proceedings.mlr.press/v202/phang23a/phang23a.pdf},
+  url = 	 {https://proceedings.mlr.press/v202/phang23a.html},
+  abstract = 	 {Fine-tuning large language models for different tasks can be costly and inefficient, and even methods that reduce the number of tuned parameters still require full gradient-based optimization. We propose HyperTuning, a novel approach to model adaptation that uses a hypermodel to generate task-specific parameters for a fixed downstream model. We demonstrate a simple setup for hypertuning with HyperT5, a T5-based hypermodel that produces soft prefixes or LoRA parameters for a frozen T5 model from few-shot examples. We train HyperT5 in two stages: first, hyperpretraining with a modified conditional language modeling objective that trains a hypermodel to generate parameters; second, multi-task fine-tuning (MTF) on a large number of diverse language tasks. We evaluate HyperT5 on P3, MetaICL and Super-NaturalInstructions datasets, and show that it can effectively generate parameters for unseen tasks. Moreover, we show that using hypermodel-generated parameters as initializations for further parameter-efficient fine-tuning improves performance. HyperTuning can thus be a flexible and efficient way to leverage large language models for diverse downstream applications.}
+}
+
+@misc{wu2025axbenchsteeringllmssimple,
+      title={{AxBench}: Steering LLMs? Even Simple Baselines Outperform Sparse Autoencoders}, 
+      author={Zhengxuan Wu and Aryaman Arora and Atticus Geiger and Zheng Wang and Jing Huang and Dan Jurafsky and Christopher D. Manning and Christopher Potts},
+      year={2025},
+      eprint={2501.17148},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2501.17148}, 
+}
+
+@inproceedings{rimsky-etal-2024-steering,
+    title = "Steering Llama 2 via Contrastive Activation Addition",
+    author = "Rimsky, Nina  and
+      Gabrieli, Nick  and
+      Schulz, Julian  and
+      Tong, Meg  and
+      Hubinger, Evan  and
+      Turner, Alexander",
+    editor = "Ku, Lun-Wei  and
+      Martins, Andre  and
+      Srikumar, Vivek",
+    booktitle = "Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+    month = aug,
+    year = "2024",
+    address = "Bangkok, Thailand",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2024.acl-long.828/",
+    doi = "10.18653/v1/2024.acl-long.828",
+    pages = "15504--15522",
+    abstract = "We introduce Contrastive Activation Addition (CAA), a method for steering language models by modifying their activations during forward passes. CAA computes {\textquotedblleft}steering vectors{\textquotedblright} by averaging the difference in residual stream activations between pairs of positive and negative examples of a particular behavior, such as factual versus hallucinatory responses. During inference, these steering vectors are added at all token positions after the user`s prompt with either a positive or negative coefficient, allowing precise control over the degree of the targeted behavior. We evaluate CAA`s effectiveness on Llama 2 Chat using multiple-choice behavioral question datasets and open-ended generation tasks. We demonstrate that CAA significantly alters model behavior, is effective over and on top of traditional methods like finetuning and system prompt design, and minimally reduces capabilities. Moreover, we gain deeper insights into CAA`s mechanisms by employing various activation space interpretation methods. CAA accurately steers model outputs and sheds light on how high-level concepts are represented in Large Language Models (LLMs)."
+}
+
+@inproceedings{
+charakorn2024instant,
+title={Instant Transformer Adaption via HyperLo{RA}},
+author={Rujikorn Charakorn and Edoardo Cetin and Yujin Tang and Robert Tjarko Lange},
+booktitle={Adaptive Foundation Models: Evolving AI for Personalized and Efficient Learning},
+year={2024},
+url={https://openreview.net/forum?id=TR9668ZiHP}
+}
+
+
+@article{hu2022lora,
+  title={Lora: Low-rank adaptation of large language models.},
+  author={Hu, Edward J and Shen, Yelong and Wallis, Phillip and Allen-Zhu, Zeyuan and Li, Yuanzhi and Wang, Shean and Wang, Lu and Chen, Weizhu and others},
+  journal={ICLR},
+  volume={1},
+  number={2},
+  pages={3},
+  year={2022}
+}
+
+@misc{zou2025representationengineeringtopdownapproach,
+      title={Representation Engineering: A Top-Down Approach to AI Transparency}, 
+      author={Andy Zou and Long Phan and Sarah Chen and James Campbell and Phillip Guo and Richard Ren and Alexander Pan and Xuwang Yin and Mantas Mazeika and Ann-Kathrin Dombrowski and Shashwat Goel and Nathaniel Li and Michael J. Byun and Zifan Wang and Alex Mallen and Steven Basart and Sanmi Koyejo and Dawn Song and Matt Fredrikson and J. Zico Kolter and Dan Hendrycks},
+      year={2025},
+      eprint={2310.01405},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2310.01405}, 
+}
+
+@misc{ouyang2022traininglanguagemodelsfollow,
+      title={Training language models to follow instructions with human feedback}, 
+      author={Long Ouyang and Jeff Wu and Xu Jiang and Diogo Almeida and Carroll L. Wainwright and Pamela Mishkin and Chong Zhang and Sandhini Agarwal and Katarina Slama and Alex Ray and John Schulman and Jacob Hilton and Fraser Kelton and Luke Miller and Maddie Simens and Amanda Askell and Peter Welinder and Paul Christiano and Jan Leike and Ryan Lowe},
+      year={2022},
+      eprint={2203.02155},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2203.02155}, 
+}
+
+@article{DBLP:journals/corr/abs-2408-05147,
+  author       = {Tom Lieberum and
+                  Senthooran Rajamanoharan and
+                  Arthur Conmy and
+                  Lewis Smith and
+                  Nicolas Sonnerat and
+                  Vikrant Varma and
+                  J{\'{a}}nos Kram{\'{a}}r and
+                  Anca D. Dragan and
+                  Rohin Shah and
+                  Neel Nanda},
+  title        = {Gemma Scope: Open Sparse Autoencoders Everywhere All At Once on Gemma
+                  2},
+  journal      = {CoRR},
+  volume       = {abs/2408.05147},
+  year         = {2024},
+  url          = {https://doi.org/10.48550/arXiv.2408.05147},
+  doi          = {10.48550/ARXIV.2408.05147},
+  eprinttype    = {arXiv},
+  eprint       = {2408.05147},
+  timestamp    = {Tue, 17 Sep 2024 08:35:46 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2408-05147.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@misc{alpaca_eval,
+  author = {Xuechen Li and Tianyi Zhang and Yann Dubois and Rohan Taori and Ishaan Gulrajani and Carlos Guestrin and Percy Liang and Tatsunori B. Hashimoto },
+  title = {AlpacaEval: An Automatic Evaluator of Instruction-following Models},
+  year = {2023},
+  month = {5},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/tatsu-lab/alpaca_eval}}
+}
+
+@misc{openai2024gpt4ocard,
+      title={GPT-4o System Card}, 
+      author={OpenAI and : and Aaron Hurst and Adam Lerer and Adam P. Goucher and Adam Perelman and Aditya Ramesh and Aidan Clark and AJ Ostrow and Akila Welihinda and Alan Hayes and Alec Radford and Aleksander Mądry and Alex Baker-Whitcomb and Alex Beutel and Alex Borzunov and Alex Carney and Alex Chow and Alex Kirillov and Alex Nichol and Alex Paino and Alex Renzin and Alex Tachard Passos and Alexander Kirillov and Alexi Christakis and Alexis Conneau and Ali Kamali and Allan Jabri and Allison Moyer and Allison Tam and Amadou Crookes and Amin Tootoochian and Amin Tootoonchian and Ananya Kumar and Andrea Vallone and Andrej Karpathy and Andrew Braunstein and Andrew Cann and Andrew Codispoti and Andrew Galu and Andrew Kondrich and Andrew Tulloch and Andrey Mishchenko and Angela Baek and Angela Jiang and Antoine Pelisse and Antonia Woodford and Anuj Gosalia and Arka Dhar and Ashley Pantuliano and Avi Nayak and Avital Oliver and Barret Zoph and Behrooz Ghorbani and Ben Leimberger and Ben Rossen and Ben Sokolowsky and Ben Wang and Benjamin Zweig and Beth Hoover and Blake Samic and Bob McGrew and Bobby Spero and Bogo Giertler and Bowen Cheng and Brad Lightcap and Brandon Walkin and Brendan Quinn and Brian Guarraci and Brian Hsu and Bright Kellogg and Brydon Eastman and Camillo Lugaresi and Carroll Wainwright and Cary Bassin and Cary Hudson and Casey Chu and Chad Nelson and Chak Li and Chan Jun Shern and Channing Conger and Charlotte Barette and Chelsea Voss and Chen Ding and Cheng Lu and Chong Zhang and Chris Beaumont and Chris Hallacy and Chris Koch and Christian Gibson and Christina Kim and Christine Choi and Christine McLeavey and Christopher Hesse and Claudia Fischer and Clemens Winter and Coley Czarnecki and Colin Jarvis and Colin Wei and Constantin Koumouzelis and Dane Sherburn and Daniel Kappler and Daniel Levin and Daniel Levy and David Carr and David Farhi and David Mely and David Robinson and David Sasaki and Denny Jin and Dev Valladares and Dimitris Tsipras and Doug Li and Duc Phong Nguyen and Duncan Findlay and Edede Oiwoh and Edmund Wong and Ehsan Asdar and Elizabeth Proehl and Elizabeth Yang and Eric Antonow and Eric Kramer and Eric Peterson and Eric Sigler and Eric Wallace and Eugene Brevdo and Evan Mays and Farzad Khorasani and Felipe Petroski Such and Filippo Raso and Francis Zhang and Fred von Lohmann and Freddie Sulit and Gabriel Goh and Gene Oden and Geoff Salmon and Giulio Starace and Greg Brockman and Hadi Salman and Haiming Bao and Haitang Hu and Hannah Wong and Haoyu Wang and Heather Schmidt and Heather Whitney and Heewoo Jun and Hendrik Kirchner and Henrique Ponde de Oliveira Pinto and Hongyu Ren and Huiwen Chang and Hyung Won Chung and Ian Kivlichan and Ian O'Connell and Ian O'Connell and Ian Osband and Ian Silber and Ian Sohl and Ibrahim Okuyucu and Ikai Lan and Ilya Kostrikov and Ilya Sutskever and Ingmar Kanitscheider and Ishaan Gulrajani and Jacob Coxon and Jacob Menick and Jakub Pachocki and James Aung and James Betker and James Crooks and James Lennon and Jamie Kiros and Jan Leike and Jane Park and Jason Kwon and Jason Phang and Jason Teplitz and Jason Wei and Jason Wolfe and Jay Chen and Jeff Harris and Jenia Varavva and Jessica Gan Lee and Jessica Shieh and Ji Lin and Jiahui Yu and Jiayi Weng and Jie Tang and Jieqi Yu and Joanne Jang and Joaquin Quinonero Candela and Joe Beutler and Joe Landers and Joel Parish and Johannes Heidecke and John Schulman and Jonathan Lachman and Jonathan McKay and Jonathan Uesato and Jonathan Ward and Jong Wook Kim and Joost Huizinga and Jordan Sitkin and Jos Kraaijeveld and Josh Gross and Josh Kaplan and Josh Snyder and Joshua Achiam and Joy Jiao and Joyce Lee and Juntang Zhuang and Justyn Harriman and Kai Fricke and Kai Hayashi and Karan Singhal and Katy Shi and Kavin Karthik and Kayla Wood and Kendra Rimbach and Kenny Hsu and Kenny Nguyen and Keren Gu-Lemberg and Kevin Button and Kevin Liu and Kiel Howe and Krithika Muthukumar and Kyle Luther and Lama Ahmad and Larry Kai and Lauren Itow and Lauren Workman and Leher Pathak and Leo Chen and Li Jing and Lia Guy and Liam Fedus and Liang Zhou and Lien Mamitsuka and Lilian Weng and Lindsay McCallum and Lindsey Held and Long Ouyang and Louis Feuvrier and Lu Zhang and Lukas Kondraciuk and Lukasz Kaiser and Luke Hewitt and Luke Metz and Lyric Doshi and Mada Aflak and Maddie Simens and Madelaine Boyd and Madeleine Thompson and Marat Dukhan and Mark Chen and Mark Gray and Mark Hudnall and Marvin Zhang and Marwan Aljubeh and Mateusz Litwin and Matthew Zeng and Max Johnson and Maya Shetty and Mayank Gupta and Meghan Shah and Mehmet Yatbaz and Meng Jia Yang and Mengchao Zhong and Mia Glaese and Mianna Chen and Michael Janner and Michael Lampe and Michael Petrov and Michael Wu and Michele Wang and Michelle Fradin and Michelle Pokrass and Miguel Castro and Miguel Oom Temudo de Castro and Mikhail Pavlov and Miles Brundage and Miles Wang and Minal Khan and Mira Murati and Mo Bavarian and Molly Lin and Murat Yesildal and Nacho Soto and Natalia Gimelshein and Natalie Cone and Natalie Staudacher and Natalie Summers and Natan LaFontaine and Neil Chowdhury and Nick Ryder and Nick Stathas and Nick Turley and Nik Tezak and Niko Felix and Nithanth Kudige and Nitish Keskar and Noah Deutsch and Noel Bundick and Nora Puckett and Ofir Nachum and Ola Okelola and Oleg Boiko and Oleg Murk and Oliver Jaffe and Olivia Watkins and Olivier Godement and Owen Campbell-Moore and Patrick Chao and Paul McMillan and Pavel Belov and Peng Su and Peter Bak and Peter Bakkum and Peter Deng and Peter Dolan and Peter Hoeschele and Peter Welinder and Phil Tillet and Philip Pronin and Philippe Tillet and Prafulla Dhariwal and Qiming Yuan and Rachel Dias and Rachel Lim and Rahul Arora and Rajan Troll and Randall Lin and Rapha Gontijo Lopes and Raul Puri and Reah Miyara and Reimar Leike and Renaud Gaubert and Reza Zamani and Ricky Wang and Rob Donnelly and Rob Honsby and Rocky Smith and Rohan Sahai and Rohit Ramchandani and Romain Huet and Rory Carmichael and Rowan Zellers and Roy Chen and Ruby Chen and Ruslan Nigmatullin and Ryan Cheu and Saachi Jain and Sam Altman and Sam Schoenholz and Sam Toizer and Samuel Miserendino and Sandhini Agarwal and Sara Culver and Scott Ethersmith and Scott Gray and Sean Grove and Sean Metzger and Shamez Hermani and Shantanu Jain and Shengjia Zhao and Sherwin Wu and Shino Jomoto and Shirong Wu and Shuaiqi and Xia and Sonia Phene and Spencer Papay and Srinivas Narayanan and Steve Coffey and Steve Lee and Stewart Hall and Suchir Balaji and Tal Broda and Tal Stramer and Tao Xu and Tarun Gogineni and Taya Christianson and Ted Sanders and Tejal Patwardhan and Thomas Cunninghman and Thomas Degry and Thomas Dimson and Thomas Raoux and Thomas Shadwell and Tianhao Zheng and Todd Underwood and Todor Markov and Toki Sherbakov and Tom Rubin and Tom Stasi and Tomer Kaftan and Tristan Heywood and Troy Peterson and Tyce Walters and Tyna Eloundou and Valerie Qi and Veit Moeller and Vinnie Monaco and Vishal Kuo and Vlad Fomenko and Wayne Chang and Weiyi Zheng and Wenda Zhou and Wesam Manassra and Will Sheu and Wojciech Zaremba and Yash Patil and Yilei Qian and Yongjik Kim and Youlong Cheng and Yu Zhang and Yuchen He and Yuchen Zhang and Yujia Jin and Yunxing Dai and Yury Malkov},
+      year={2024},
+      eprint={2410.21276},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2410.21276}, 
+}
+
+@inproceedings{NIPS2016_ed265bc9,
+ author = {Salimans, Tim and Kingma, Durk P},
+ booktitle = {Advances in Neural Information Processing Systems},
+ editor = {D. Lee and M. Sugiyama and U. Luxburg and I. Guyon and R. Garnett},
+ pages = {},
+ publisher = {Curran Associates, Inc.},
+ title = {Weight Normalization: A Simple Reparameterization to Accelerate Training of Deep Neural Networks},
+ url = {https://proceedings.neurips.cc/paper_files/paper/2016/file/ed265bc903a5a097f61d3ec064d96d2e-Paper.pdf},
+ volume = {29},
+ year = {2016}
+}
+
+@article{DBLP:journals/corr/abs-2408-00118,
+  author       = {Morgane Rivi{\`{e}}re and
+                  Shreya Pathak and
+                  Pier Giuseppe Sessa and
+                  Cassidy Hardin and
+                  Surya Bhupatiraju and
+                  L{\'{e}}onard Hussenot and
+                  Thomas Mesnard and
+                  Bobak Shahriari and
+                  Alexandre Ram{\'{e}} and
+                  Johan Ferret and
+                  Peter Liu and
+                  Pouya Tafti and
+                  Abe Friesen and
+                  Michelle Casbon and
+                  Sabela Ramos and
+                  Ravin Kumar and
+                  Charline Le Lan and
+                  Sammy Jerome and
+                  Anton Tsitsulin and
+                  Nino Vieillard and
+                  Piotr Stanczyk and
+                  Sertan Girgin and
+                  Nikola Momchev and
+                  Matt Hoffman and
+                  Shantanu Thakoor and
+                  Jean{-}Bastien Grill and
+                  Behnam Neyshabur and
+                  Olivier Bachem and
+                  Alanna Walton and
+                  Aliaksei Severyn and
+                  Alicia Parrish and
+                  Aliya Ahmad and
+                  Allen Hutchison and
+                  Alvin Abdagic and
+                  Amanda Carl and
+                  Amy Shen and
+                  Andy Brock and
+                  Andy Coenen and
+                  Anthony Laforge and
+                  Antonia Paterson and
+                  Ben Bastian and
+                  Bilal Piot and
+                  Bo Wu and
+                  Brandon Royal and
+                  Charlie Chen and
+                  Chintu Kumar and
+                  Chris Perry and
+                  Chris Welty and
+                  Christopher A. Choquette{-}Choo and
+                  Danila Sinopalnikov and
+                  David Weinberger and
+                  Dimple Vijaykumar and
+                  Dominika Rogozinska and
+                  Dustin Herbison and
+                  Elisa Bandy and
+                  Emma Wang and
+                  Eric Noland and
+                  Erica Moreira and
+                  Evan Senter and
+                  Evgenii Eltyshev and
+                  Francesco Visin and
+                  Gabriel Rasskin and
+                  Gary Wei and
+                  Glenn Cameron and
+                  Gus Martins and
+                  Hadi Hashemi and
+                  Hanna Klimczak{-}Plucinska and
+                  Harleen Batra and
+                  Harsh Dhand and
+                  Ivan Nardini and
+                  Jacinda Mein and
+                  Jack Zhou and
+                  James Svensson and
+                  Jeff Stanway and
+                  Jetha Chan and
+                  Jin Peng Zhou and
+                  Joana Carrasqueira and
+                  Joana Iljazi and
+                  Jocelyn Becker and
+                  Joe Fernandez and
+                  Joost van Amersfoort and
+                  Josh Gordon and
+                  Josh Lipschultz and
+                  Josh Newlan and
+                  Ju{-}yeong Ji and
+                  Kareem Mohamed and
+                  Kartikeya Badola and
+                  Kat Black and
+                  Katie Millican and
+                  Keelin McDonell and
+                  Kelvin Nguyen and
+                  Kiranbir Sodhia and
+                  Kish Greene and
+                  Lars Lowe Sj{\"{o}}sund and
+                  Lauren Usui and
+                  Laurent Sifre and
+                  Lena Heuermann and
+                  Leticia Lago and
+                  Lilly McNealus},
+  title        = {Gemma 2: Improving Open Language Models at a Practical Size},
+  journal      = {CoRR},
+  volume       = {abs/2408.00118},
+  year         = {2024},
+  url          = {https://doi.org/10.48550/arXiv.2408.00118},
+  doi          = {10.48550/ARXIV.2408.00118},
+  eprinttype    = {arXiv},
+  eprint       = {2408.00118},
+  timestamp    = {Mon, 30 Sep 2024 07:53:51 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2408-00118.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@misc{paszke2019pytorch,
+    title={PyTorch: An Imperative Style, High-Performance Deep Learning Library},
+    author={Adam Paszke and Sam Gross and Francisco Massa and Adam Lerer and James Bradbury and Gregory Chanan and Trevor Killeen and Zeming Lin and Natalia Gimelshein and Luca Antiga and Alban Desmaison and Andreas Köpf and Edward Yang and Zach DeVito and Martin Raison and Alykhan Tejani and Sasank Chilamkurthy and Benoit Steiner and Lu Fang and Junjie Bai and Soumith Chintala},
+    year={2019},
+    eprint={1912.01703},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG}
+}
+
+@inproceedings{wu-etal-2024-pyvene,
+    title = "pyvene: A Library for Understanding and Improving {P}y{T}orch Models via Interventions",
+    author = "Wu, Zhengxuan and Geiger, Atticus and Arora, Aryaman and Huang, Jing and Wang, Zheng and Goodman, Noah and Manning, Christopher and Potts, Christopher",
+    editor = "Chang, Kai-Wei and Lee, Annie and Rajani, Nazneen",
+    booktitle = "Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 3: System Demonstrations)",
+    month = jun,
+    year = "2024",
+    address = "Mexico City, Mexico",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2024.naacl-demo.16",
+    pages = "158--165",
+}
+
+@misc{gao2024scalingevaluatingsparseautoencoders,
+      title={Scaling and evaluating sparse autoencoders},
+      author={Leo Gao and Tom Dupré la Tour and Henk Tillman and Gabriel Goh and Rajan Troll and Alec Radford and Ilya Sutskever and Jan Leike and Jeffrey Wu},
+      year={2024},
+      eprint={2406.04093},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2406.04093},
+}
+@article{bricken2023monosemanticity,
+       title={Towards Monosemanticity: Decomposing Language Models With Dictionary Learning},
+       author={Bricken, Trenton and Templeton, Adly and Batson, Joshua and Chen, Brian and Jermyn, Adam and Conerly, Tom and Turner, Nick and Anil, Cem and Denison, Carson and Askell, Amanda and Lasenby, Robert and Wu, Yifan and Kravec, Shauna and Schiefer, Nicholas and Maxwell, Tim and Joseph, Nicholas and Hatfield-Dodds, Zac and Tamkin, Alex and Nguyen, Karina and McLean, Brayden and Burke, Josiah E and Hume, Tristan and Carter, Shan and Henighan, Tom and Olah, Christopher},
+       year={2023},
+       journal={Transformer Circuits Thread},
+       note={https://transformer-circuits.pub/2023/monosemantic-features/index.html}
+}
+
+Automatic interpretability labeling references:
+@inproceedings{Hernandez2022,
+  author={Evan Hernandez and Sarah Schwettmann and David Bau and Teona Bagashvili and Antonio Torralba and Jacob Andreas},
+  title={Natural Language Descriptions of Deep Visual Features},
+  year={2022},
+  cdate={1640995200000},
+  url={https://openreview.net/forum?id=NudBMY-tzDr},
+  booktitle={ICLR},
+}
+
+@inproceedings{huang-etal-2023-rigorously,
+    title = "Rigorously Assessing Natural Language Explanations of Neurons",
+    author = "Huang, Jing  and
+      Geiger, Atticus  and
+      D{'}Oosterlinck, Karel  and
+      Wu, Zhengxuan  and
+      Potts, Christopher",
+    editor = "Belinkov, Yonatan  and
+      Hao, Sophie  and
+      Jumelet, Jaap  and
+      Kim, Najoung  and
+      McCarthy, Arya  and
+      Mohebbi, Hosein",
+    booktitle = "Proceedings of the 6th BlackboxNLP Workshop: Analyzing and Interpreting Neural Networks for NLP",
+    month = dec,
+    year = "2023",
+    address = "Singapore",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.blackboxnlp-1.24/",
+    doi = "10.18653/v1/2023.blackboxnlp-1.24",
+    pages = "317--331"
+}
+@misc{bills2023language,
+     title={Language models can explain neurons in language models},
+     author={
+        Bills, Steven and Cammarata, Nick and Mossing, Dan and Tillman, Henk and Gao, Leo and Goh, Gabriel and Sutskever, Ilya and Leike, Jan and Wu, Jeff and Saunders, William
+     },
+     year={2023},
+     howpublished = {\url{https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html}}
+  }
+@misc{choi2024automatic,
+  author       = {Choi, Dami and Huang, Vincent and Meng, Kevin and Johnson, Daniel D and Steinhardt, Jacob and Schwettmann, Sarah},
+  title        = {Scaling Automatic Neuron Description},
+  year         = {2024},
+  month        = {October},
+  day          = {23},
+  howpublished = {\url{https://transluce.org/neuron-descriptions}}
+}
+
+@inproceedings{
+li2023inferencetime,
+title={Inference-Time Intervention: Eliciting Truthful Answers from a Language Model},
+author={Kenneth Li and Oam Patel and Fernanda Vi{\'e}gas and Hanspeter Pfister and Martin Wattenberg},
+booktitle={Thirty-seventh Conference on Neural Information Processing Systems},
+year={2023},
+url={https://openreview.net/forum?id=aLLuYpn83y}
+}
+
+@article{DBLP:journals/corr/abs-2308-10248,
+  author       = {Alexander Matt Turner and
+                  Lisa Thiergart and
+                  David Udell and
+                  Gavin Leech and
+                  Ulisse Mini and
+                  Monte MacDiarmid},
+  title        = {Activation Addition: Steering Language Models Without Optimization},
+  journal      = {CoRR},
+  volume       = {abs/2308.10248},
+  year         = {2023},
+  url          = {https://doi.org/10.48550/arXiv.2308.10248},
+  doi          = {10.48550/ARXIV.2308.10248},
+  eprinttype    = {arXiv},
+  eprint       = {2308.10248},
+  timestamp    = {Sun, 04 Aug 2024 19:45:39 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-2308-10248.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{Giulianelli:2018,
+  author       = {Mario Giulianelli and
+                  Jack Harding and
+                  Florian Mohnert and
+                  Dieuwke Hupkes and
+                  Willem H. Zuidema},
+  editor       = {Tal Linzen and
+                  Grzegorz Chrupala and
+                  Afra Alishahi},
+  title        = {Under the Hood: Using Diagnostic Classifiers to Investigate and Improve
+                  how Language Models Track Agreement Information},
+  booktitle    = {Proceedings of the Workshop: Analyzing and Interpreting Neural Networks for NLP, BlackboxNLP EMNLP 2018, Brussels, Belgium, November 1, 2018},
+  pages        = {240--248},
+  publisher    = {Association for Computational Linguistics},
+  year         = {2018},
+  url          = {https://doi.org/10.18653/v1/w18-5426},
+  doi          = {10.18653/V1/W18-5426},
+  timestamp    = {Fri, 06 Aug 2021 00:40:25 +0200},
+  biburl       = {https://dblp.org/rec/conf/emnlp/GiulianelliHMHZ18.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{DBLP:conf/icml/LiuY0Z24,
+  author       = {Sheng Liu and
+                  Haotian Ye and
+                  Lei Xing and
+                  James Y. Zou},
+  title        = {In-context Vectors: Making In Context Learning More Effective and
+                  Controllable Through Latent Space Steering},
+  booktitle    = {Forty-first International Conference on Machine Learning, {ICML} 2024,
+                  Vienna, Austria, July 21-27, 2024},
+  publisher    = {OpenReview.net},
+  year         = {2024},
+  url          = {https://openreview.net/forum?id=dJTChKgv3a},
+  timestamp    = {Mon, 02 Sep 2024 16:55:26 +0200},
+  biburl       = {https://dblp.org/rec/conf/icml/LiuY0Z24.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{JMLR:v9:vandermaaten08a,
+  author  = {Laurens van der Maaten and Geoffrey Hinton},
+  title   = {Visualizing Data using t-SNE},
+  journal = {Journal of Machine Learning Research},
+  year    = {2008},
+  volume  = {9},
+  number  = {86},
+  pages   = {2579--2605},
+  url     = {http://jmlr.org/papers/v9/vandermaaten08a.html}
+}
+
+@inproceedings{
+marks2025sparse,
+title={Sparse Feature Circuits: Discovering and Editing Interpretable Causal Graphs in Language Models},
+author={Samuel Marks and Can Rager and Eric J Michaud and Yonatan Belinkov and David Bau and Aaron Mueller},
+booktitle={The Thirteenth International Conference on Learning Representations},
+year={2025},
+url={https://openreview.net/forum?id=I4e82CIDxv}
+}
+
+@misc{cunningham2023sparseautoencodershighlyinterpretable,
+      title={Sparse Autoencoders Find Highly Interpretable Features in Language Models},
+      author={Hoagy Cunningham and Aidan Ewart and Logan Riggs and Robert Huben and Lee Sharkey},
+      year={2023},
+      eprint={2309.08600},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2309.08600},
+}
+
+@inproceedings{huang-etal-2023-rigorously,
+    title = "Rigorously Assessing Natural Language Explanations of Neurons",
+    author = "Huang, Jing  and
+      Geiger, Atticus  and
+      D{'}Oosterlinck, Karel  and
+      Wu, Zhengxuan  and
+      Potts, Christopher",
+    editor = "Belinkov, Yonatan  and
+      Hao, Sophie  and
+      Jumelet, Jaap  and
+      Kim, Najoung  and
+      McCarthy, Arya  and
+      Mohebbi, Hosein",
+    booktitle = "Proceedings of the 6th BlackboxNLP Workshop: Analyzing and Interpreting Neural Networks for NLP",
+    month = dec,
+    year = "2023",
+    address = "Singapore",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2023.blackboxnlp-1.24/",
+    doi = "10.18653/v1/2023.blackboxnlp-1.24",
+    pages = "317--331"
+}
+@misc{bills2023language,
+     title={Language models can explain neurons in language models},
+     author={
+        Bills, Steven and Cammarata, Nick and Mossing, Dan and Tillman, Henk and Gao, Leo and Goh, Gabriel and Sutskever, Ilya and Leike, Jan and Wu, Jeff and Saunders, William
+     },
+     year={2023},
+     howpublished = {\url{https://openaipublic.blob.core.windows.net/neuron-explainer/paper/index.html}}
+  }
+@misc{choi2024automatic,
+  author       = {Choi, Dami and Huang, Vincent and Meng, Kevin and Johnson, Daniel D and Steinhardt, Jacob and Schwettmann, Sarah},
+  title        = {Scaling Automatic Neuron Description},
+  year         = {2024},
+  month        = {October},
+  day          = {23},
+  howpublished = {\url{https://transluce.org/neuron-descriptions}}
+}
+
+@article{WOLD198737,
+title = {Principal component analysis},
+journal = {Chemometrics and Intelligent Laboratory Systems},
+volume = {2},
+number = {1},
+pages = {37-52},
+year = {1987},
+note = {Proceedings of the Multivariate Statistical Workshop for Geologists and Geochemists},
+issn = {0169-7439},
+doi = {https://doi.org/10.1016/0169-7439(87)80084-9},
+url = {https://www.sciencedirect.com/science/article/pii/0169743987800849},
+author = {Svante Wold and Kim Esbensen and Paul Geladi},
+abstract = {Principal component analysis of a data matrix extracts the dominant patterns in the matrix in terms of a complementary set of score and loading plots. It is the responsibility of the data analyst to formulate the scientific issue at hand in terms of PC projections, PLS regressions, etc. Ask yourself, or the investigator, why the data matrix was collected, and for what purpose the experiments and measurements were made. Specify before the analysis what kinds of patterns you would expect and what you would find exciting. The results of the analysis depend on the scaling of the matrix, which therefore must be specified. Variance scaling, where each variable is scaled to unit variance, can be recommended for general use, provided that almost constant variables are left unscaled. Combining different types of variables warrants blockscaling. In the initial analysis, look for outliers and strong groupings in the plots, indicating that the data matrix perhaps should be “polished” or whether disjoint modeling is the proper course. For plotting purposes, two or three principal components are usually sufficient, but for modeling purposes the number of significant components should be properly determined, e.g. by cross-validation. Use the resulting principal components to guide your continued investigation or chemical experimentation, not as an end in itself.}
+}
+
+@article{scikit-learn,
+  title={Scikit-learn: Machine Learning in {P}ython},
+  author={Pedregosa, F. and Varoquaux, G. and Gramfort, A. and Michel, V.
+          and Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P.
+          and Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and
+          Cournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.},
+  journal={Journal of Machine Learning Research},
+  volume={12},
+  pages={2825--2830},
+  year={2011}
+}
+
+@inproceedings{sun2025hyperdas,
+  title={Hyper{DAS}: Towards Automating Mechanistic Interpretability with Hypernetworks},
+  author = {Sun, Jiuding and Huang, Jing and Baskaran, Sidharth and D'Oosterlinck, Karel and Potts, Christopher and Sklar, Michael and Geiger, Atticus},
+  booktitle={The Thirteenth International Conference on Learning Representations},
+  year={2025},
+  url={https://openreview.net/forum?id=6fDjUoEQvm}}
+
+@inproceedings{
+wu2024reft,
+title={Re{FT}: Representation Finetuning for Language Models},
+author={Zhengxuan Wu and Aryaman Arora and Zheng Wang and Atticus Geiger and Dan Jurafsky and Christopher D Manning and Christopher Potts},
+booktitle={The Thirty-eighth Annual Conference on Neural Information Processing Systems},
+year={2024},
+url={https://openreview.net/forum?id=fykjplMc0V}
+}
+
+@misc{DatabricksBlog2023DollyV2,
+    author    = {Mike Conover and Matt Hayes and Ankit Mathur and Jianwei Xie and Jun Wan and Sam Shah and Ali Ghodsi and Patrick Wendell and Matei Zaharia and Reynold Xin},
+    title     = {Free Dolly: Introducing the World's First Truly Open Instruction-Tuned LLM},
+    year      = {2023},
+    url       = {https://www.databricks.com/blog/2023/04/12/dolly-first-open-commercially-viable-instruction-tuned-llm},
+    urldate   = {2023-06-30}
+}
+
+@article{cobbe2021gsm8k,
+  title={Training Verifiers to Solve Math Word Problems},
+  author={Cobbe, Karl and Kosaraju, Vineet and Bavarian, Mohammad and Chen, Mark and Jun, Heewoo and Kaiser, Lukasz and Plappert, Matthias and Tworek, Jerry and Hilton, Jacob and Nakano, Reiichiro and Hesse, Christopher and Schulman, John},
+  journal={arXiv preprint arXiv:2110.14168},
+  year={2021}
+}

@@ -1,0 +1,124 @@
+\begin{thebibliography}{24}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Bricken et~al.(2023)Bricken, Templeton, Batson, Chen, Jermyn, Conerly, Turner, Anil, Denison, Askell, Lasenby, Wu, Kravec, Schiefer, Maxwell, Joseph, Hatfield-Dodds, Tamkin, Nguyen, McLean, Burke, Hume, Carter, Henighan, and Olah}]{bricken2023monosemanticity}
+Trenton Bricken, Adly Templeton, Joshua Batson, Brian Chen, Adam Jermyn, Tom Conerly, Nick Turner, Cem Anil, Carson Denison, Amanda Askell, Robert Lasenby, Yifan Wu, Shauna Kravec, Nicholas Schiefer, Tim Maxwell, Nicholas Joseph, Zac Hatfield-Dodds, Alex Tamkin, Karina Nguyen, and 6 others. 2023.
+\newblock Towards monosemanticity: Decomposing language models with dictionary learning.
+\newblock \emph{Transformer Circuits Thread}.
+\newblock Https://transformer-circuits.pub/2023/monosemantic-features/index.html.
+
+\bibitem[{Cobbe et~al.(2021)Cobbe, Kosaraju, Bavarian, Chen, Jun, Kaiser, Plappert, Tworek, Hilton, Nakano, Hesse, and Schulman}]{cobbe2021gsm8k}
+Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, and John Schulman. 2021.
+\newblock Training verifiers to solve math word problems.
+\newblock \emph{arXiv preprint arXiv:2110.14168}.
+
+\bibitem[{Conover et~al.(2023)Conover, Hayes, Mathur, Xie, Wan, Shah, Ghodsi, Wendell, Zaharia, and Xin}]{DatabricksBlog2023DollyV2}
+Mike Conover, Matt Hayes, Ankit Mathur, Jianwei Xie, Jun Wan, Sam Shah, Ali Ghodsi, Patrick Wendell, Matei Zaharia, and Reynold Xin. 2023.
+\newblock \href {https://www.databricks.com/blog/2023/04/12/dolly-first-open-commercially-viable-instruction-tuned-llm} {Free dolly: Introducing the world's first truly open instruction-tuned llm}.
+
+\bibitem[{Cunningham et~al.(2023)Cunningham, Ewart, Riggs, Huben, and Sharkey}]{cunningham2023sparseautoencodershighlyinterpretable}
+Hoagy Cunningham, Aidan Ewart, Logan Riggs, Robert Huben, and Lee Sharkey. 2023.
+\newblock \href {https://arxiv.org/abs/2309.08600} {Sparse autoencoders find highly interpretable features in language models}.
+\newblock \emph{Preprint}, arXiv:2309.08600.
+
+\bibitem[{Gao et~al.(2024)Gao, la~Tour, Tillman, Goh, Troll, Radford, Sutskever, Leike, and Wu}]{gao2024scalingevaluatingsparseautoencoders}
+Leo Gao, Tom~Dupré la~Tour, Henk Tillman, Gabriel Goh, Rajan Troll, Alec Radford, Ilya Sutskever, Jan Leike, and Jeffrey Wu. 2024.
+\newblock \href {https://arxiv.org/abs/2406.04093} {Scaling and evaluating sparse autoencoders}.
+\newblock \emph{Preprint}, arXiv:2406.04093.
+
+\bibitem[{Giulianelli et~al.(2018)Giulianelli, Harding, Mohnert, Hupkes, and Zuidema}]{Giulianelli:2018}
+Mario Giulianelli, Jack Harding, Florian Mohnert, Dieuwke Hupkes, and Willem~H. Zuidema. 2018.
+\newblock \href {https://doi.org/10.18653/V1/W18-5426} {Under the hood: Using diagnostic classifiers to investigate and improve how language models track agreement information}.
+\newblock In \emph{Proceedings of the Workshop: Analyzing and Interpreting Neural Networks for NLP, BlackboxNLP EMNLP 2018, Brussels, Belgium, November 1, 2018}, pages 240--248. Association for Computational Linguistics.
+
+\bibitem[{Ha et~al.(2016)Ha, Dai, and Le}]{ha2016hypernetworks}
+David Ha, Andrew Dai, and Quoc~V. Le. 2016.
+\newblock \href {https://arxiv.org/abs/1609.09106} {Hypernetworks}.
+\newblock \emph{Preprint}, arXiv:1609.09106.
+
+\bibitem[{Hernandez et~al.(2022)Hernandez, Schwettmann, Bau, Bagashvili, Torralba, and Andreas}]{Hernandez2022}
+Evan Hernandez, Sarah Schwettmann, David Bau, Teona Bagashvili, Antonio Torralba, and Jacob Andreas. 2022.
+\newblock \href {https://openreview.net/forum?id=NudBMY-tzDr} {Natural language descriptions of deep visual features}.
+\newblock In \emph{ICLR}.
+
+\bibitem[{Hu et~al.(2022)Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, Chen et~al.}]{hu2022lora}
+Edward~J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu~Wang, Weizhu Chen, and 1 others. 2022.
+\newblock Lora: Low-rank adaptation of large language models.
+\newblock \emph{ICLR}, 1(2):3.
+
+\bibitem[{Li et~al.(2023{\natexlab{a}})Li, Patel, Vi{\'e}gas, Pfister, and Wattenberg}]{li2023inferencetime}
+Kenneth Li, Oam Patel, Fernanda Vi{\'e}gas, Hanspeter Pfister, and Martin Wattenberg. 2023{\natexlab{a}}.
+\newblock \href {https://openreview.net/forum?id=aLLuYpn83y} {Inference-time intervention: Eliciting truthful answers from a language model}.
+\newblock In \emph{Thirty-seventh Conference on Neural Information Processing Systems}.
+
+\bibitem[{Li et~al.(2023{\natexlab{b}})Li, Zhang, Dubois, Taori, Gulrajani, Guestrin, Liang, and Hashimoto}]{alpaca_eval}
+Xuechen Li, Tianyi Zhang, Yann Dubois, Rohan Taori, Ishaan Gulrajani, Carlos Guestrin, Percy Liang, and Tatsunori~B. Hashimoto. 2023{\natexlab{b}}.
+\newblock Alpacaeval: An automatic evaluator of instruction-following models.
+\newblock \url{https://github.com/tatsu-lab/alpaca_eval}.
+
+\bibitem[{Lieberum et~al.(2024)Lieberum, Rajamanoharan, Conmy, Smith, Sonnerat, Varma, Kram{\'{a}}r, Dragan, Shah, and Nanda}]{DBLP:journals/corr/abs-2408-05147}
+Tom Lieberum, Senthooran Rajamanoharan, Arthur Conmy, Lewis Smith, Nicolas Sonnerat, Vikrant Varma, J{\'{a}}nos Kram{\'{a}}r, Anca~D. Dragan, Rohin Shah, and Neel Nanda. 2024.
+\newblock \href {https://doi.org/10.48550/ARXIV.2408.05147} {Gemma scope: Open sparse autoencoders everywhere all at once on gemma 2}.
+\newblock \emph{CoRR}, abs/2408.05147.
+
+\bibitem[{Marks et~al.(2025)Marks, Rager, Michaud, Belinkov, Bau, and Mueller}]{marks2025sparse}
+Samuel Marks, Can Rager, Eric~J Michaud, Yonatan Belinkov, David Bau, and Aaron Mueller. 2025.
+\newblock \href {https://openreview.net/forum?id=I4e82CIDxv} {Sparse feature circuits: Discovering and editing interpretable causal graphs in language models}.
+\newblock In \emph{The Thirteenth International Conference on Learning Representations}.
+
+\bibitem[{Marks and Tegmark(2023)}]{Marks:2018}
+Samuel Marks and Max Tegmark. 2023.
+\newblock \href {https://doi.org/10.48550/ARXIV.2310.06824} {The geometry of truth: Emergent linear structure in large language model representations of true/false datasets}.
+\newblock \emph{CoRR}, abs/2310.06824.
+
+\bibitem[{OpenAI et~al.(2024)OpenAI, :, Hurst, Lerer, Goucher, Perelman, Ramesh, Clark, Ostrow, Welihinda, Hayes, Radford, Mądry, Baker-Whitcomb, Beutel, Borzunov, Carney, Chow, Kirillov, Nichol, Paino, Renzin, Passos, Kirillov, Christakis, Conneau, Kamali, Jabri, Moyer, Tam, Crookes, Tootoochian, Tootoonchian, Kumar, Vallone, Karpathy, Braunstein, Cann, Codispoti, Galu, Kondrich, Tulloch, Mishchenko, Baek, Jiang, Pelisse, Woodford, Gosalia, Dhar, Pantuliano, Nayak, Oliver, Zoph, Ghorbani, Leimberger, Rossen, Sokolowsky, Wang, Zweig, Hoover, Samic, McGrew, Spero, Giertler, Cheng, Lightcap, Walkin, Quinn, Guarraci, Hsu, Kellogg, Eastman, Lugaresi, Wainwright, Bassin, Hudson, Chu, Nelson, Li, Shern, Conger, Barette, Voss, Ding, Lu, Zhang, Beaumont, Hallacy, Koch, Gibson, Kim, Choi, McLeavey, Hesse, Fischer, Winter, Czarnecki, Jarvis, Wei, Koumouzelis, Sherburn, Kappler, Levin, Levy, Carr, Farhi, Mely, Robinson, Sasaki, Jin, Valladares, Tsipras, Li, Nguyen, Findlay, Oiwoh, Wong, Asdar, Proehl, Yang, Antonow, Kramer, Peterson, Sigler, Wallace, Brevdo, Mays, Khorasani, Such, Raso, Zhang, von Lohmann, Sulit, Goh, Oden, Salmon, Starace, Brockman, Salman, Bao, Hu, Wong, Wang, Schmidt, Whitney, Jun, Kirchner, de~Oliveira~Pinto, Ren, Chang, Chung, Kivlichan, O'Connell, O'Connell, Osband, Silber, Sohl, Okuyucu, Lan, Kostrikov, Sutskever, Kanitscheider, Gulrajani, Coxon, Menick, Pachocki, Aung, Betker, Crooks, Lennon, Kiros, Leike, Park, Kwon, Phang, Teplitz, Wei, Wolfe, Chen, Harris, Varavva, Lee, Shieh, Lin, Yu, Weng, Tang, Yu, Jang, Candela, Beutler, Landers, Parish, Heidecke, Schulman, Lachman, McKay, Uesato, Ward, Kim, Huizinga, Sitkin, Kraaijeveld, Gross, Kaplan, Snyder, Achiam, Jiao, Lee, Zhuang, Harriman, Fricke, Hayashi, Singhal, Shi, Karthik, Wood, Rimbach, Hsu, Nguyen, Gu-Lemberg, Button, Liu, Howe, Muthukumar, Luther, Ahmad, Kai, Itow, Workman, Pathak, Chen, Jing, Guy, Fedus, Zhou, Mamitsuka, Weng, McCallum, Held, Ouyang, Feuvrier, Zhang, Kondraciuk, Kaiser, Hewitt, Metz, Doshi, Aflak, Simens, Boyd, Thompson, Dukhan, Chen, Gray, Hudnall, Zhang, Aljubeh, Litwin, Zeng, Johnson, Shetty, Gupta, Shah, Yatbaz, Yang, Zhong, Glaese, Chen, Janner, Lampe, Petrov, Wu, Wang, Fradin, Pokrass, Castro, de~Castro, Pavlov, Brundage, Wang, Khan, Murati, Bavarian, Lin, Yesildal, Soto, Gimelshein, Cone, Staudacher, Summers, LaFontaine, Chowdhury, Ryder, Stathas, Turley, Tezak, Felix, Kudige, Keskar, Deutsch, Bundick, Puckett, Nachum, Okelola, Boiko, Murk, Jaffe, Watkins, Godement, Campbell-Moore, Chao, McMillan, Belov, Su, Bak, Bakkum, Deng, Dolan, Hoeschele, Welinder, Tillet, Pronin, Tillet, Dhariwal, Yuan, Dias, Lim, Arora, Troll, Lin, Lopes, Puri, Miyara, Leike, Gaubert, Zamani, Wang, Donnelly, Honsby, Smith, Sahai, Ramchandani, Huet, Carmichael, Zellers, Chen, Chen, Nigmatullin, Cheu, Jain, Altman, Schoenholz, Toizer, Miserendino, Agarwal, Culver, Ethersmith, Gray, Grove, Metzger, Hermani, Jain, Zhao, Wu, Jomoto, Wu, Shuaiqi, Xia, Phene, Papay, Narayanan, Coffey, Lee, Hall, Balaji, Broda, Stramer, Xu, Gogineni, Christianson, Sanders, Patwardhan, Cunninghman, Degry, Dimson, Raoux, Shadwell, Zheng, Underwood, Markov, Sherbakov, Rubin, Stasi, Kaftan, Heywood, Peterson, Walters, Eloundou, Qi, Moeller, Monaco, Kuo, Fomenko, Chang, Zheng, Zhou, Manassra, Sheu, Zaremba, Patil, Qian, Kim, Cheng, Zhang, He, Zhang, Jin, Dai, and Malkov}]{openai2024gpt4ocard}
+OpenAI, :, Aaron Hurst, Adam Lerer, Adam~P. Goucher, Adam Perelman, Aditya Ramesh, Aidan Clark, AJ~Ostrow, Akila Welihinda, Alan Hayes, Alec Radford, Aleksander Mądry, Alex Baker-Whitcomb, Alex Beutel, Alex Borzunov, Alex Carney, Alex Chow, Alex Kirillov, and 401 others. 2024.
+\newblock \href {https://arxiv.org/abs/2410.21276} {Gpt-4o system card}.
+\newblock \emph{Preprint}, arXiv:2410.21276.
+
+\bibitem[{Phang et~al.(2023)Phang, Mao, He, and Chen}]{pmlr-v202-phang23a}
+Jason Phang, Yi~Mao, Pengcheng He, and Weizhu Chen. 2023.
+\newblock \href {https://proceedings.mlr.press/v202/phang23a.html} {{H}yper{T}uning: Toward adapting large language models without back-propagation}.
+\newblock In \emph{Proceedings of the 40th International Conference on Machine Learning}, volume 202 of \emph{Proceedings of Machine Learning Research}, pages 27854--27875. PMLR.
+
+\bibitem[{Rimsky et~al.(2024)Rimsky, Gabrieli, Schulz, Tong, Hubinger, and Turner}]{rimsky-etal-2024-steering}
+Nina Rimsky, Nick Gabrieli, Julian Schulz, Meg Tong, Evan Hubinger, and Alexander Turner. 2024.
+\newblock \href {https://doi.org/10.18653/v1/2024.acl-long.828} {Steering llama 2 via contrastive activation addition}.
+\newblock In \emph{Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)}, pages 15504--15522, Bangkok, Thailand. Association for Computational Linguistics.
+
+\bibitem[{Rivi{\`{e}}re et~al.(2024)Rivi{\`{e}}re, Pathak, Sessa, Hardin, Bhupatiraju, Hussenot, Mesnard, Shahriari, Ram{\'{e}}, Ferret, Liu, Tafti, Friesen, Casbon, Ramos, Kumar, Lan, Jerome, Tsitsulin, Vieillard, Stanczyk, Girgin, Momchev, Hoffman, Thakoor, Grill, Neyshabur, Bachem, Walton, Severyn, Parrish, Ahmad, Hutchison, Abdagic, Carl, Shen, Brock, Coenen, Laforge, Paterson, Bastian, Piot, Wu, Royal, Chen, Kumar, Perry, Welty, Choquette{-}Choo, Sinopalnikov, Weinberger, Vijaykumar, Rogozinska, Herbison, Bandy, Wang, Noland, Moreira, Senter, Eltyshev, Visin, Rasskin, Wei, Cameron, Martins, Hashemi, Klimczak{-}Plucinska, Batra, Dhand, Nardini, Mein, Zhou, Svensson, Stanway, Chan, Zhou, Carrasqueira, Iljazi, Becker, Fernandez, van Amersfoort, Gordon, Lipschultz, Newlan, Ji, Mohamed, Badola, Black, Millican, McDonell, Nguyen, Sodhia, Greene, Sj{\"{o}}sund, Usui, Sifre, Heuermann, Lago, and McNealus}]{DBLP:journals/corr/abs-2408-00118}
+Morgane Rivi{\`{e}}re, Shreya Pathak, Pier~Giuseppe Sessa, Cassidy Hardin, Surya Bhupatiraju, L{\'{e}}onard Hussenot, Thomas Mesnard, Bobak Shahriari, Alexandre Ram{\'{e}}, Johan Ferret, Peter Liu, Pouya Tafti, Abe Friesen, Michelle Casbon, Sabela Ramos, Ravin Kumar, Charline~Le Lan, Sammy Jerome, Anton Tsitsulin, and 80 others. 2024.
+\newblock \href {https://doi.org/10.48550/ARXIV.2408.00118} {Gemma 2: Improving open language models at a practical size}.
+\newblock \emph{CoRR}, abs/2408.00118.
+
+\bibitem[{Sun et~al.(2025)Sun, Huang, Baskaran, D'Oosterlinck, Potts, Sklar, and Geiger}]{sun2025hyperdas}
+Jiuding Sun, Jing Huang, Sidharth Baskaran, Karel D'Oosterlinck, Christopher Potts, Michael Sklar, and Atticus Geiger. 2025.
+\newblock \href {https://openreview.net/forum?id=6fDjUoEQvm} {Hyper{DAS}: Towards automating mechanistic interpretability with hypernetworks}.
+\newblock In \emph{The Thirteenth International Conference on Learning Representations}.
+
+\bibitem[{Turner et~al.(2023)Turner, Thiergart, Udell, Leech, Mini, and MacDiarmid}]{DBLP:journals/corr/abs-2308-10248}
+Alexander~Matt Turner, Lisa Thiergart, David Udell, Gavin Leech, Ulisse Mini, and Monte MacDiarmid. 2023.
+\newblock \href {https://doi.org/10.48550/ARXIV.2308.10248} {Activation addition: Steering language models without optimization}.
+\newblock \emph{CoRR}, abs/2308.10248.
+
+\bibitem[{van~der Maaten and Hinton(2008)}]{JMLR:v9:vandermaaten08a}
+Laurens van~der Maaten and Geoffrey Hinton. 2008.
+\newblock \href {http://jmlr.org/papers/v9/vandermaaten08a.html} {Visualizing data using t-sne}.
+\newblock \emph{Journal of Machine Learning Research}, 9(86):2579--2605.
+
+\bibitem[{Wu et~al.(2025)Wu, Arora, Geiger, Wang, Huang, Jurafsky, Manning, and Potts}]{wu2025axbenchsteeringllmssimple}
+Zhengxuan Wu, Aryaman Arora, Atticus Geiger, Zheng Wang, Jing Huang, Dan Jurafsky, Christopher~D. Manning, and Christopher Potts. 2025.
+\newblock \href {https://arxiv.org/abs/2501.17148} {{AxBench}: Steering llms? even simple baselines outperform sparse autoencoders}.
+\newblock \emph{Preprint}, arXiv:2501.17148.
+
+\bibitem[{Wu et~al.(2024{\natexlab{a}})Wu, Arora, Wang, Geiger, Jurafsky, Manning, and Potts}]{wu2024reft}
+Zhengxuan Wu, Aryaman Arora, Zheng Wang, Atticus Geiger, Dan Jurafsky, Christopher~D Manning, and Christopher Potts. 2024{\natexlab{a}}.
+\newblock \href {https://openreview.net/forum?id=fykjplMc0V} {Re{FT}: Representation finetuning for language models}.
+\newblock In \emph{The Thirty-eighth Annual Conference on Neural Information Processing Systems}.
+
+\bibitem[{Wu et~al.(2024{\natexlab{b}})Wu, Geiger, Arora, Huang, Wang, Goodman, Manning, and Potts}]{wu-etal-2024-pyvene}
+Zhengxuan Wu, Atticus Geiger, Aryaman Arora, Jing Huang, Zheng Wang, Noah Goodman, Christopher Manning, and Christopher Potts. 2024{\natexlab{b}}.
+\newblock \href {https://aclanthology.org/2024.naacl-demo.16} {pyvene: A library for understanding and improving {P}y{T}orch models via interventions}.
+\newblock In \emph{Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 3: System Demonstrations)}, pages 158--165, Mexico City, Mexico. Association for Computational Linguistics.
+
+\end{thebibliography}

@@ -1,0 +1,2 @@
+- [ICML26 EW-LOLA Paper](project_icml26_ew_lola.md) — NExT-Game workshop paper status, deadline 2026-04-24, theory done, experiments in progress
+- [User Profile](user_vlad.md) — Vlad/Yevhen, LSE math, quant researcher, MARL expert, prefers concise+simple

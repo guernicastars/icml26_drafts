@@ -1,0 +1,187 @@
+\relax 
+\bibstyle{acl_natbib}
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{Giulianelli:2018}
+\citation{Hernandez2022,cunningham2023sparseautoencodershighlyinterpretable,bricken2023monosemanticity,gao2024scalingevaluatingsparseautoencoders,marks2025sparse}
+\citation{wu2024reft,wu2025axbenchsteeringllmssimple}
+\citation{li2023inferencetime,Marks:2018,DBLP:journals/corr/abs-2308-10248,rimsky-etal-2024-steering}
+\citation{wu2025axbenchsteeringllmssimple}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The state-of-the-art \textsc  {HyperSteer}\ Model: A transformer hypernetwork uses self attention to process a steering prompt and uses a cross attention module to read from the residual stream of a base LM run on a second prompt. The hypernetwork outputs a steering vector that is added to the base LM residual stream.\relax }}{1}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:overview-slide}{{1}{1}{The state-of-the-art \methodname \ Model: A transformer hypernetwork uses self attention to process a steering prompt and uses a cross attention module to read from the residual stream of a base LM run on a second prompt. The hypernetwork outputs a steering vector that is added to the base LM residual stream.\relax }{figure.caption.1}{}}
+\citation{pmlr-v202-phang23a}
+\citation{ha2016hypernetworks}
+\citation{wu2025axbenchsteeringllmssimple}
+\citation{DBLP:journals/corr/abs-2408-05147}
+\citation{alpaca_eval}
+\citation{openai2024gpt4ocard}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Performance on steering prompts that have \textbf  {never been seen during training} for \textsc  {HyperSteer}\ variants as the number of steering prompts used in training increases ($x$-axis in log scale). An exponential increase in training data results in an approximately linear increase in performance. When trained on all $\approx $16k steering prompts in AxBench, the performance of \textsc  {HyperSteer}\ on steering prompts never seen during training surpasses \texttt  {ReFT-r1} steering vectors which are trained and evaluated on the same steering prompt.\relax }}{2}{figure.caption.2}\protected@file@percent }
+\newlabel{fig:main-scaling}{{2}{2}{Performance on steering prompts that have \textbf {never been seen during training} for \methodname \ variants as the number of steering prompts used in training increases ($x$-axis in log scale). An exponential increase in training data results in an approximately linear increase in performance. When trained on all $\approx $16k steering prompts in AxBench, the performance of \methodname \ on steering prompts never seen during training surpasses \texttt {ReFT-r1} steering vectors which are trained and evaluated on the same steering prompt.\relax }{figure.caption.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Preliminaries}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Activation Steering}{2}{section*.3}\protected@file@percent }
+\newlabel{eq:steering-intervention}{{1}{2}{Activation Steering}{equation.2.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Steering results for baseline methods from AxBench and our three \textsc  {HyperSteer}{} variants, evaluated on \texttt  {Concept500-HO} (steering prompts never seen during training) and \texttt  {Concept500-HI} (steering prompts seen during training, base prompts unseen during training). The cross attention variant outperforms all other variants by a large margin on held-out evaluation and approaches prompting performance on held-in evaluation, while all variants outperform the \texttt  {ReFT-r1} baseline on held-in evaluation. The intervention happened at Layer 20 of both models.\relax }}{2}{table.caption.5}\protected@file@percent }
+\newlabel{tab:consolidated}{{1}{2}{Steering results for baseline methods from AxBench and our three \methodname {} variants, evaluated on \texttt {Concept500-HO} (steering prompts never seen during training) and \texttt {Concept500-HI} (steering prompts seen during training, base prompts unseen during training). The cross attention variant outperforms all other variants by a large margin on held-out evaluation and approaches prompting performance on held-in evaluation, while all variants outperform the \texttt {ReFT-r1} baseline on held-in evaluation. The intervention happened at Layer 20 of both models.\relax }{table.caption.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{Hypernetworks}{2}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Dataset and Evaluation}{2}{section*.6}\protected@file@percent }
+\citation{sun2025hyperdas}
+\citation{wu2025axbenchsteeringllmssimple}
+\citation{wu-etal-2024-pyvene}
+\citation{DBLP:journals/corr/abs-2408-00118}
+\@writefile{toc}{\contentsline {paragraph}{Baselines}{3}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}\textsc  {HyperSteer}}{3}{section.3}\protected@file@percent }
+\newlabel{eq:steeringhead}{{3}{3}{\methodname }{equation.3.3}{}}
+\newlabel{eq:sft-loss}{{4}{3}{\methodname }{equation.3.4}{}}
+\@writefile{toc}{\contentsline {paragraph}{No context}{3}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{In Context Learning}{3}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Cross Attention}{3}{section*.10}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces  As the number of steering prompts in our training dataset increases, the teraFLOPs (TFLOPS) required to attain a similar loss on a \textit  {held-in} evaluation set (steering prompts seen during training, but base prompt unseen during training) decreases for our best \textsc  {HyperSteer}\ variant (cross attention). This value is approximately constant for our dictionary learning baseline of \texttt  {ReFT-r1}. See Appendix\nobreakspace  {}\ref {appendix:flops} for details. \relax }}{3}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:flop-limits}{{3}{3}{As the number of steering prompts in our training dataset increases, the teraFLOPs (TFLOPS) required to attain a similar loss on a \textit {held-in} evaluation set (steering prompts seen during training, but base prompt unseen during training) decreases for our best \methodname \ variant (cross attention). This value is approximately constant for our dictionary learning baseline of \texttt {ReFT-r1}. See Appendix~\ref {appendix:flops} for details. \relax }{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experiments}{3}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Generalization Results}{3}{section*.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Compute efficiency}{3}{section*.13}\protected@file@percent }
+\citation{JMLR:v9:vandermaaten08a}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Ablation study using \texttt  {Gemma-2-2B}\ on architecture choices of \textsc  {HyperSteer}\ after 1 epoch of training and evaluation on a small test set \texttt  {Concept10}. We find that pre-trained initialization of the cross-attention architecture improves performance in both held-in and held-out scenarios, and in both cases performance improves with the number of hypernetwork decoder blocks. For the no-context hypernetworks which do not condition steering vectors on input prompts, reconstructing ground truth vectors is comparable to end-to-end training with a language modeling objective.\relax }}{4}{table.caption.15}\protected@file@percent }
+\newlabel{tab:ablations}{{2}{4}{Ablation study using \gemma \ on architecture choices of \methodname \ after 1 epoch of training and evaluation on a small test set \texttt {Concept10}. We find that pre-trained initialization of the cross-attention architecture improves performance in both held-in and held-out scenarios, and in both cases performance improves with the number of hypernetwork decoder blocks. For the no-context hypernetworks which do not condition steering vectors on input prompts, reconstructing ground truth vectors is comparable to end-to-end training with a language modeling objective.\relax }{table.caption.15}{}}
+\@writefile{toc}{\contentsline {paragraph}{Ablation Study}{4}{table.caption.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Qualitative Analyses}{4}{section.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Geometric visualization of steering vectors}{4}{section*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Pairwise similarity of steering vectors}{4}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{4}{section.6}\protected@file@percent }
+\bibdata{custom}
+\bibcite{bricken2023monosemanticity}{{1}{2023}{{Bricken et~al.}}{{Bricken, Templeton, Batson, Chen, Jermyn, Conerly, Turner, Anil, Denison, Askell, Lasenby, Wu, Kravec, Schiefer, Maxwell, Joseph, Hatfield-Dodds, Tamkin, Nguyen, McLean, Burke, Hume, Carter, Henighan, and Olah}}}
+\bibcite{cobbe2021gsm8k}{{2}{2021}{{Cobbe et~al.}}{{Cobbe, Kosaraju, Bavarian, Chen, Jun, Kaiser, Plappert, Tworek, Hilton, Nakano, Hesse, and Schulman}}}
+\bibcite{DatabricksBlog2023DollyV2}{{3}{2023}{{Conover et~al.}}{{Conover, Hayes, Mathur, Xie, Wan, Shah, Ghodsi, Wendell, Zaharia, and Xin}}}
+\bibcite{cunningham2023sparseautoencodershighlyinterpretable}{{4}{2023}{{Cunningham et~al.}}{{Cunningham, Ewart, Riggs, Huben, and Sharkey}}}
+\bibcite{gao2024scalingevaluatingsparseautoencoders}{{5}{2024}{{Gao et~al.}}{{Gao, la~Tour, Tillman, Goh, Troll, Radford, Sutskever, Leike, and Wu}}}
+\bibcite{Giulianelli:2018}{{6}{2018}{{Giulianelli et~al.}}{{Giulianelli, Harding, Mohnert, Hupkes, and Zuidema}}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Limitations}{5}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Data}{5}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Steering Sites}{5}{section*.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Compute}{5}{section*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Model Scale}{5}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Open Source Models}{5}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Ethical Considerations}{5}{section.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Acknowledgments}{5}{section.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{AI Usage}{5}{section*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Other}{5}{section*.24}\protected@file@percent }
+\bibcite{ha2016hypernetworks}{{7}{2016}{{Ha et~al.}}{{Ha, Dai, and Le}}}
+\bibcite{Hernandez2022}{{8}{2022}{{Hernandez et~al.}}{{Hernandez, Schwettmann, Bau, Bagashvili, Torralba, and Andreas}}}
+\bibcite{hu2022lora}{{9}{2022}{{Hu et~al.}}{{Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, Chen et~al.}}}
+\bibcite{li2023inferencetime}{{10}{2023{a}}{{Li et~al.}}{{Li, Patel, Vi{\'e}gas, Pfister, and Wattenberg}}}
+\bibcite{alpaca_eval}{{11}{2023{b}}{{Li et~al.}}{{Li, Zhang, Dubois, Taori, Gulrajani, Guestrin, Liang, and Hashimoto}}}
+\bibcite{DBLP:journals/corr/abs-2408-05147}{{12}{2024}{{Lieberum et~al.}}{{Lieberum, Rajamanoharan, Conmy, Smith, Sonnerat, Varma, Kram{\'{a}}r, Dragan, Shah, and Nanda}}}
+\bibcite{marks2025sparse}{{13}{2025}{{Marks et~al.}}{{Marks, Rager, Michaud, Belinkov, Bau, and Mueller}}}
+\bibcite{Marks:2018}{{14}{2023}{{Marks and Tegmark}}{{}}}
+\bibcite{openai2024gpt4ocard}{{15}{2024}{{OpenAI et~al.}}{{OpenAI, :, Hurst, Lerer, Goucher, Perelman, Ramesh, Clark, Ostrow, Welihinda, Hayes, Radford, Mądry, Baker-Whitcomb, Beutel, Borzunov, Carney, Chow, Kirillov, Nichol, Paino, Renzin, Passos, Kirillov, Christakis, Conneau, Kamali, Jabri, Moyer, Tam, Crookes, Tootoochian, Tootoonchian, Kumar, Vallone, Karpathy, Braunstein, Cann, Codispoti, Galu, Kondrich, Tulloch, Mishchenko, Baek, Jiang, Pelisse, Woodford, Gosalia, Dhar, Pantuliano, Nayak, Oliver, Zoph, Ghorbani, Leimberger, Rossen, Sokolowsky, Wang, Zweig, Hoover, Samic, McGrew, Spero, Giertler, Cheng, Lightcap, Walkin, Quinn, Guarraci, Hsu, Kellogg, Eastman, Lugaresi, Wainwright, Bassin, Hudson, Chu, Nelson, Li, Shern, Conger, Barette, Voss, Ding, Lu, Zhang, Beaumont, Hallacy, Koch, Gibson, Kim, Choi, McLeavey, Hesse, Fischer, Winter, Czarnecki, Jarvis, Wei, Koumouzelis, Sherburn, Kappler, Levin, Levy, Carr, Farhi, Mely, Robinson, Sasaki, Jin, Valladares, Tsipras, Li, Nguyen, Findlay, Oiwoh, Wong, Asdar, Proehl, Yang, Antonow, Kramer, Peterson, Sigler, Wallace, Brevdo, Mays, Khorasani, Such, Raso, Zhang, von Lohmann, Sulit, Goh, Oden, Salmon, Starace, Brockman, Salman, Bao, Hu, Wong, Wang, Schmidt, Whitney, Jun, Kirchner, de~Oliveira~Pinto, Ren, Chang, Chung, Kivlichan, O'Connell, O'Connell, Osband, Silber, Sohl, Okuyucu, Lan, Kostrikov, Sutskever, Kanitscheider, Gulrajani, Coxon, Menick, Pachocki, Aung, Betker, Crooks, Lennon, Kiros, Leike, Park, Kwon, Phang, Teplitz, Wei, Wolfe, Chen, Harris, Varavva, Lee, Shieh, Lin, Yu, Weng, Tang, Yu, Jang, Candela, Beutler, Landers, Parish, Heidecke, Schulman, Lachman, McKay, Uesato, Ward, Kim, Huizinga, Sitkin, Kraaijeveld, Gross, Kaplan, Snyder, Achiam, Jiao, Lee, Zhuang, Harriman, Fricke, Hayashi, Singhal, Shi, Karthik, Wood, Rimbach, Hsu, Nguyen, Gu-Lemberg, Button, Liu, Howe, Muthukumar, Luther, Ahmad, Kai, Itow, Workman, Pathak, Chen, Jing, Guy, Fedus, Zhou, Mamitsuka, Weng, McCallum, Held, Ouyang, Feuvrier, Zhang, Kondraciuk, Kaiser, Hewitt, Metz, Doshi, Aflak, Simens, Boyd, Thompson, Dukhan, Chen, Gray, Hudnall, Zhang, Aljubeh, Litwin, Zeng, Johnson, Shetty, Gupta, Shah, Yatbaz, Yang, Zhong, Glaese, Chen, Janner, Lampe, Petrov, Wu, Wang, Fradin, Pokrass, Castro, de~Castro, Pavlov, Brundage, Wang, Khan, Murati, Bavarian, Lin, Yesildal, Soto, Gimelshein, Cone, Staudacher, Summers, LaFontaine, Chowdhury, Ryder, Stathas, Turley, Tezak, Felix, Kudige, Keskar, Deutsch, Bundick, Puckett, Nachum, Okelola, Boiko, Murk, Jaffe, Watkins, Godement, Campbell-Moore, Chao, McMillan, Belov, Su, Bak, Bakkum, Deng, Dolan, Hoeschele, Welinder, Tillet, Pronin, Tillet, Dhariwal, Yuan, Dias, Lim, Arora, Troll, Lin, Lopes, Puri, Miyara, Leike, Gaubert, Zamani, Wang, Donnelly, Honsby, Smith, Sahai, Ramchandani, Huet, Carmichael, Zellers, Chen, Chen, Nigmatullin, Cheu, Jain, Altman, Schoenholz, Toizer, Miserendino, Agarwal, Culver, Ethersmith, Gray, Grove, Metzger, Hermani, Jain, Zhao, Wu, Jomoto, Wu, Shuaiqi, Xia, Phene, Papay, Narayanan, Coffey, Lee, Hall, Balaji, Broda, Stramer, Xu, Gogineni, Christianson, Sanders, Patwardhan, Cunninghman, Degry, Dimson, Raoux, Shadwell, Zheng, Underwood, Markov, Sherbakov, Rubin, Stasi, Kaftan, Heywood, Peterson, Walters, Eloundou, Qi, Moeller, Monaco, Kuo, Fomenko, Chang, Zheng, Zhou, Manassra, Sheu, Zaremba, Patil, Qian, Kim, Cheng, Zhang, He, Zhang, Jin, Dai, and Malkov}}}
+\bibcite{pmlr-v202-phang23a}{{16}{2023}{{Phang et~al.}}{{Phang, Mao, He, and Chen}}}
+\bibcite{rimsky-etal-2024-steering}{{17}{2024}{{Rimsky et~al.}}{{Rimsky, Gabrieli, Schulz, Tong, Hubinger, and Turner}}}
+\bibcite{DBLP:journals/corr/abs-2408-00118}{{18}{2024}{{Rivi{\`{e}}re et~al.}}{{Rivi{\`{e}}re, Pathak, Sessa, Hardin, Bhupatiraju, Hussenot, Mesnard, Shahriari, Ram{\'{e}}, Ferret, Liu, Tafti, Friesen, Casbon, Ramos, Kumar, Lan, Jerome, Tsitsulin, Vieillard, Stanczyk, Girgin, Momchev, Hoffman, Thakoor, Grill, Neyshabur, Bachem, Walton, Severyn, Parrish, Ahmad, Hutchison, Abdagic, Carl, Shen, Brock, Coenen, Laforge, Paterson, Bastian, Piot, Wu, Royal, Chen, Kumar, Perry, Welty, Choquette{-}Choo, Sinopalnikov, Weinberger, Vijaykumar, Rogozinska, Herbison, Bandy, Wang, Noland, Moreira, Senter, Eltyshev, Visin, Rasskin, Wei, Cameron, Martins, Hashemi, Klimczak{-}Plucinska, Batra, Dhand, Nardini, Mein, Zhou, Svensson, Stanway, Chan, Zhou, Carrasqueira, Iljazi, Becker, Fernandez, van Amersfoort, Gordon, Lipschultz, Newlan, Ji, Mohamed, Badola, Black, Millican, McDonell, Nguyen, Sodhia, Greene, Sj{\"{o}}sund, Usui, Sifre, Heuermann, Lago, and McNealus}}}
+\bibcite{sun2025hyperdas}{{19}{2025}{{Sun et~al.}}{{Sun, Huang, Baskaran, D'Oosterlinck, Potts, Sklar, and Geiger}}}
+\bibcite{DBLP:journals/corr/abs-2308-10248}{{20}{2023}{{Turner et~al.}}{{Turner, Thiergart, Udell, Leech, Mini, and MacDiarmid}}}
+\bibcite{JMLR:v9:vandermaaten08a}{{21}{2008}{{van~der Maaten and Hinton}}{{}}}
+\bibcite{wu2025axbenchsteeringllmssimple}{{22}{2025}{{Wu et~al.}}{{Wu, Arora, Geiger, Wang, Huang, Jurafsky, Manning, and Potts}}}
+\bibcite{wu2024reft}{{23}{2024{a}}{{Wu et~al.}}{{Wu, Arora, Wang, Geiger, Jurafsky, Manning, and Potts}}}
+\bibcite{wu-etal-2024-pyvene}{{24}{2024{b}}{{Wu et~al.}}{{Wu, Geiger, Arora, Huang, Wang, Goodman, Manning, and Potts}}}
+\citation{pmlr-v202-phang23a}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Appendix}{6}{appendix.A}\protected@file@percent }
+\newlabel{sec:appendix}{{A}{6}{Appendix}{appendix.A}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Future Directions}{6}{subsection.A.1}\protected@file@percent }
+\newlabel{app:futuredirections}{{A.1}{6}{Future Directions}{subsection.A.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Large-scale concept data}{6}{section*.26}\protected@file@percent }
+\citation{wu2024reft}
+\citation{hu2022lora}
+\@writefile{toc}{\contentsline {paragraph}{Generating other parameter types}{7}{section*.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Architecture optimizations}{7}{section*.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Hyperparameter Details}{7}{subsection.A.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Hyperparameter settings for each variant. For all the unmentioned details such as hidden dimension we use the default configuration of \texttt  {Gemma-2-2b} and \texttt  {Gemma-2-9b}.\relax }}{7}{table.caption.29}\protected@file@percent }
+\newlabel{table:hparams}{{3}{7}{Hyperparameter settings for each variant. For all the unmentioned details such as hidden dimension we use the default configuration of \texttt {Gemma-2-2b} and \texttt {Gemma-2-9b}.\relax }{table.caption.29}{}}
+\newlabel{appendix:hparams}{{A.2}{7}{Hyperparameter Details}{table.caption.29}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Cross-Attention Architecture Details}{7}{subsection.A.3}\protected@file@percent }
+\newlabel{appendix:crossattn-model}{{A.3}{7}{Cross-Attention Architecture Details}{subsection.A.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {A.3.1}Model Size}{7}{subsubsection.A.3.1}\protected@file@percent }
+\newlabel{appendix:param-efficiency}{{A.3.1}{7}{Model Size}{subsubsection.A.3.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {A.3.2}Detailed TFLOPs Analysis}{7}{subsubsection.A.3.2}\protected@file@percent }
+\newlabel{appendix:flops}{{A.3.2}{7}{Detailed TFLOPs Analysis}{subsubsection.A.3.2}{}}
+\citation{DatabricksBlog2023DollyV2}
+\citation{cobbe2021gsm8k}
+\citation{alpaca_eval}
+\citation{wu2025axbenchsteeringllmssimple}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.4}Details on Training Objective}{8}{subsection.A.4}\protected@file@percent }
+\newlabel{sec:reft-objective}{{A.4}{8}{Details on Training Objective}{subsection.A.4}{}}
+\newlabel{eq:reft-loss}{{7}{8}{Details on Training Objective}{equation.A.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.5}Concept Dataset Details}{8}{subsection.A.5}\protected@file@percent }
+\newlabel{appendix:data}{{A.5}{8}{Concept Dataset Details}{subsection.A.5}{}}
+\@writefile{toc}{\contentsline {paragraph}{Negative samples}{8}{section*.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Data Ratio}{8}{section*.31}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Base prompt data distributions}{8}{section*.32}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.6}Baseline details}{8}{subsection.A.6}\protected@file@percent }
+\newlabel{appendix:baseline}{{A.6}{8}{Baseline details}{subsection.A.6}{}}
+\@writefile{toc}{\contentsline {paragraph}{Supervised Dictionary Learning}{8}{section*.33}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Mapping of short concept descriptors to their full labels in held-out \texttt  {Concept10}.\relax }}{9}{table.caption.35}\protected@file@percent }
+\newlabel{tab:new-desc-mapping}{{4}{9}{Mapping of short concept descriptors to their full labels in held-out \texttt {Concept10}.\relax }{table.caption.35}{}}
+\@writefile{toc}{\contentsline {paragraph}{Prompt steering}{9}{section*.34}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.7}Additional Experiments}{9}{subsection.A.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {A.7.1}Geometric structure using dimensionality reduction}{9}{subsubsection.A.7.1}\protected@file@percent }
+\newlabel{appendix:geom-structure}{{A.7.1}{9}{Geometric structure using dimensionality reduction}{subsubsection.A.7.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {A.7.2}Attention Heatmaps}{9}{subsubsection.A.7.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces \texttt  {Concept10} t-SNE analysis of 2500 steering vectors from \textsc  {HyperSteer}\tmspace  +\thickmuskip {.2777em} (cross attention), 250 per concept.\relax }}{9}{figure.caption.36}\protected@file@percent }
+\newlabel{fig:tsne-concept10}{{4}{9}{\texttt {Concept10} t-SNE analysis of 2500 steering vectors from \methodname \; (cross attention), 250 per concept.\relax }{figure.caption.36}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces \texttt  {Concept10} PCA analysis (2 components) 2500 steering vectors from \textsc  {HyperSteer}\tmspace  +\thickmuskip {.2777em} (cross attention), 250 per concept.\relax }}{9}{figure.caption.37}\protected@file@percent }
+\newlabel{fig:pca-concept10}{{5}{9}{\texttt {Concept10} PCA analysis (2 components) 2500 steering vectors from \methodname \; (cross attention), 250 per concept.\relax }{figure.caption.37}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {A.7.3}Data Distribution}{9}{subsubsection.A.7.3}\protected@file@percent }
+\newlabel{appendix:data-distribution}{{A.7.3}{9}{Data Distribution}{figure.caption.40}{}}
+\newlabel{fig:sim-ca-concept10}{{6a}{10}{\methodname {} (cross attention)\relax }{figure.caption.38}{}}
+\newlabel{sub@fig:sim-ca-concept10}{{a}{10}{\methodname {} (cross attention)\relax }{figure.caption.38}{}}
+\newlabel{fig:sim-nc-concept10}{{6b}{10}{\methodname {} (no context)\relax }{figure.caption.38}{}}
+\newlabel{sub@fig:sim-nc-concept10}{{b}{10}{\methodname {} (no context)\relax }{figure.caption.38}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Pairwise cosine similarities of steering vectors, averaged within each steering prompt, for our two \textsc  {HyperSteer}{} variants. (\subref  {fig:sim-ca-concept10}) \textbf  {Cross-attention}: strong on-diagonal (same steering prompt) alignment with some off-diagonal variance due to prompt conditioning. (\subref  {fig:sim-nc-concept10}) \textbf  {No-context}: generally weaker off-diagonal alignment. We hypothesize that cross-attention’s higher off-diagonal similarity arises from shared semantic and linguistic structure across prompts even when steering prompt labels differ.\relax }}{10}{figure.caption.38}\protected@file@percent }
+\newlabel{fig:combined}{{6}{10}{Pairwise cosine similarities of steering vectors, averaged within each steering prompt, for our two \methodname {} variants. (\subref {fig:sim-ca-concept10}) \textbf {Cross-attention}: strong on-diagonal (same steering prompt) alignment with some off-diagonal variance due to prompt conditioning. (\subref {fig:sim-nc-concept10}) \textbf {No-context}: generally weaker off-diagonal alignment. We hypothesize that cross-attention’s higher off-diagonal similarity arises from shared semantic and linguistic structure across prompts even when steering prompt labels differ.\relax }{figure.caption.38}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces \texttt  {Concept10} perplexity distribution on data labels sampled from \texttt  {gpt-4o-mini}.\relax }}{10}{figure.caption.39}\protected@file@percent }
+\newlabel{fig:teacher-perplexity}{{7}{10}{\texttt {Concept10} perplexity distribution on data labels sampled from \gpt .\relax }{figure.caption.39}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.8}Sample generations}{10}{subsection.A.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces \texttt  {Concept10} perplexity distribution won data labels sampled from \texttt  {Gemma-2-2B}.\relax }}{10}{figure.caption.40}\protected@file@percent }
+\newlabel{fig:student-perplexity}{{8}{10}{\texttt {Concept10} perplexity distribution won data labels sampled from \gemma .\relax }{figure.caption.40}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Layer 0 attention map.\relax }}{11}{figure.caption.41}\protected@file@percent }
+\newlabel{fig:layer0attn}{{9}{11}{Layer 0 attention map.\relax }{figure.caption.41}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Layer 5 attention map.\relax }}{11}{figure.caption.42}\protected@file@percent }
+\newlabel{fig:layer5attn}{{10}{11}{Layer 5 attention map.\relax }{figure.caption.42}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Layer 10 attention map.\relax }}{11}{figure.caption.43}\protected@file@percent }
+\newlabel{fig:layer10attn}{{11}{11}{Layer 10 attention map.\relax }{figure.caption.43}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Layer 19 attention map.\relax }}{11}{figure.caption.44}\protected@file@percent }
+\newlabel{fig:layer19attn}{{12}{11}{Layer 19 attention map.\relax }{figure.caption.44}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Successful steering and instruction following by \textsc  {HyperSteer}.\relax }}{12}{figure.caption.45}\protected@file@percent }
+\newlabel{example:1}{{13}{12}{Successful steering and instruction following by \methodname .\relax }{figure.caption.45}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces Successful steering and instruction following by \textsc  {HyperSteer}.\relax }}{12}{figure.caption.46}\protected@file@percent }
+\newlabel{example:2}{{14}{12}{Successful steering and instruction following by \methodname .\relax }{figure.caption.46}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Successful steering and instruction following by \textsc  {HyperSteer}.\relax }}{12}{figure.caption.47}\protected@file@percent }
+\newlabel{example:3}{{15}{12}{Successful steering and instruction following by \methodname .\relax }{figure.caption.47}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces Successful steering and instruction following by \textsc  {HyperSteer}.\relax }}{13}{figure.caption.48}\protected@file@percent }
+\newlabel{example:4}{{16}{13}{Successful steering and instruction following by \methodname .\relax }{figure.caption.48}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces Successful steering and instruction following by \textsc  {HyperSteer}.\relax }}{13}{figure.caption.49}\protected@file@percent }
+\newlabel{example:5}{{17}{13}{Successful steering and instruction following by \methodname .\relax }{figure.caption.49}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces Failed steering by \textsc  {HyperSteer}, but successful instruction following.\relax }}{13}{figure.caption.50}\protected@file@percent }
+\newlabel{example:6}{{18}{13}{Failed steering by \methodname , but successful instruction following.\relax }{figure.caption.50}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {19}{\ignorespaces Failed steering and instruction following by \textsc  {HyperSteer}.\relax }}{14}{figure.caption.51}\protected@file@percent }
+\newlabel{example:7}{{19}{14}{Failed steering and instruction following by \methodname .\relax }{figure.caption.51}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {20}{\ignorespaces Failed steering by \textsc  {HyperSteer}.\relax }}{14}{figure.caption.52}\protected@file@percent }
+\newlabel{example:8}{{20}{14}{Failed steering by \methodname .\relax }{figure.caption.52}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {21}{\ignorespaces Somewhat successful steering by \textsc  {HyperSteer}, but failed to follow the instruction.\relax }}{14}{figure.caption.53}\protected@file@percent }
+\newlabel{example:9}{{21}{14}{Somewhat successful steering by \methodname , but failed to follow the instruction.\relax }{figure.caption.53}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {22}{\ignorespaces Failed steering by \textsc  {HyperSteer}, but successful instruction following.\relax }}{15}{figure.caption.54}\protected@file@percent }
+\newlabel{example:10}{{22}{15}{Failed steering by \methodname , but successful instruction following.\relax }{figure.caption.54}{}}
+\gdef \@abspage@last{15}

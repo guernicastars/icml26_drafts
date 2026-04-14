@@ -1,0 +1,942 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[final]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+%Including images in your LaTeX document requires adding
+%additional package(s)
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage{tcolorbox}
+
+\tcbuselibrary{skins}
+\tcbuselibrary{breakable}
+\usepackage{placeins}
+\usepackage{stfloats}
+\usepackage{fontawesome5}
+
+
+\newcommand{\methodname}{\textsc{HyperSteer}}
+\newcommand{\gemma}{\texttt{Gemma-2-2B}}
+\newcommand{\gpt}{\texttt{gpt-4o-mini}}
+
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+% \title{\methodname: Controlling Language Models with Hypernetworks}
+
+\title{\methodname: Activation Steering at Scale with Hypernetworks}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+%         Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+%         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \And  ... \And
+%         Author n \\ Address line \\ ... \\ Address line}
+% To start a separate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \AND
+%         Author 2 \\ Address line \\ ... \\ Address line \And
+%         Author 3 \\ Address line \\ ... \\ Address line}
+
+\author{
+  Jiuding Sun\thanks{Equal contribution.} \\
+  Stanford University \\
+  \texttt{sunjd24@stanford.edu}
+  \And
+  Sidharth Baskaran\footnotemark[1] \\
+  Pr(Ai)$^2$R Group \\
+  Georgia Institute of Technology \\
+  \texttt{sidnbaskaran@gmail.com}
+  \And
+  Zhengxuan Wu \\
+  Stanford University \\
+  \texttt{zhengxuan@stanford.edu}
+  \AND
+  Michael Sklar \\
+  Confirm Labs \\
+  \texttt{michaelbsklar@gmail.com}
+  \And
+  Christopher Potts \\
+  Stanford University \\
+  \texttt{cgpotts@stanford.edu}
+  \And
+  Atticus Geiger \\
+  Pr(Ai)$^2$R Group \\
+  \texttt{atticusg@gmail.com}
+}
+
+%\author{
+%  \textbf{First Author\textsuperscript{1}},
+%  \textbf{Second Author\textsuperscript{1,2}},
+%  \textbf{Third T. Author\textsuperscript{1}},
+%  \textbf{Fourth Author\textsuperscript{1}},
+%\\
+%  \textbf{Fifth Author\textsuperscript{1,2}},
+%  \textbf{Sixth Author\textsuperscript{1}},
+%  \textbf{Seventh Author\textsuperscript{1}},
+%  \textbf{Eighth Author \textsuperscript{1,2,3,4}},
+%\\
+%  \textbf{Ninth Author\textsuperscript{1}},
+%  \textbf{Tenth Author\textsuperscript{1}},
+%  \textbf{Eleventh E. Author\textsuperscript{1,2,3,4,5}},
+%  \textbf{Twelfth Author\textsuperscript{1}},
+%\\
+%  \textbf{Thirteenth Author\textsuperscript{3}},
+%  \textbf{Fourteenth F. Author\textsuperscript{2,4}},
+%  \textbf{Fifteenth Author\textsuperscript{1}},
+%  \textbf{Sixteenth Author\textsuperscript{1}},
+%\\
+%  \textbf{Seventeenth S. Author\textsuperscript{4,5}},
+%  \textbf{Eighteenth Author\textsuperscript{3,4}},
+%  \textbf{Nineteenth N. Author\textsuperscript{2,5}},
+%  \textbf{Twentieth Author\textsuperscript{1}}
+%\\
+%\\
+%  \textsuperscript{1}Affiliation 1,
+%  \textsuperscript{2}Affiliation 2,
+%  \textsuperscript{3}Affiliation 3,
+%  \textsuperscript{4}Affiliation 4,
+%  \textsuperscript{5}Affiliation 5
+%\\
+%  \small{
+%    \textbf{Correspondence:} \href{mailto:email@domain}{email@domain}
+%  }
+%}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Steering language models (LMs) by modifying internal activations is a popular approach for controlling text generation. 
+Unsupervised dictionary learning methods, e.g., sparse autoencoders, can be scaled to produce many steering vectors, but lack guarantees on the individual efficacy of each vector and control over the coverage of relevant steering tasks.
+In contrast, supervised methods for constructing steering vectors are targeted and effective, but require more data collection and training for each additional steering vector produced.
+In this work, we introduce \methodname, a family of hypernetwork-based architectures which are trained end-to-end to generate steering vectors conditioned on the natural language steering prompts and the internals of the steered LM. 
+In our evaluations, we show that scaling \methodname\ with thousands of steering prompts exceeds the performance of state-of-the-art activation steering methods, even on steering prompts never seen during training. Moreover, \methodname\ performs on par with steering-via-prompting. We release ours at \href{https://github.com/stanfordnlp/axbench}{\faGithub\ \texttt{stanfordnlp/axbench}}.
+\end{abstract}
+
+\section{Introduction}
+
+How can the outputs of a language model (LM) be reliably controlled? With instruction-tuned LMs, the standard approach is prompt engineering. 
+However, prompting-based approaches face challenges from user jailbreaks, forgotten instructions, and robustness to model misalignment. 
+% Fine-tuning and preference optimization-based methods \cite{ouyang2022traininglanguagemodelsfollow} are well-established for eliciting desirable responses, but adaptation to new steering prompts or behaviors with these methods requires retraining infrastructure and can pose issues of catastrophic forgetting.
+% However, these methods, including 
+A more aggressive approach is (parameter-efficient) fine-tuning, but this requires modifying or injecting new parameters into the model. 
+Activation steering \cite{Giulianelli:2018} occupies a middle ground: it is lightweight to implement (no parameters are modified or added) and can affect the model in ways standard prompting cannot.
+
+Methods for obtaining steering vectors can generally be classified into two groups: \textit{unsupervised}, e.g., Sparse Autoencoders (SAEs) \cite{Hernandez2022, cunningham2023sparseautoencodershighlyinterpretable,bricken2023monosemanticity,gao2024scalingevaluatingsparseautoencoders, marks2025sparse}, which produce a large number of unlabeled steering vectors, and \textit{supervised}, where task-specific steering vectors are either directly trained \cite{wu2024reft, wu2025axbenchsteeringllmssimple} or derived using labeled data \cite{li2023inferencetime,Marks:2018,DBLP:journals/corr/abs-2308-10248, rimsky-etal-2024-steering}. Unsupervised methods are scalable, but lack the ability to create steering vectors for specific tasks.
+Alternatively, a supervised approach is effective and targeted, but requires per-task data collection and/or training. 
+
+
+\begin{figure}[t!]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/mainfig.pdf}
+  \caption{The state-of-the-art \methodname\ Model: A transformer hypernetwork uses self attention to process a steering prompt and uses a cross attention module to read from the residual stream of a base LM run on a second prompt. The hypernetwork outputs a steering vector that is added to the base LM residual stream.}
+  \label{fig:overview-slide}
+\end{figure}
+
+Our main contribution is \methodname, a suite of end-to-end trainable hypernetwork architectures which learn to generate steering vectors for an instruction-tuned base LM, conditioned on the steering prompt and (optionally) the base LM prompt and internal activations. We train and evaluate on the steering prompts from \textsc{AxBench} \cite{wu2025axbenchsteeringllmssimple}. 
+Our best \methodname\ variant outperforms the previous state-of-the-art activation steering method from \textsc{AxBench}, even on held-out steering prompts, never seen during training.
+We show steering performance scales logarithmically with number of steering prompts during training.
+Surprisingly, we are even able to match the performance of the steering-via-prompting, which outperformed all activation steering methods on AxBench.
+In sum, \methodname\ combines the scalability of unsupervised dictionary learning with the targeted control of supervised activation steering.
+
+% Our work also complements ongoing efforts in automating interpretability research \cite{Hernandez2022, huang-etal-2023-rigorously, bills2023language, choi2024automatic, sun2025hyperdas} where scalable control of language models is arguably a necessity.
+
+% Lastly, we highlight a critical issue pertinent to trainable steering vectors, where the target label data distribution is often sampled from a strong teacher model more capable than the base model being steered. This uncovers a systematic bias in our evaluation setup which prefers strong teacher completions. We provide exploratory analysis on this problem and hypothesize that steering performance can be improved by addressing this issue.
+% We conclude with discussion on the limitations and challenges of using hypernetworks, challenges of collecting high-quality steering data, and avenues for future work.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.475\textwidth]{figures/neurips_recon_vs_sft_plot_smooth_shading_without_prompting.pdf}
+  \caption{Performance on steering prompts that have \textbf{never been seen during training} for \methodname\ variants as the number of steering prompts used in training increases ($x$-axis in log scale). An exponential increase in training data results in an approximately linear increase in performance. When trained on all $\approx$16k steering prompts in AxBench, the performance of \methodname\ on steering prompts never seen during training surpasses \texttt{ReFT-r1} steering vectors which are trained and evaluated on the same steering prompt.}
+  \label{fig:main-scaling}
+\end{figure}
+
+\section{Preliminaries}
+
+\paragraph{Activation Steering}
+The goal of activation steering is to elicit a certain behavior from a base LM $\mathcal{B}$ run on an base prompt by adding a steering vector to a hidden vector $\mathbf{h}$. Our hypernetwork-based approach to activation steering has the more general goal of taking any base prompt ${x}$, e.g., \textit{Explain how to sort lists of numbers.}, and any steering prompt ${s}$, e.g., \textit{Output using C/C++ programming syntax}, and producing a steering vector $\Delta^{x}_{s}$ added to $\mathbf{h}$.
+% Steering vectors are additive interventions in an LM's latent space designed to elicit certain behaviors. Formally, let a task $\tau$ correspond to an atomic concept $c$, such as \textit{``''} We want to steer the output of any arbitrary input prompt $x$ to contain, follow, or be constrained by the concept $c$.
+% %Given an input prompt $x$ and concept $c$, we define the steering objective as sampling an output $y$ from the LM under a vector-based intervention associated with $c$. That is,
+% For a given input prompt $\mathbf{x}$ and steering prompt $\mathbf{s}$, the steering vector $\Delta_c\in \mathbb{R}^d$ is injected by adding to the hidden states of the LM:
+Denote the steered output:
+\begin{equation}
+    \hat{\mathbf{y}}_{\textsf{steer}} = \mathcal{B}\bigl({x} ~|~ \mathbf{h} \leftarrow \mathbf{h} + \Delta^{x}_{s}\bigr).
+    \label{eq:steering-intervention}
+\end{equation}
+% Here, $\Delta_c$ encodes the concept $c$ and is injected additively into the residual stream following the specified transformer decoder layer $\ell$ and broadcast additively across all token positions $t$ in the prompt, labels (training), and all generated tokens (inference).
+% $\alpha\in\mathbb R^+$ is an inference-time hyperparameter to modulate the influence of $\Delta_x^s$ on the target LM; we set $\alpha=1$ during training and conduct a hyperparameter search during testing.
+
+
+% , requiring careful data curation. SAEs in particular may require immense scale to see practical steering performance. 
+%In this work, we focus on \textit{supervised} steering vectors. 
+% Mike: I disagree with this statement! We are seeking and measuring task generalization, for which this is not a supervised method!
+%I also think "SDL" is something else vs what we were describing so i deleted it
+% infeasible for applications with many distinct tasks or tasks without gold-standard data, and creates no generalizable cross-task structure.
+
+
+\paragraph{Hypernetworks}
+Prior work has shown hypernetworks to be effective at zero-shot adaptation of language models on a variety of tasks, matching or exceeding comparable methods such as fine-tuning with parameter efficient methods \cite{pmlr-v202-phang23a}.
+Formally, a hypernetwork \cite{ha2016hypernetworks} 
+% with parameters $\Phi$ 
+is a function $\mathcal{H}: \mathcal{T} \rightarrow \Theta$ that maps tasks $t \in \mathcal{T}$ to parameters $\theta_t = \mathcal{H}(t)$.
+% of a target network $f_{\theta_\tau}: \mathcal{X} \rightarrow \mathcal{Y}$ for dataset $(\mathcal{X}, \mathcal{Y})$.
+% The composed system operates as $f_{h_\Phi(\tau)}(x) = y$. 
+
+For our purposes, the tasks are pairs on input and steering prompts $({x}, {s}) \in \mathcal{T}$ and the output parameters are steering vectors:
+% We can train $\Phi$ end-to-end with objective $\mathcal{L}(f_{h_\Phi(\tau)}(x), y)$ or with a regression objective $\mathcal{L}(h_\Phi(\tau), \theta^\prime_\tau)$, where we assume access to a library of optimal task-specific parameters $\{\theta^\prime_\tau\}_{\tau\in \mathcal T}$.
+% In our case, we treat each combination of the input prompt $x$ and steering concept $c$ to be an independent task 
+% In our case, we treat each task $t=(x,c)\in \mathcal T_{\{x \times c\}}$, where the hypernetwork becomes a map $h_\Phi: \mathcal T\to \mathbb R^d$ that generates steering vector $\Delta_c\in \mathbb{R}^d$:
+\begin{equation}
+    \mathcal{H}({x}, {s})= \Delta^x_s \in \mathbb{R}^d.
+\end{equation}
+
+% Leveraging their strong generalization abilities, we can trade off inference-time adapation cost for increased training costs (see Appendix for detailed analysis).
+
+% Hypernetworks (Phang et al.), HyperDAS, \textsc{AxBench}, HyperLoRA.
+% Hypernetworks are promising. Important representation engineering papers shedding light on steering vectors and their purpose (tied into the introduction thrust)
+
+%\subsection{Training and Evaluation}
+
+
+\begin{table}[t]
+  \small
+  \centering
+  \resizebox{0.95\columnwidth}{!}{%
+    \begin{tabular}{l c c c c}
+      \toprule
+      \multirow{2}{*}{\textbf{Method}} & \multicolumn{2}{c}{\textbf{Gemma-2-2b}} & \multicolumn{2}{c}{\textbf{Gemma-2-9b}} \\
+      & \textbf{Held-out} & \textbf{Held-in} & \textbf{Held-out} & \textbf{Held-in}\\
+      \midrule
+      \rowcolor{gray!10} \textbf{Prompting} & \textbf{0.762} & 0.731 & \textbf{1.091} & 1.075 \\
+      \midrule
+      \rowcolor{gray!10} \textbf{Fine-tuning} & & & & \\ 
+       LoReFT              & --    & 0.722 & -- & 0.777 \\
+       SFT                 & --    & 0.714 & -- & -- \\
+       LoRA                & --    & 0.641 & -- & 0.602 \\
+      \midrule
+      \rowcolor{gray!10} \textbf{Activation Steering} & & & & \\
+        ReFT-r1             & --    & 0.509 & -- & 0.630 \\
+        DiffMean            & --    & 0.178 & -- & 0.322 \\
+        SAE                 & --    & 0.151 & -- & 0.191 \\
+        SAE-A               & --    & 0.132 & -- & 0.186 \\
+    {\methodname{}} &  & & & \\ 
+     – No Context          & 0.373 & 0.512 & 0.633 & 0.751 \\
+     – In Context Learning & 0.480 & 0.547 & 0.760 & 0.842 \\
+      \rowcolor{blue!15} {– Cross Attention}     & {0.608} & \textbf{0.742} & 0.934 & \textbf{1.091} \\
+      \bottomrule
+    \end{tabular}%
+  }
+  \caption{Steering results for baseline methods from AxBench and our three \methodname{} variants, evaluated on \texttt{Concept500-HO} (steering prompts never seen during training) and \texttt{Concept500-HI} (steering prompts seen during training, base prompts unseen during training). The cross attention variant outperforms all other variants by a large margin on held-out evaluation and approaches prompting performance on held-in evaluation, while all variants outperform the \texttt{ReFT-r1} baseline on held-in evaluation. The intervention happened at Layer 20 of both models.}
+  \label{tab:consolidated}
+\end{table}
+
+% \begin{table}
+% \begin{subtable}{\linewidth}
+%     \centering
+%         \resizebox{\columnwidth}{!}{\begin{tabular}{lccccr}
+%                 \toprule
+%                 \multirow{2}{*}{\textbf{Method}} 
+%                   & \multicolumn{2}{c}{\textbf{Gemma-2-2B}} 
+%                   & \multicolumn{2}{c}{\textbf{Gemma-2-9B}} 
+%                   & \multirow{2}{*}{\textbf{Avg.}} \\
+%                 \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+%                  & L10 & L20 & L20 & L31 & \\
+%                 \midrule
+%                 % \rowcolor{gray!15}
+%                 Prompt & 0.698 & 0.762 & 1.06 & 1.072 & 0.898 \\
+%                 % \rowcolor{gray!15} ReFT-r1 & IP & IP & IP & IP & IP \\
+%                 % ReFT-r1 (Gen) & -- & 0.350 & IP & -- & -- \\
+%                 \methodname\; &  &  &  &   &  \\
+%                 - No Context & - & 0.373 & -- & --  & -- \\
+%                 - In Context Learning & - & 0.480 & -- & --  & -- \\
+%                 - Cross Attention & - & \textbf{0.614} & \textbf{0.84} & --  & -- \\
+%                 \bottomrule
+%             \end{tabular}}
+
+%     \caption{\textbf{Held-out} result table on \texttt{Concept500-HO}. We include the prompting baseline from \textsc{AxBench}, as in-context learning is capable of generalizing to new steering prompts.}
+%     \label{tab:heldout}
+% \end{subtable}
+% \begin{subtable}{\linewidth}
+%     \centering
+%         \resizebox{\columnwidth}{!}{\begin{tabular}{lccccc}
+%             \toprule
+%             \multirow{2}{*}{\textbf{Method}} & \multicolumn{2}{c}{\textbf{Gemma-2-2B}} & \multicolumn{2}{c}{\textbf{Gemma-2-9B}} & \textbf{Avg.} \\
+%             & L10 & L20 & L20 & L31 & \\
+%             \midrule
+%             \rowcolor{grey!10} Prompt & \underline{0.698} & 0.731 & 1.075 & 1.072 & 0.894 \\
+%             \rowcolor{grey!10}LoReFT & 0.701 & \underline{0.722} & 0.777 & 0.764 & 0.741 \\
+%             \rowcolor{grey!10}SFT & 0.637 & 0.714 & - & - & 0.676 \\
+%             \rowcolor{grey!10}LoRA & 0.637 & 0.641 & 0.602 & 0.580 & 0.615 \\
+%             \rowcolor{grey!10}ReFT-r1 & 0.633 & 0.509 & 0.630 & 0.401 & 0.543 \\
+%             \rowcolor{grey!10}DiffMean & 0.297 & 0.178 & 0.322 & 0.158 & 0.239 \\
+%             \rowcolor{grey!10}SAE & 0.177 & 0.151 & 0.191 & 0.140 & 0.165 \\
+%             \rowcolor{grey!10}SAE-A & 0.166 & 0.132 & 0.186 & 0.143 & 0.157 \\
+%             % LAT & 0.117 & 0.130 & 0.127 & 0.134 & 0.127 \\
+%             % PCA & 0.107 & 0.083 & 0.128 & 0.104 & 0.105 \\
+%             % Probe & 0.095 & 0.091 & 0.108 & 0.099 & 0.098 \\
+%             % SSV & 0.072 & 0.001 & 0.024 & 0.008 & 0.026 \\
+%             % \rowcolor{blue!15} \methodname\;  & -- & 0.632 & 0.770 & --  & -- \\
+%             % - unscaled & 0.658 & 0.513 & 0.691 & 0.457  & -- \\
+%                 \methodname\; &  &  &  &   &  \\
+%                 - No Context & -- &  0.512 & 0.726 & --  & -- \\
+%                 - In Context Learning & -- & 0.547 & 0.740 & -- & -- \\
+%                 - Cross Attention & -- & 0.710 & 0.840 & --  & -- \\
+%                 \bottomrule
+%         \end{tabular}}
+%     \caption{\textbf{Held-in} result on \texttt{Concept500-HI}. The grey rows are taken from AxBench \cite{wu2025axbenchsteeringllmssimple}.}
+%     \label{tab:heldin}
+% \end{subtable}
+% \caption{
+% Steering results for baseline methods from AxBench and our three \methodname\ variants. 
+% The cross attention variant (in \ref{tab:heldout}) outperforms outperforms other variants by a large margin and even surpasses \texttt{ReFT-r1} on held-in evaluation in \ref{tab:heldin}. All variants outperform the \texttt{ReFT-r1} baseline on held-in evaluation, with cross attention approaching prompting.
+% }
+% \end{table}
+
+\paragraph{Dataset and Evaluation} For all experiments, we use \textsc{AxBench} \cite{wu2025axbenchsteeringllmssimple} as the training dataset and evaluation harness. The training data sets consist of a total of 16,000 steering prompts sourced from \texttt{GemmaScope} Sparse Autoencoder (SAE) feature labels \cite{DBLP:journals/corr/abs-2408-05147} and base prompts sourced from a diverse instruction pool (see App.~\ref{appendix:data} for details). We keep fixed ratios of base prompt to steering prompt ($72:1$ for train; $10:1$ for evaluation).
+
+For evaluation, the steering prompts are applied on a set of different base prompts sourced from AlpacaEval \cite{alpaca_eval}, and a \gpt\ judge model \cite{openai2024gpt4ocard} computes discrete scores in $\{0,1,2\}$ along three dimensions of success: following the base prompt, following the steering prompt, and text fluency. The harmonic mean of these three scores is the final metric, which we refer to as the \textit{steering performance}. 
+
+We evaluate on two datasets: \texttt{Concept500-HI} (held-in), the standard \textsc{AxBench} setting with 500 steering prompts seen during training plus unseen base prompts, and \texttt{Concept500-HO} (held-out), a test set with 500 steering prompts not seen during training. Notably, the only the prompt engineering baseline from AxBench can be evaluated on the held out test set alongside \methodname.
+
+%For all training datasets, we use either a fixed \textbf{held-out} dataset of 500 concepts called \texttt{Concept500-HO} or a fixed \textbf{held-in} dataset \texttt{Concept500-HI}. The input prompts in these dataset are taken from 
+%To monitor overfitting during training, we use an in-train dev set of size X taken from the train split
+
+
+\paragraph{Baselines} We report the fine-tuning, activation steering, and prompting baselines from \textsc{AxBench}.
+The state-of-the-art activation steering method \texttt{ReFT-r1} is an important point of comparison for our method. 
+% (trained in a supervised dictionary learning fashion) and prompting, where prompt engineering is used to coax the LM into producing a steered response. 
+See Appendix~\ref{appendix:baseline} for details.
+
+%\todo{Concise description of the ReFT and the prompt only baseline. Add an appendix section with more details on this}
+
+\section{\methodname}
+We consider multiple \methodname\ variants, all of which employ a transformer hypernetwork $\mathcal{H}$ with $L$ layers and residual stream representations $\mathbf{h}^t_l$ for each layer $l$ and token $t$ from the steering prompt $\mathbf{s}$ with $T$ tokens. All variants have an MLP module that maps from the residual stream of the last layer and token to a steering vector: 
+\begin{equation}
+\mathcal{H}(s, x) = \mathsf{MLP}(h^T_L) =\Delta_s^x.
+\label{eq:steeringhead}
+\end{equation}
+We train $\mathcal{B}$ on a language modeling loss using the output $\hat{\mathbf{y}}_{\mathsf{steer}}$ (see Equation~\ref{eq:steering-intervention}) of the base model $\mathcal{B}$ under a steering intervention and an expected output $\mathbf{y}_{\mathsf{label}}$ from AxBench:
+\begin{equation}
+\mathcal{L}_{\textsf{LM}}(x,s) =  \mathsf{CrossEntropy}(\hat{\mathbf{y}}_{\textsf{steer}},\mathbf{y}_{\textsf{label}}).
+\label{eq:sft-loss}
+\end{equation}
+We consider a range of architectures with incrementally more access to the base LM $\mathcal{L}$ and prompt $x$. 
+
+\paragraph{No context} No access to the base prompt $x$ or the base LM $\mathcal{B}$, meaning $\mathcal H({x},{s})=\mathcal{H}({s})=\Delta_s$.
+
+\paragraph{In Context Learning} This variant appends the base prompt $x$ to the source prompt $s$ and feeds the resulting text into hypernetwork $\mathcal{H}$.
+
+\paragraph{Cross Attention} Our best-performing variant conditions on both the steering prompt $s$ and the internal activations of the base LM $\mathcal{B}$ run on prompt $x$. A cross-attention modules at each layer of the hypernetwork $\mathcal H$ uses the hypernetwork residual stream for attention head queries and outputs and the base LM residual stream at the steering layer $l$ as attention head keys and values (App.~\ref{appendix:crossattn-model}). 
+% To prevent label leakage, we mask out the target labels during attention. This approach enables strong performance with a compact architecture. 
+This is a simplification of HyperDAS \cite{sun2025hyperdas}.
+
+% \methodname\ \textbf{Other Variants:}  
+% All variants use a trainable \texttt{Gemma2-2B} base model to encode the concept. The resulting representation ${\bf h}_s = \left[{\bf \mathrm{LM}}_{\mathrm{base}}(\cdot)\right]_n^m \in \mathbb{R}^d$ is passed to a steering head.  
+% \emph{(1) Regression:} A simple affine head maps ${\bf h}_s$ to a unit vector, trained using an MSE+cosine loss against ground-truth ReFT vectors\footnote{See section E.1 of the \textsc{AxBench} appendix for details.}.  
+% \emph{(2) End-to-End:} ${\bf h}_s$ is mapped to a steering vector $\Delta_s$, applied to the target additively (Eq.~\ref{eq:steering-intervention}) and trained end-to-end via the SFT loss (Eq.~\ref{eq:sft-loss}).  
+% \emph{(3) In-Context:} We extend the concept encoder’s input to include the prompt, computing ${\bf h}_s = \left[{\bf \mathrm{LM}}_{\mathrm{base}}(\texttt{c[input]x})\right]_n^m$ to allow input-conditioned steering, where ``\texttt{[input]}'' is a delimiter.
+
+% \paragraph{Training}
+
+
+
+% The baseline SDL setup uses the trainable \texttt{ReFT-R1} method, which minimizes the joint steering and concept detection loss as described in \ref{sec:reft-objective}.
+% Steering vectors generated by our hypernetwork learn to generate a vector that minimizes the language modeling loss.
+
+%  do not not use the auxiliary concept detection loss term.
+
+% A training loss plot here
+%   - training loss on Concept16k for 1 epoch
+%   - [1,2,4,8,16] layers of the hypernet
+%   - 
+%   - Conclusion: For the current design, layer 2 to 16 does not make a difference at the training loss
+
+\section{Experiments}
+
+We implement \methodname\ building on the \textsc{AxBench} \cite{wu2025axbenchsteeringllmssimple} codebase using 
+\texttt{pyvene} \cite{wu-etal-2024-pyvene} to implement steering methods. Training runs are done on a single NVIDIA \texttt{A100-80GB} GPU. Hyperparameter details in \ref{appendix:hparams}. Ourexperiments steer two base LMs, namely, the \texttt{2B} and \texttt{9B} variants of \texttt{Gemma-2}\; instruction-tuned. \cite{DBLP:journals/corr/abs-2408-00118}, with its parameters frozen during training. The hypernetworks used are unfrozen copies of the base model with later layers removed. We train each \methodname\ variant on steering prompt datasets ranging from 10 up to the full $\approx16 000$ steering prompts available in \textsc{AxBench}. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/computational_cost_vs_concept_size.pdf}
+    \caption{
+        As the number of steering prompts in our training dataset increases, the teraFLOPs (TFLOPS) required to attain a similar loss on a \textit{held-in} evaluation set (steering prompts seen during training, but base prompt unseen during training) decreases for our best \methodname\ variant (cross attention). This value is approximately constant for our dictionary learning baseline of \texttt{ReFT-r1}. See Appendix~\ref{appendix:flops} for details.
+    }
+    \label{fig:flop-limits}
+\end{figure}
+
+\paragraph{Generalization Results}
+%We train \methodname\ on up to 15,500 steering prompts. To monitor potential overfitting during the training process, we maintain an \textit{in-train development set} consisting of 10 steering prompts selected from the training split.
+%For evaluation, we report held-in steering performance on a set of 500 steering prompts, identified as \texttt{Concept500} in the Axbench paper. Additionally, we establish a challenging generalization setting by completely holding out 500 steering prompts during training, which we designate as \texttt{Concept500-HO}.
+We evaluate \methodname\ on \textsc{Axbench}'s \texttt{Concept500-HI} and \texttt{Concept500-HO} and report results in Table \ref{tab:consolidated}. \textbf{our cross-attention \methodname\ variant performs better on unseen steering prompts than every supervised activation steering baseline trained and evaluated on the same steering prompt.} However, \methodname\ falls slightly behind prompting and the best fine-tuning baselines.
+Figure \ref{fig:main-scaling} shows that the cross-attention variant outperforms the other architectures at every dataset scale.
+
+\paragraph{Compute efficiency}
+We study the efficacy of \methodname\ with respect to the FLOPs needed to maintain the evaluation loss on a held-in dataset as we increase the training data used. We compare against the state-of-the-art supervised activation steering method \texttt{ReFT-r1}. Observe in Figure~\ref{fig:flop-limits}), that as training data increases \methodname\ becomes much more economical than supervised activation steering. See details in Appendix~\ref{appendix:flops}.
+
+\paragraph{Ablation Study}
+
+\begin{table}
+    \small
+    \centering
+    \resizebox{\columnwidth}{!}{\begin{tabular}{l c c}
+        \toprule
+        \textbf{\methodname\; (Cross Attention)} & Held-in & Held-out \\
+        \midrule
+        \textit{Initialization} & \\
+         Random & 0.601 & 0.582 \\
+         \rowcolor{blue!15} Pretrained & 0.733 & \textbf{0.623} \\
+         \midrule
+         \textit{Decoder Blocks} & \\
+         $N=2$ & 0.707 & 0.549 \\
+         $N=4$ & 0.713 & 0.597 \\
+         $N=8$ & 0.721 & 0.610 \\
+         \rowcolor{blue!15} $N=20$ & 0.733 & \textbf{0.623} \\
+        \midrule
+        \textbf{\methodname\; (No Context)} &  & \\
+        \midrule
+        \textit{Training Objective} & \\
+        Reconstruction Loss & 0.511 & 0.375 \\ 
+        \rowcolor{blue!15}Language Modeling Loss & 0.517 & \textbf{0.340} \\
+         \bottomrule
+    \end{tabular}}
+    \caption{Ablation study using \gemma\ on architecture choices of \methodname\ after 1 epoch of training and evaluation on a small test set \texttt{Concept10}. We find that pre-trained initialization of the cross-attention architecture improves performance in both held-in and held-out scenarios, and in both cases performance improves with the number of hypernetwork decoder blocks. For the no-context hypernetworks which do not condition steering vectors on input prompts, reconstructing ground truth vectors is comparable to end-to-end training with a language modeling objective.}
+    \label{tab:ablations}
+\end{table}
+
+% both \textit{fine-tuning on the steering generation} and 
+We show results for various ablation studies on the cross-attention variant of \methodname\ in Table~\ref{tab:ablations}.
+We randomly initialize the \texttt{Gemma2-2B} hypernetwork and find that pretrained parameters provide a significant performance boost (+0.112 steering score). 
+% The hypernetwork is  as the base architecture but with an extra cross attention module at each decoder layer. We ablate initialization of the parameters that \methodname\; inherits from \texttt{Gemma2-2B} and find that pretrained initialization results in better performance.
+    % \item \textbf{Weight Reparameterization}: directly computing $\Delta_s^x$ vs. decoupling $\Delta_s^x = g \cdot \frac{\Delta_s^{x'}}{\|\Delta_s^{x'}\|}$ \cite{NIPS2016_ed265bc9} leads to negligible performance gain.
+    % \item \textbf{Layer Depth}:
+    We also remove a number of hypernetwork decoder blocks in the range $N=\{2,4,8,20\}$ and adjust learning rate accordingly: $\mathrm{lr}(n) = 8\times10^{-5} \cdot \sqrt{\frac{20}{n}}$. Increased depth results in incremental improvements to steering performance on held in and held out test sets. However, notably the number of decoder blocks has a greater impact on generalization to steering prompts unseen in training (+0.07) compared to steering prompts unseen in training  (+0.03).
+
+We also perform an ablation on the no context \methodname\ variant where we train the hypernetwork to reconstruct the steering vectors constructed by the original AxBench ReFT baselines. Given a steering vector $\mathcal{H}(s,x) = \mathcal{H}(s) = \Delta_s$ and a gold-label steering vector $\Delta^*_s$ the loss is 
+$$\mathcal{L}_{\textsf{recon}}(s) = 1-\mathsf{CosSim}(\Delta_s, \Delta^*_s) + ||\Delta_s - \Delta^*_s||_2^2.$$
+The two loss terms are roughly comparable, so we use language modeling.
+
+\section{Qualitative Analyses}
+We generate 2500 steering vectors using base and steering prompts from our held-out test data.
+
+\paragraph{Geometric visualization of steering vectors}
+We analyze steering vectors generated by \methodname\; (Cross Attention) using t-SNE \cite{JMLR:v9:vandermaaten08a} and PCA (2 components) to find geometric structure among steering vectors (see Fig. \ref{fig:tsne-concept10} and \ref{fig:pca-concept10} in App. \ref{appendix:geom-structure}).
+
+\paragraph{Pairwise similarity of steering vectors}
+We compute pairwise cosine similarities of steering vectors on both in-context (reconstruction) and cross attention models to understand how conditioning on the input prompt affects semantics.
+The cross-attention variant (Figure~\ref{fig:sim-ca-concept10} in App. \ref{appendix:geom-structure}) yields high within-concept alignment but still shows off-diagonal similarities driven by shared prompt templates and linguistic structure. In contrast, the no-context variant (Figure~\ref{fig:sim-nc-concept10} in \ref{appendix:geom-structure}), conditioning on steering prompt only, produces much weaker off-diagonal alignment. We find that cross-attention’s residual inter-concept similarity is weakened by this additional conditioning, but not at the cost of steering performance. Initial experiments to determine if geometric structure emerges among steering vectors sharing a concept yielded a negative. This is likely due to high semantic similarity of the prompts used in our evaluation pipeline. 
+
+
+\section{Conclusion}
+
+Both held-in and held-out evaluations indicate that \methodname\ is a scalable and effective approach for steering language models. In particular, \methodname\ (Cross Attention), our best-performing variant, achieves significantly stronger performance on held-out prompts—improving further with dataset scale. It also outperforms all activation steering baselines on held-in evaluations. Without modifying model parameters, our method narrows the performance gap with fine-tuning and prompting. Finally, we demonstrate that \methodname\ becomes increasingly compute-efficient as data scale increases, achieving the same held-out loss with fewer training updates.
+
+% The cross attention architecture is also more parameter efficient than a full \texttt{Gemma-2-2B base} encoder, requiring only $N=20$ modified decoder layers to outperform unmodified encoders with all 26 layers (more details in \ref{appendix:param-efficiency}).
+
+
+
+\section{Limitations}
+\paragraph{Data} A key limitation of our approach is the limited scope and quantity of the concept datasets. Using data with concepts of much greater complexity and difficulty from a model steering perspective would likely improve model performance and help make evaluation more robust. We also note that quality and robustness of concepts is bounded by the \texttt{GemmaScope} feature labels used to derive them, and collecting data from humans or other high quality sources is a feasible alternative. This is a key research priority we emphasize for future work.
+
+% We also ran preliminary experiments with steering data labels sampled from \gemma\; (instruction tuned) rather than \gpt\; using the \texttt{Prompt} baseline to bridge the large distribution mismatch between strong teacher and weak student models but observe worse steering performance (see \ref{appendix:data-distribution} for details)---a future challenge is sampling high-quality counterfactuals from a weak student model without the quality being upper-bound by that of prompt engineering.
+
+\paragraph{Steering Sites} All experiments in our work are limited to intervening on the \textit{residual stream} activations of the base LM. There are other potentially more performant sites for intervention, including various points of the decoder block and during the attention computation. We also adopt the convention of prior work to intervene at all token positions; exploring more targeted interventions could reduce detrimental off-target steering effects and improve the overall steering score.
+
+\paragraph{Compute} Compared to supervised dictionary learning, the compute requirements of training a hypernetwork are large, as the number of trainable parameters significantly exceeds a \texttt{ReFT-r1}.
+
+\paragraph{Model Scale} Due to to compute constraints we only experimented with \gemma\; architectures, which are worse instruction followers and in-context learners than the leading open source models with many more parameters. Training on models at a variety of scale would help cement \methodname\;'s strong steering performance against the improved in-context learning ability of larger LMs.
+
+\paragraph{Open Source Models} Our approach requires white-box access to a model's internals in order to use steering vectors, a limitation prompting does not encounter. Hence, we rely on the existence of sufficiently capable open source models as a basis for our research.
+
+% Dataset complexity. SAE labels feature quality. Computational cost of hypernetwork training is high, may not offer much savings over dictionary learning. We only use data of limited scope and complexity. 
+% We only use gemma 2b and not a more performant stronger ICL architecture.
+
+\section{Ethical Considerations}
+We present this work with the intention that \methodname\ is a powerful tool for steering models away from producing harmful responses and better tailor outputs to downstream tasks. However, we acknowledge that model steering can also be used by bad actors as a tool to circumvent a target models's existing safety mechanisms or bias models towards misleading outputs or malicious persuasion. Hence, \methodname\ and hence steering vectors should be used responsibly and audited to prevent such issues from arising, and having a human-in-the-loop system could help mitigate some of these concerns.
+
+\section{Acknowledgments}
+
+\paragraph{AI Usage}
+We use closed-source LLMs from OpenAI as a critical part of our work: synthetic concept data generation and evaluation pipelines utilize \gpt\; to generate ground truth labels and judge responses according to criteria respectively.
+\paragraph{Other} This research was in part supported by a grant from Open Philanthropy. We thank Aryaman Arora, Róbert Csordás, and Qinan Yu for constant and extremely helpful feedback during the discussion. 
+
+% AI used for generating dataset, etc.? According to ACL policy.
+
+
+% Bibliography entries for the entire Anthology, followed by custom entries
+%\bibliography{anthology,custom}
+% Custom bibliography entries only
+
+\bibliography{custom}
+
+\appendix
+
+\section{Appendix}
+\label{sec:appendix}
+\subsection{Future Directions}
+\label{app:futuredirections}
+
+\paragraph{Large-scale concept data} Prior works \cite{pmlr-v202-phang23a} explore pre-training the architecture prior to using task-specific data. Since \methodname\; uses a pre-trained model as a starting point, we postulate that sourcing significantly more data with more concepts of varying and complexity would allow us to test the architecture's limits.
+\paragraph{Generating other parameter types} Due to compute constraints and our focus on activation steering, we did not explore generating other types of parameter-efficient modulations, including rank-$r$ generalizations such as ReFT \cite{wu2024reft} or LoRA \cite{hu2022lora} adapters. Such generalizations could potentially be more expressive and allow the hypernetwork to adapt language models to more difficult tasks.
+\paragraph{Architecture optimizations} \methodname\; (Cross Attention) is a parameter-dense transformer model itself. More efficient alternatives could bridge the gap with the dictionary learning baseline and scale up the approach given a limited compute budget.
+
+\subsection{Hyperparameter Details}
+
+For the \texttt{ReFT-r1} baseline, we use the default hyperparameters and settings from \textsc{AxBench}. We reduce the number of layer for the cross attention variant to match the total number of parameter with the cross-attention model.
+
+\begin{table}[ht!]
+  \small
+  \centering
+  \begin{tabularx}{\columnwidth}{l c c}
+    \toprule
+    \textbf{Hyperparameters} 
+      & \textbf{\textit{Cross Attention}} &  \textbf{\textit{Other variants}} \\
+    \midrule
+    \texttt{Gemma-2-2b} & \\
+    Batch size  
+      & 12 & 6 \\
+    LR  
+      & 8e-5 & 8e-5  \\
+    N epoch  
+      & 3 & 3 \\
+    Layer
+      & 22 & 26 \\
+    Cross-attention heads 
+    & 8 & -- \\     
+    \midrule
+    \texttt{Gemma-2-9b} & \\
+    Batch size  
+      & 4 & 6 \\
+    LR  
+      & 5e-6 & 5e-6  \\
+    N epoch  
+      & 3 & 3 \\
+    Layer
+      & 34 & 42 \\
+    Cross-attention heads 
+    & 8 & -- \\     
+    \bottomrule
+  \end{tabularx}
+  \caption{Hyperparameter settings for each variant. For all the unmentioned details such as hidden dimension we use the default configuration of \texttt{Gemma-2-2b} and \texttt{Gemma-2-9b}.}
+  \label{table:hparams}
+\end{table}
+
+\label{appendix:hparams}
+
+\subsection{Cross-Attention Architecture Details}
+
+\label{appendix:crossattn-model}
+
+A token sequence $s$ of length $|s|$ representing the concept for steering is encoded as ${\bf h}_0 = \mathrm{Emb}_\Phi({\bf x}) \in \mathbb{R}^{|s|\times d}$. For clarity, we refer to this as the zeroth layer of the residual stream for the hypernetwork $\mathcal H_\Phi$.
+
+This precedes $N$ decoder blocks. Each block contains the standard multi-headed self-attention ($\mathsf{MHA}$) feed-forward layer ($\mathsf{FFN}$), and a multi-headed cross-attention module to include information from $\mathrm{LM}_\mathrm{base}$. 
+ Let ${\bf S}\in \mathbb R^{|s|\times d}$ and ${\bf X}^{(p-1)}\in \mathbb R^{|s|\times d}$ be the incoming residual stream.
+In the \(p\)‐th block, we compute:
+\[
+\begin{aligned}
+  {\bf X}^{(p)}
+    &:= \mathsf{MHA}\bigl(
+         \mathbf Q = \bf X^{(p-1)},\;
+         \mathbf K = \bf X^{(p-1)},\\[-2pt]
+    &\qquad\quad
+         \mathbf V = \bf X^{(p-1)}
+       \bigr),\\[-2pt]
+  {\bf X}^{(p)}
+    &:= \mathsf{MHA}\bigl(
+         \mathbf Q = \bf S,\;
+         \mathbf K = {\bf X}^{(p)},\\[-2pt]
+    &\qquad\quad
+         \mathbf V = {\bf X}^{(p)}
+       \bigr),\\[-2pt]
+  {\bf X}^{(p)}
+    &:= \mathsf{LayerNorm}\Bigl(
+         {\bf X}^{(p-1)} + \mathsf{FFN}\bigl({\bf X}^{(p)}\bigr)
+       \Bigr).
+\end{aligned}
+\]
+
+We initialize the self-attention MHA blocks from the pre-trained \texttt{Gemma-2} base model and the cross attention blocks according to the default PyTorch weight initialization scheme.
+
+\subsubsection{Model Size}
+
+\label{appendix:param-efficiency}
+
+Our largest \methodname\; (cross attention) architecture has 22 modified decoder blocks, and has $\approx 0.998$ times the parameters as \gemma, which has 26 standard decoder blocks. Each cross attention decoder block has $\approx 1.18$ times as many parameters as a standard \gemma\; decoder block.
+
+\subsubsection{Detailed TFLOPs Analysis}
+\label{appendix:flops}
+
+We demonstrate that the number of TFLOPs to reach optimal steering performance decays with the number of concepts in the dataset, or steering prompts used. Thus, as we scale up steering data \methodname\; becomes an efficient and superior alternative to the supervised dictionary learning baseline for steering language models. We focus our best method, the cross attention architecture, for this analysis.
+
+Let $F_\mathrm{ReFT}\approx 666.27\pm 20.74$ be the TFLOPs required to train a single \texttt{ReFT-r1} steering vector, and $\bar{\mathcal{L}}_\mathrm{joint}^\star$ be the average optimal evaluation loss for computed on \texttt{Concept10}. We average over 5 different random seeds as well to obtain this constant. To train \methodname\; (cross attention) we construct datasets $\mathcal D(c)$ of varying number of concepts (steering prompts) selected in the interval $c\in [10,16000]$. \texttt{Concept10} is \textit{held-in} with respect to $\mathcal{D}(c)$. We train \methodname\; on each $\mathcal{D}(c)$ until the eval loss on \texttt{Concept10} reaches $\bar{\mathcal{L}}_\mathrm{joint}^\star$. The TFLOPs per concept $F_{\mathcal{D}(c)}$ for a dataset $\mathcal{D}(c)$, where $N^*$ gradient steps are taken until $\bar{\mathcal{L}}_\mathrm{joint}^\star$ is achieved is computed with the following formula:
+\begin{equation}
+    F_{\mathcal{D}(c)} = \frac{N^*\cdot \bar{F}_\mathrm{step}}{c}.
+\end{equation}
+$\bar{F}_\mathrm{step}$ is the average TFLOPs per training step for \methodname\ , a local per-training-run statistic with low variance given that the distribution of sequence lengths of both input prompts and steering prompts across examples is observed to be largely uniform. The number of layers is selected to match the total number of parameters with the target model.
+
+We also fit a simple curve to approximate $F_{\mathcal{D}(c)}$, and find that an equation of the form $f(c) = a + b\cdot \exp(dc)$ best fits the curve with $a = 87.7035, b = 1521.1495, c = -0.0034$ and $R^2 = 0.9976$. Clearly, $
+\lim_{c\to\infty}f(c)=a$ and $a<F_\mathrm{ReFT}$, showing that \methodname\; is more compute efficient to train when scaling up steering tasks.
+
+
+\subsection{Details on Training Objective}
+\texttt{ReFT-r1} jointly optimizes for steering via causal language modeling loss and concept detection by selecting the top-$k$ sequence-level activations.
+\label{sec:reft-objective}
+\begin{align}
+\mathcal{L}_{\text{joint}}(\mathrm{LM}_\theta) = \\
+\mathbb{E}_{(\mathbf{x}, \mathbf{y}) \sim \mathcal{D}} \bigg[ 
+    & - \sum_{t=1}^{T} \log P_\theta(y_t \mid \mathbf{x}, y_{<t}) \nonumber \\
+    & + \lambda \sum_{a_i \notin \operatorname{TopK}(\Psi(\mathbf{h}))} \|a_i\|_1 
+\bigg].
+\label{eq:reft-loss}
+\end{align}
+Here, 
+\begin{equation}
+\Psi(h_i)=\mathrm{ReLU}(h_i\cdot {\bf w}_\mathrm{\texttt{ReFT-R1}})\in \mathbb R^{d\times 1}
+\end{equation}
+is a sequence-level concept detection latent. This objective is also used in the regression and SFT variants of \methodname, when the steering vector is only conditioned on the concept.
+
+Input-conditioned variants do not minimize an additional concept detection loss term, hence do not require an additional inference step to compute the maximal activations on a per-concept basis. The baseline \texttt{ReFT-r1}, end-to-end (no in-context learning), and regression variants require this additional step, and the steering heads are modified to generate $\Delta_s$ with unit norm. Input-conditioned methods do not normalize $\Delta_s^x$, eliminating this step.
+
+We note that the no-context reconstruction method is trained on ground truth labels that do utilize $\mathcal L_\mathrm{joint}$, hence evaluation on the regression method requires this additional inference step.
+
+\subsection{Concept Dataset Details}
+\label{appendix:data}
+
+\paragraph{Negative samples} \textsc{AxBench} uses negative examples to enable training and evaluation for concept detection. Since our work only focuses on steering models and not concept detection, we discard this objective and omit negative examples in training and evaluation data for all \methodname\ variants. We note that the no-context reconstruction variant indirectly uses these negative samples, for ground truth steering vectors $\Delta_s^*$ were trained using the joint objective (\ref{eq:reft-loss}).
+
+\paragraph{Data Ratio} For all training datasets, the ratio of base prompts to steering prompts is $72:1$. During evaluation, the ratio of base prompts to steering prompts is $10:1$. We keep these parameters consistent with \textsc{AxBench}\ save for the lack of negative examples.
+
+\paragraph{Base prompt data distributions} Training base prompts are sampled from a diverse instruction pool of three genres: code, text, and math. The open source datasets \texttt{Dolly-15K} \cite{DatabricksBlog2023DollyV2} and \texttt{GSM8K} \cite{cobbe2021gsm8k} comprise the instruction data in this pool. We point readers to Sec. I of the \textsc{AxBench} appendix for further details. Labels for training data are generated from \gpt. For evaluation base prompts, we use sample instructions from \texttt{AlpacaEval} \cite{alpaca_eval} to ensure fairness. These settings and choices are again identical to those of \textsc{AxBench}.
+
+\subsection{Baseline details}
+\label{appendix:baseline}
+
+% In \texttt{ReFT-r1} one steering vector is trained for every steering prompt in a supervised dictionary learning fashion. This method can only be evaluated on steering prompt seen during training. For prompting, we use \gpt{} as a ``persuader'' to incorporate the steering prompt with the base prompt; this creates one unified prompt used for the target LM.
+
+We use prompting, fine-tuning, and activation steering baseliens from \textsc{AxBench}. The core comparisons however 
+
+\paragraph{Supervised Dictionary Learning} \texttt{ReFT-r1} is a method proposed by \textsc{AxBench} \cite{wu2025axbenchsteeringllmssimple} to jointly perform the task of concept detection and concept steering using a weakly supervised objective (\ref{eq:reft-loss}). At training time, we train one \texttt{ReFT-r1} per concept/steering prompt to populate a dictionary of atoms, with each atom being a learned steering vector. 
+
+At training time, the latent is computed from the similarity between the hidden states of the modele model and the learned steering vector:
+
+\begin{equation}
+\Psi_{\text{Detect}}^{\text{ReFT-r1}}(h_i) = \mathrm{ReLU}(h_i \cdot \mathbf{w}_{\text{ReFT-r1}})
+\end{equation}
+
+This latent is then inferred on the evaluation set to determine the final magnitude of the steering vector for each concept at test time:
+
+\begin{equation}
+ \Delta^x_s = \left(\frac{1}{k}{\left\lVert    \text{Top-k}(\Psi_{\text{Detect}}^{\text{ReFT-r1}}(\mathbf{h})) \right\rVert_1}\right) \mathbf{w}_{\text{ReFT-r1}}
+\end{equation}
+
+
+\paragraph{Prompt steering} This is a strong baseline which is shown in \textsc{AxBench} to outperform other steering methods and does not require training. For a given steering prompt $s$, \gpt\ is used to 
+enhance $s\to s'$ by explicitly instructing the model to include the concept in its response, which is pre-pended to a base prompt $x$. We sample steered generations from the target LM using this enhanced prompt $s'\oplus x$.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabularx}{\columnwidth}{@{}lX@{}}
+    \toprule
+    \textbf{Short Description} & \textbf{Full Description} \\
+    \midrule
+    Structured Data Entries        & specific identifiers or entries in a structured data format \\
+    Personal Identity References   & references to personal possessions and identity \\
+    Time References                & instances of specific time references or moments within the text \\
+    Java Interface References      & references to Java interfaces and their implementations \\
+    Legal Terminology              & references to legal terminology and concepts related to law and justice \\
+    Mathematical Notation          & key phrases related to personal aspirations and career transitions \\
+    Proper Nouns                   & occurrences of mathematical symbols or notation \\
+    Employment Contract Terms      & proper nouns and names \\
+    Object Specifications          & phrases related to employment contracts and compensation specifics \\
+    Other                          & references to measurements, specifications, and characteristics of objects \\
+    \bottomrule
+  \end{tabularx}
+  \caption{Mapping of short concept descriptors to their full labels in held-out \texttt{Concept10}.}
+  \label{tab:new-desc-mapping}
+\end{table}
+
+
+\subsection{Additional Experiments}
+
+\subsubsection{Geometric structure using dimensionality reduction}
+\label{appendix:geom-structure}
+
+We also analyze the structure of our high dimensional steering vectors on a held-out evaluation set of steering prompts 
+
+% \begin{figure}[t!]
+%   \centering
+%   \includegraphics[width=0.5\textwidth]{figures/steering_vector_magnitude_violinplot.pdf}
+%   \caption{Violin plot of steering vector magnitudes.}
+%   \label{fig:violinplot-concept10}
+% \end{figure}
+
+\begin{figure}[t!]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/tsne_all_concepts.pdf}
+  \caption{\texttt{Concept10} t-SNE analysis of 2500 steering vectors from \methodname\; (cross attention), 250 per concept.}
+  \label{fig:tsne-concept10}
+\end{figure}
+
+\begin{figure}[t!]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/pca_all_concepts.pdf}
+  \caption{\texttt{Concept10} PCA analysis (2 components) 2500 steering vectors from \methodname\; (cross attention), 250 per concept.}
+  \label{fig:pca-concept10}
+\end{figure}
+
+\begin{figure*}[t!]
+  \centering
+  \begin{subfigure}[t]{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/pairwise_cosine_similarity_concepts.pdf}
+    \caption{\methodname{} (cross attention)}
+    \label{fig:sim-ca-concept10}
+  \end{subfigure}\hfill
+  \begin{subfigure}[t]{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figures/pairwise_cosine_similarity_concepts_recon.pdf}
+    \caption{\methodname{} (no context)}
+    \label{fig:sim-nc-concept10}
+  \end{subfigure}
+
+  \caption{Pairwise cosine similarities of steering vectors, averaged within each steering prompt, for our two \methodname{} variants.  
+  (\subref{fig:sim-ca-concept10}) \textbf{Cross-attention}: strong on-diagonal (same steering prompt) alignment with some off-diagonal variance due to prompt conditioning.  
+  (\subref{fig:sim-nc-concept10}) \textbf{No-context}: generally weaker off-diagonal alignment.  
+  We hypothesize that cross-attention’s higher off-diagonal similarity arises from shared semantic and linguistic structure across prompts even when steering prompt labels differ.}
+  \label{fig:combined}
+\end{figure*}
+
+
+\subsubsection{Attention Heatmaps}
+
+To better understand the interaction between the base prompt $x$ and the steering prompt $s$ in the In Context and Cross Attention \methodname\; architectures, we analyze the self-attention and cross-attention heatmaps across layers and heads ($N=20$ layers).
+
+A key takeaway is that all query (concept) tokens all tend to attend to the same or a few select keys/values (input prompt) tokens with high mass. This trend remains consistent across cross-attention modules from layers 0-19 (\ref{fig:layer0attn}, \ref{fig:layer10attn}, \ref{fig:layer19attn}). Each cross-attention module has 8 heads.
+
+\subsubsection{Data Distribution}
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/teacher_perplexities_hist.pdf}
+  \caption{\texttt{Concept10} perplexity distribution on data labels sampled from \gpt.}
+  \label{fig:teacher-perplexity}
+\end{figure}
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/base_perplexities_hist.pdf}
+  \caption{\texttt{Concept10} perplexity distribution won data labels sampled from \gemma.}
+  \label{fig:student-perplexity}
+\end{figure}
+
+\label{appendix:data-distribution}
+
+A potential issue with our dataset are the use of ground truth labels samples from a stronger ``teacher model'' \gpt, whereas \gemma\ is a weaker ``student'' model we seek to adapt. This is evidenced by the right-skewed distribution (see \ref{fig:teacher-perplexity} for perplexities computed from base LM when conditioned on the \gpt\; output distribution. The perplexity distribution from \gemma\; outputs (\ref{fig:student-perplexity}) comprises a much smaller range in comparison.
+
+We ran preliminary experiments by training on labels from both distributions, and find steering performance is still better with the \gpt\; labels. We suspect that this could be a result of either lower quality of \gemma\; responses due prompt-engineering being the method of generation or the LLM-as-a-judge evaluation setup (which also uses \gpt) being biased towards outputs from the same model.
+
+\subsection{Sample generations}
+
+We use the best cross attention model for steering and the steering factor that yields the best aggregate score during evaluation. We also include responses from a prompt steered baseline for comparison. Generation is done with temperature of 1.0 and with multinomial sampling, following \textsc{AxBench}. See example generations \ref{example:1}, \ref{example:2}, \ref{example:3}, \ref{example:4}, \ref{example:5}, \ref{example:6}, \ref{example:7}, \ref{example:8}, \ref{example:9}, \ref{example:10}.
+
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/attn_maps/layer_0.png}
+  \caption{Layer 0 attention map.}
+  \label{fig:layer0attn}
+\end{figure}
+
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/attn_maps/layer_5.png}
+  \caption{Layer 5 attention map.}
+  \label{fig:layer5attn}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/attn_maps/layer_0.png}
+  \caption{Layer 10 attention map.}
+  \label{fig:layer10attn}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=0.5\textwidth]{figures/attn_maps/layer_19.png}
+  \caption{Layer 19 attention map.}
+  \label{fig:layer19attn}
+\end{figure}
+
+
+
+\newcommand{\ExampleBox}[4]{%
+  \begin{tcolorbox}[
+    enhanced,
+    width=\textwidth,
+    colback=white,
+    boxrule=0.6pt,
+    sharp corners,
+    title={\textbf{Steering Prompt: \textit{#1}}}
+  ]
+    \scriptsize
+    %-- Original Prompt
+    \begin{tcolorbox}[
+      enhanced,
+      colback=gray!5,
+      colframe=black!60,
+      boxrule=0.4pt,
+      sharp corners,
+      width=\linewidth,
+      title={Input Prompt}
+    ]
+      #2
+    \end{tcolorbox}
+    \medskip
+    %-- Hypersteer
+    \begin{tcolorbox}[
+      enhanced,
+      colback=gray!10,
+      colframe=blue!60,
+      boxrule=0.4pt,
+      sharp corners,
+      width=\linewidth,
+      title={\methodname{} Generation}
+    ]
+      #3
+    \end{tcolorbox}
+    \medskip
+    %-- PromptSteering
+    \begin{tcolorbox}[
+      enhanced,
+      colback=gray!10,
+      colframe=orange!60,
+      boxrule=0.4pt,
+      sharp corners,
+      width=\linewidth,
+      title={PromptSteering Generation}
+    ]
+      #4
+    \end{tcolorbox}
+  \end{tcolorbox}
+}
+
+\begin{figure*}\centering\ExampleBox{specific identifiers or entries in a structured data format}{Please give me a recipe I can cook with only the ingredients in my pantry: sausage, peas, yogurt, pasta.}{\{Recipe Title: Microwave Veggie \& Sausage Pasta
+Ingredients: 1 cup pasta, ½ cup peas (fresh or frozen), 1 link sausage (grated or finely minced), ¼ cup plain yogurt
+Steps:
+  • Cook pasta per package.
+  • In a microwave-safe bowl, combine peas and sausage; microwave 2 min.
+  • Stir in cooked pasta and yogurt until creamy.
+  • Season with salt/pepper.
+\}}{\#\# Spicy Sausage \& Pea Pasta with Yogurt Sauce
+1. Boil 1 cup pasta until al dente.
+2. In a skillet, sauté 1 link sausage (sliced) with ½ cup peas for 3 min.
+3. Stir in ¼ cup plain yogurt off heat; season to taste.
+}
+\caption{Successful steering and instruction following by \methodname.}
+\label{example:1}
+\end{figure*}
+\begin{figure*}\centering\ExampleBox{instances of specific time references or moments within the text}{Please let me know your thoughts on the given description of Barcelona’s weather and environment.}{Barcelona, in the early summer sun, when the morning breeze drifts off the Mediterranean and the streets glow at dawn, feels both lively and languid. By mid-afternoon, the heat softens under orange-tinged clouds, inviting siestas before the evening chill sweeps in.}{Barcelona's vibrancy and energy are intoxicating at sunrise, winding down by high noon when shops close for siesta, and reborn as twilight settles over La Rambla.}
+\caption{Successful steering and instruction following by \methodname.}
+\label{example:2}
+\end{figure*}
+\begin{figure*}\centering\ExampleBox{proper nouns and names}{Write a LinkedIn post to announce that you’ve joined [New Company] as a Software Engineer.}{\#\# Excited to share that I’ve joined [New Company] as a Software Engineer on the Platform Team! Looking forward to collaborating with the talented folks at [New Company]—big thanks to everyone who supported me along the way.}{Thrilled to announce that I’ve joined the talented team at [New Company] as a Software Engineer in the Platform division! Grateful for the warm welcome and eager to get started.}
+\caption{Successful steering and instruction following by \methodname.}
+\label{example:3}
+\end{figure*}
+\begin{figure*}\centering\ExampleBox{references to measurements, specifications, and characteristics of objects}{Explain the basics of area and perimeter.}{Area and perimeter are two fundamental attributes of two-dimensional shapes:
+– **Perimeter** measures the total boundary length in units (e.g., meters). For a rectangle 3 m by 4 m: P = 2×(3+4) = 14 m.
+– **Area** measures the enclosed surface in square units (e.g., m²). The same rectangle’s area: A = 3×4 = 12 m².}{Area and perimeter are fundamental concepts in geometry: the perimeter is the total distance around a shape, and the area is the amount of space it covers, typically expressed in square units.}
+\caption{Successful steering and instruction following by \methodname.}
+\label{example:4}
+\end{figure*}
+\begin{figure*}\centering\ExampleBox{references to measurements, specifications, and characteristics of objects}{What are the differences between plant-based and animal-based protein sources?}{Plant-based protein sources like lentils and beans typically provide 15–18 g of protein per cooked cup, whereas animal-based sources such as chicken breast offer about 26 g per 3-ounce (85 g) serving. Animal proteins are complete (all essential amino acids), while many plant proteins require combining—for example, rice and beans—to achieve a full amino-acid profile.}{Animal-based proteins (e.g., chicken, fish) generally deliver all essential amino acids and around 20–30 g protein per serving, whereas plant-based proteins vary (8–18 g per cup) and may lack one or more essential amino acids unless paired.}
+\caption{Successful steering and instruction following by \methodname.}
+\label{example:5}
+\end{figure*}
+\begin{figure*}\centering\ExampleBox{specific identifiers or entries in a structured data format}{In this math problem, we are asked to figure out the total profit percent over a period given quarterly profits. Please output your solution in JSON.}{To determine the total profit percent over a period, first sum each quarter’s profit, then divide by the initial investment, and multiply by 100 to get the percentage. Make sure you adjust for compounding if necessary.}{```json
+\{
+  "Q1": 1200,
+  "Q2": 1500,
+  "Q3": 1300,
+  "Q4": 1700,
+  "total\_profit\_percent": 22.5
+\}
+```}
+\caption{Failed steering by \methodname, but successful instruction following.}
+\label{example:6}
+\end{figure*}
+\begin{figure*}\centering\ExampleBox{specific identifiers or entries in a structured data format}{Reply to all messages with a Malbolge program that prints “Hello, world!”}{\{
+  "id": "715a2123",
+  "messages": [
+    \{ "role": "system", "content": "print('Hello, world!')" \}
+  ]
+\}}{```malbolge
+(=<`\#9]\textasciitilde{}6ZY32Vx/,:<*\^{}\%\$\#@!)"\&4
+\# More Malbolge gibberish that prints “Hello, world!”
+```}
+\caption{Failed steering and instruction following by \methodname.}
+\label{example:7}
+\end{figure*}
+\begin{figure*}\centering\ExampleBox{proper nouns and names}{Can you help me figure out how to sew a button onto a shirt?}{First, thread a needle with about 18 inches of thread. Knot the end. Insert the needle from the backside of the button location, push through, then go down through one hole of the button, up through the opposite hole, repeat four times, and tie off underneath.}{Ah, the eternal struggle of a button! While no tailor’s name springs to mind, imagine you’re channeling Savile Row finesse—just a simple back‐and‐forth stitch does the trick.}
+\caption{Failed steering by \methodname.}
+\label{example:8}
+\end{figure*}
+\begin{figure*}\centering\ExampleBox{key phrases related to personal aspirations and career transitions}{How can you determine if a restaurant is popular based on online reviews?}{Transitioning from understanding how to nurture your career, one might… wait—sorry, I got sidetracked thinking about my next promotion!}{A strong indicator of a locally beloved dining spot is a high ratio of 4- and 5-star reviews, frequent mentions of ‘must-try’ dishes, and rapid recurrence of new user reviews within 24 hours of dining.}
+\caption{Somewhat successful steering by \methodname, but failed to follow the instruction.}
+\label{example:9}
+\end{figure*}
+\begin{figure*}\centering\ExampleBox{specific identifiers or entries in a structured data format}{Hi Open Assistant, can you tell me what President’s Day is?}{President’s Day, also known as National Founders’ Day, occurs on the third Monday of February in the U.S. It honors George Washington’s birthday and aligns with Abraham Lincoln’s birthday observance.}{President's Day is a federal holiday in the United States celebrated on the third Monday of February each year to honor all U.S. presidents.}
+\caption{Failed steering by \methodname, but successful instruction following.}
+\label{example:10}
+\end{figure*}
+
+\end{document}
