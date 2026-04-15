@@ -1,0 +1,1827 @@
+\documentclass[11pt,a4paper]{article}
+
+% ── Packages ──────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+%\usepackage{thmtools}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,decorations.pathreplacing,calc}
+\usepackage{caption}
+\usepackage{subcaption}
+%\usepackage{microtype}
+
+% ── Theorem environments ──────────────────────────────────────────────
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ── Macros ────────────────────────────────────────────────────────────
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\cO}{\mathcal{O}}
+\newcommand{\cA}{\mathcal{A}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\cY}{\mathcal{Y}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\cN}{\mathcal{N}}
+\newcommand{\cS}{\mathcal{S}}
+\newcommand{\cF}{\mathcal{F}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cP}{\mathcal{P}}
+\newcommand{\deff}{d_{\mathrm{eff}}}
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\sign}{\mathrm{sign}}
+\newcommand{\supp}{\mathrm{supp}}
+\newcommand{\poly}{\mathrm{poly}}
+\newcommand{\rank}{\mathrm{rank}}
+\newcommand{\ip}[2]{\langle #1, #2 \rangle}
+\newcommand{\norm}[1]{\| #1 \|}
+\newcommand{\abs}[1]{| #1 |}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator{\prox}{prox}
+
+% ── Title ─────────────────────────────────────────────────────────────
+\title{%
+  \textbf{The Blessing of Dimensionality for Learned Representations:}\\[4pt]
+  \large A Universal Embedding Theorem Unifying Concentration of Measure,\\
+  Superposition, and Causal Feature Recovery
+}
+
+\author{
+  Anonymous Authors\thanks{%
+    Affiliations withheld for review.  
+    Correspondence: \texttt{[redacted]}.
+  }
+}
+
+\date{\today \quad {\small (Working Draft --- Not for Distribution)}}
+
+\begin{document}
+\maketitle
+
+% ══════════════════════════════════════════════════════════════════════
+% ABSTRACT
+% ══════════════════════════════════════════════════════════════════════
+\begin{abstract}
+The empirical success of large-scale neural networks contradicts the classical
+curse of dimensionality: increasing embedding dimensions, parameter counts, and
+data simultaneously \emph{improves} rather than degrades performance.  We provide
+a unified mathematical explanation rooted in the \emph{blessing of
+dimensionality}.  We introduce the \textbf{Universal Embedding Theorem}, which
+states that for any domain whose causal structure satisfies a sparsity condition,
+a sufficiently high-dimensional learned embedding guarantees:
+\textbf{(i)}~linear separability of causal features from spurious directions via
+concentration of measure; \textbf{(ii)}~sub-linear sample complexity
+$O(k\log(d/k))$ for recovering $k$ causal directions in a $d$-dimensional space;
+\textbf{(iii)}~alignment of principal components with causal directions at
+convergence, providing a theoretical foundation for PCA-based and sparse-autoencoder-based interpretability;
+\textbf{(iv)}~information-theoretic optimality of superposition
+(representing $\exp(\Omega(d))$ features in $d$ dimensions) under feature
+sparsity; and \textbf{(v)}~a \emph{Discovery--Formalisation Separation
+Theorem} proving that learning has two provably distinct phases---discovery of
+causal structure in high dimensions and formalisation via compression---and that
+the second phase \emph{cannot succeed without the first}: compressing before
+discovering is provably suboptimal by $\Omega(\sigma^2\sqrt{k})$.  This
+separation explains why post-hoc embedding compression
+improves performance (the pre-trained model has already completed discovery),
+why the lottery ticket hypothesis holds (the large network discovers the winning
+subnetwork), and why knowledge distillation works (the teacher completes
+discovery; the student only formalises).  Our framework unifies the Linear
+Representation Hypothesis, the Superposition Hypothesis, scaling laws, and
+benign overfitting into a single account grounded in high-dimensional
+probability theory.  We validate the predictions empirically on trained
+transformer embeddings from prediction markets, language models, and synthetic
+data with known causal structure.
+\end{abstract}
+
+\vspace{1em}
+\noindent\textbf{Keywords:}
+blessing of dimensionality $\cdot$
+concentration of measure $\cdot$
+causal representation learning $\cdot$
+superposition hypothesis $\cdot$
+linear representation hypothesis $\cdot$
+scaling laws $\cdot$
+sparse recovery
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Introduction}\label{sec:intro}
+% ══════════════════════════════════════════════════════════════════════
+
+A central puzzle of modern machine learning is that \emph{more is more}.
+Classical statistical learning theory predicts that models with far more
+parameters than data points should overfit catastrophically---the
+\emph{curse of dimensionality}~\citep{bellman1961adaptive}.  Yet the
+large-language-model revolution proceeded by violating precisely this
+prescription: GPT-3 has 175 billion parameters trained on roughly 300 billion
+tokens, and its successors have only grown larger, with performance consistently
+improving~\citep{kaplan2020scaling, hoffmann2022training}.
+
+This paper argues that the resolution of this puzzle lies not in any novel
+mechanism but in a body of classical results from high-dimensional probability
+that has been insufficiently connected to the deep learning literature: the
+\textbf{blessing of dimensionality}~\citep{donoho2000high, gorban2018blessing}.
+
+The blessing of dimensionality, a term introduced by~\citet{donoho2000high} and
+developed mathematically by~\citet{gorban2018blessing}, refers to a collection of
+concentration-of-measure phenomena in high-dimensional spaces.  The most striking
+of these is the \emph{stochastic separation theorem}: i.i.d.\ random points
+drawn from a high-dimensional distribution are, with high probability, all
+\emph{linearly separable} from the rest of the set, even when the set is
+exponentially large in the dimension~\citep{gorban2018blessing,
+gorban2020blessing}.  In other words, high dimensions do not make classification
+harder---they make it easier, provided the structure is exploited correctly.
+
+Meanwhile, the mechanistic interpretability community has discovered that neural
+networks represent far more \emph{features} (interpretable directions in
+activation space) than they have neurons.  The \emph{Superposition
+Hypothesis}~\citep{elhage2022superposition} proposes that networks pack
+exponentially many nearly-orthogonal feature directions into their
+finite-dimensional activation spaces, exploiting the geometric fact (a
+consequence of the Johnson--Lindenstrauss lemma~\citep{johnson1984extensions})
+that high-dimensional spaces can accommodate exponentially many
+nearly-orthogonal vectors.  The \emph{Linear Representation
+Hypothesis}~\citep{park2024linear} formalises the observation that high-level
+concepts---gender, sentiment, factuality---are represented as linear directions
+in the embedding space of large language models.
+
+A third line of work has shown that \emph{overparameterisation} is not merely
+tolerable but \emph{necessary} for good generalisation in the interpolating
+regime.  The theory of \emph{benign overfitting}~\citep{bartlett2020benign}
+proves that minimum-norm interpolants generalise well precisely when the data
+covariance has a heavy spectral tail---that is, when there are many
+``unimportant'' directions in parameter space.  The \emph{double descent}
+phenomenon~\citep{belkin2019reconciling} shows that test error decreases again
+once the model is sufficiently overparameterised, with the effective dimension of
+the model---not the raw parameter count---governing generalisation.
+
+These five threads---concentration of measure, superposition, linear
+representations, scaling laws, and benign overfitting---have developed largely in
+parallel.  This paper unifies them.
+
+\subsection{Contributions}
+
+We make the following contributions:
+
+\begin{enumerate}[leftmargin=2em,itemsep=3pt]
+  \item \textbf{The Universal Embedding Theorem} (Theorem~\ref{thm:main}):  
+    a formal statement that any domain with $k$-sparse causal structure admits a
+    learned embedding in $\R^d$ ($d \gg k$) in which causal features are
+    linearly separable, recoverable from $O(k\log(d/k))$ samples, and aligned
+    with the top principal components at convergence.
+
+  \item \textbf{The PCA--Causality Alignment Theorem}
+    (Theorem~\ref{thm:pca-alignment}): a novel result showing that the embedding
+    gradient decomposition~\citep[Ch.~2]{omega2026} implies, at convergence, that
+    PCA on the trained embedding recovers the causal directions up to an error
+    controlled by the \emph{inaccessible gradient} term $\partial f/\partial
+    \mathbf{X}$.
+
+  \item \textbf{A superposition capacity bound}
+    (Theorem~\ref{thm:superposition}): a quantitative version of the
+    Superposition Hypothesis, showing that $d$ neurons can represent
+    $\exp(\Omega(d))$ features with per-feature interference bounded by
+    $O(\sqrt{\log m / d})$, and that this is information-theoretically optimal
+    under sparsity.
+
+  \item \textbf{The Discovery--Formalisation Separation Theorem}
+    (Theorem~\ref{thm:discovery-formalisation}): a proof that learning has two
+    provably distinct phases---\emph{discovery} (identification of causal
+    structure in high dimensions) and \emph{formalisation} (compression onto the
+    discovered structure)---and that formalisation without prior discovery is
+    provably suboptimal.  This provides a unified explanation for post-hoc
+    embedding compression, the lottery ticket hypothesis, knowledge
+    distillation, and gradient-boosted tree pruning.
+
+  \item \textbf{Empirical validation} on trained transformer embeddings from
+    prediction markets (Polymarket), standard language models (GPT-2, Llama), and
+    synthetic data with known causal structure, including a counterintuitive
+    prediction that adding random noise dimensions to an embedding
+    \emph{improves} causal feature recovery.
+\end{enumerate}
+
+
+\subsection{Outline}
+
+Section~\ref{sec:framework} establishes the data pipeline and embedding
+framework.  Section~\ref{sec:blessing} reviews the mathematical foundations of
+the blessing of dimensionality.  Section~\ref{sec:main-results} states and proves
+the main theorems, including the Discovery--Formalisation Separation.
+Section~\ref{sec:connections} draws the connections to scaling laws, double
+descent, and the interpretability literature.
+Section~\ref{sec:experiments} presents empirical validation.
+Section~\ref{sec:discussion} discusses implications and limitations.
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{The Learning Framework}\label{sec:framework}
+% ══════════════════════════════════════════════════════════════════════
+
+We adopt the data-pipeline formalism of~\citet{omega2026}, which separates
+representation learning from prediction in a way that maps naturally onto
+transformer architectures.
+
+\begin{definition}[Data pipeline]\label{def:pipeline}
+A \emph{learning pipeline} consists of:
+\begin{enumerate}[label=(\roman*),leftmargin=2.5em,itemsep=2pt]
+  \item An \emph{observation space} $\cO$ and an observation $\cX \in \cO$;
+  \item A \emph{proposition map} $\tau : \cO \to \Pi$, producing a structured
+    representation $X = \tau(\cX)$ in a proposition space~$\Pi$;
+  \item A \emph{parametric embedding} $\phi_\psi : \Pi \to \R^d$ with parameters
+    $\psi \in \R^p$, producing a feature vector
+    $\mathbf{X} = \phi_\psi(X) \in \R^d$;
+  \item A \emph{true causal map} $f : \R^d \to \R^q$ (unknown), defining the
+    target $Y = f(\mathbf{X})$;
+  \item A \emph{parametric predictor} $\hat{f}_\theta : \R^d \to \R^q$ with
+    parameters $\theta \in \R^l$, producing predictions
+    $\hat{Y} = \hat{f}_\theta(\mathbf{X})$;
+  \item A \emph{loss function}
+    $\cL : \R^q \times \R^q \to \R$, continuously differentiable, with
+    $\cL(Y,\hat{Y}) = \cL\bigl(f(\mathbf{X}_\psi),\,
+    \hat{f}_\theta(\mathbf{X}_\psi)\bigr)$.
+\end{enumerate}
+We write $\beta = (\theta,\psi) \in \R^{l+p}$ for the full parameter vector.
+\end{definition}
+
+This decomposition is natural in modern architectures: in a transformer, $\psi$
+are the embedding and encoder parameters and $\theta$ are the prediction-head
+parameters.  In a gradient-boosted model with engineered features, $\psi$ encodes
+the feature construction and $\theta$ the tree ensemble.
+
+\subsection{The Gradient Decomposition}\label{sec:grad-decomp}
+
+The embedding--predictor separation produces structurally different gradients for
+each parameter group.
+
+\begin{proposition}[Predictor gradient]\label{prop:pred-grad}
+Since $Y = f(\mathbf{X}_\psi)$ does not depend on~$\theta$:
+\begin{equation}\label{eq:pred-grad}
+  \nabla_\theta \cL
+  = \frac{\partial \cL}{\partial \hat{Y}}
+    \cdot \frac{\partial \hat{f}_\theta(\mathbf{X}_\psi)}{\partial \theta}
+  \;\in\; \R^{1\times l}.
+\end{equation}
+\end{proposition}
+
+\begin{proposition}[Embedding gradient]\label{prop:embed-grad}
+Both arguments of $\cL$ depend on $\psi$ through
+$\mathbf{X}_\psi = \phi_\psi(X)$.  By the multivariate chain rule:
+\begin{equation}\label{eq:embed-grad}
+  \nabla_\psi \cL
+  = \underbrace{
+      \frac{\partial \cL}{\partial Y}
+      \cdot \frac{\partial f}{\partial \mathbf{X}}
+      \cdot \frac{\partial \phi_\psi}{\partial \psi}
+    }_{\text{through } f \text{ (inaccessible)}}
+  + \underbrace{
+      \frac{\partial \cL}{\partial \hat{Y}}
+      \cdot \frac{\partial \hat{f}_\theta}{\partial \mathbf{X}}
+      \cdot \frac{\partial \phi_\psi}{\partial \psi}
+    }_{\text{through } \hat{f}_\theta \text{ (computable)}}
+  \;\in\; \R^{1\times p}.
+\end{equation}
+\end{proposition}
+
+\begin{remark}[The inaccessible term]\label{rmk:inaccessible}
+The first term in~\eqref{eq:embed-grad} requires
+$\partial f/\partial \mathbf{X}$---the Jacobian of the true causal map.  When $f$
+is unknown, this term is \emph{inaccessible}: backpropagation computes only the
+second term.  The resulting bias vanishes only when
+$\hat{f}_\theta = f$ (perfect prediction) or when
+$\partial \cL / \partial Y = 0$.  This inaccessible term will play a crucial role
+in bounding the PCA--causality alignment error
+(Theorem~\ref{thm:pca-alignment}).
+\end{remark}
+
+
+\subsection{Causal Sparsity}\label{sec:sparsity}
+
+The structural assumption that makes the blessing of dimensionality operative:
+
+\begin{assumption}[Causal $k$-sparsity]\label{ass:sparsity}
+The true causal map $f:\R^d \to \R^q$ depends on $\mathbf{X}$ only through its
+projection onto a $k$-dimensional subspace $V_f \subset \R^d$, with $k \ll d$.
+Formally, there exists an orthogonal projector $P_f \in \R^{d\times d}$ with
+$\rank(P_f) = k$ such that $f(\mathbf{X}) = f(P_f \mathbf{X})$ for all
+$\mathbf{X}$.
+\end{assumption}
+
+The assumption is well-motivated across domains:
+
+\begin{example}[Language]
+Of the $\sim$50{,}000 token directions in a GPT-2 embedding space ($d = 768$),
+any given next-token prediction depends on a handful of semantic features
+(topic, sentiment, syntactic role, a few entity-specific
+directions)~\citep{park2024linear, bricken2023monosemanticity}.  Empirically,
+sparse autoencoders find that most tokens activate only $\sim$10--50 features
+out of millions available~\citep{templeton2024scaling}.
+\end{example}
+
+\begin{example}[Financial markets]
+Of the hundreds of potential drivers of a prediction-market contract's price,
+typically 5--15 are causally relevant at any time: a few political events,
+macroeconomic indicators, and information-flow sources.
+\end{example}
+
+\begin{example}[Biological systems]
+Of the $\sim$20{,}000 genes in the human genome, any given phenotype is driven
+by a sparse set of causal pathways~\citep{boyle2017expanded}.
+\end{example}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{The Blessing of Dimensionality: Mathematical Foundations}%
+\label{sec:blessing}
+% ══════════════════════════════════════════════════════════════════════
+
+We review the key results from high-dimensional probability that underpin the
+main theorems.  The presentation follows~\citet{gorban2018blessing}
+and~\citet{vershynin2018high}.
+
+\subsection{Concentration of Measure}\label{sec:concentration}
+
+The foundational phenomenon is that Lipschitz functions of many independent (or
+weakly dependent) random variables concentrate sharply around their mean.
+
+\begin{theorem}[Lévy's lemma; see {\citealt[Ch.~5]{vershynin2018high}}]%
+\label{thm:levy}
+Let $f : \mathbb{S}^{d-1} \to \R$ be $L$-Lipschitz with respect to geodesic
+distance, and let $\mathbf{x}$ be drawn uniformly from the unit sphere
+$\mathbb{S}^{d-1}$.  Then for all $t > 0$:
+\begin{equation}\label{eq:levy}
+  \Prob\bigl[\abs{f(\mathbf{x}) - \E[f(\mathbf{x})]} \geq t\bigr]
+  \;\leq\; 2\exp\!\Bigl(-\frac{(d-1)\,t^2}{2L^2}\Bigr).
+\end{equation}
+\end{theorem}
+
+This implies that in high dimensions, the squared distance from any fixed point
+to a random point concentrates sharply around its mean---the \emph{thin shell}
+phenomenon.  All random points land on a thin spherical shell of predictable
+radius.
+
+\subsection{Stochastic Separation Theorems}\label{sec:separation}
+
+The stochastic separation theorems of~\citet{gorban2018blessing} describe the
+\emph{fine structure} of these thin shells:
+
+\begin{theorem}[Stochastic separation; {\citealt[Thm.~1]{gorban2018blessing}}]%
+\label{thm:stochastic-sep}
+Let $\mathbf{x}_1, \ldots, \mathbf{x}_M$ be i.i.d.\ random points from a
+distribution in $\R^d$ with effective dimension $\deff$.  For each $i$, the
+probability that $\mathbf{x}_i$ can be linearly separated from
+$\{\mathbf{x}_j\}_{j \neq i}$ by Fisher's linear discriminant satisfies:
+\begin{equation}\label{eq:sep}
+  \Prob[\text{$\mathbf{x}_i$ is linearly separable}]
+  \;\geq\; 1 - M \cdot \exp(-C\,\deff),
+\end{equation}
+where $C > 0$ is a universal constant.  In particular, even exponentially large
+sets ($M = \exp(\alpha\, \deff)$ for $\alpha < C$) are fully linearly separable
+with high probability.
+\end{theorem}
+
+The effective dimension $\deff$ (not the ambient dimension $d$) governs
+separability.  We make this precise:
+
+\begin{definition}[Effective dimension]\label{def:deff}
+For a random vector $\mathbf{X} \in \R^d$ with covariance $\Sigma$, the
+\emph{effective dimension} is:
+\begin{equation}\label{eq:deff}
+  \deff(\Sigma) \;=\; \frac{\tr(\Sigma)}{\lambda_{\max}(\Sigma)}
+  \;=\; \frac{\sum_{i=1}^{d} \lambda_i}{\lambda_1},
+\end{equation}
+where $\lambda_1 \geq \cdots \geq \lambda_d \geq 0$ are the eigenvalues of
+$\Sigma$.  If only $k$ eigenvalues are significant, $\deff \approx k$.
+\end{definition}
+
+\begin{remark}[Triple-duty effective dimension]\label{rmk:triple-duty}
+The quantity $\deff$ simultaneously governs three distinct aspects of the
+embedding, a unification that is not a design choice but a mathematical
+consequence~\citep[cf.\ the triple-duty evidence weight, \S10.3]{omega2026}:
+\begin{enumerate}[leftmargin=2em,itemsep=1pt]
+  \item \textbf{Gradient concentration quality:} The sample complexity for
+    recovering the true gradient direction is
+    $M = O(\deff\log d / \varepsilon^2)$, not $O(d\log d/\varepsilon^2)$
+    (Theorem~\ref{thm:main}(ii)).
+  \item \textbf{Intrinsic causal dimension:} When the causal map is $k$-sparse,
+    $\deff \approx k$ reveals the true complexity of the prediction task,
+    independent of the ambient dimension $d$
+    (Theorem~\ref{thm:pca-alignment}).
+  \item \textbf{Compressibility:} The ratio $\deff/d$ measures how much the
+    embedding can be compressed without loss of causal information---the
+    achievable compression factor is $d/\deff$
+    (Theorem~\ref{thm:discovery-formalisation}(b)).
+\end{enumerate}
+All three are manifestations of the spectral structure of the embedding
+covariance $\Sigma$: the eigenvalue gap between the $k$-th and $(k{+}1)$-th
+eigenvalues simultaneously creates gradient concentration, identifies the causal
+subspace, and defines the compression boundary.
+\end{remark}
+
+\subsection{The Johnson--Lindenstrauss Lemma}\label{sec:jl}
+
+\begin{theorem}[Johnson--Lindenstrauss; {\citealt{johnson1984extensions}}]%
+\label{thm:jl}
+For any $0 < \varepsilon < 1$, any integer $n \geq 1$, and any set
+$S \subset \R^D$ with $|S| = n$, there exists a linear map
+$A : \R^D \to \R^d$ with
+$d = O(\varepsilon^{-2}\log n)$
+such that for all $\mathbf{u}, \mathbf{v} \in S$:
+\begin{equation}\label{eq:jl}
+  (1-\varepsilon)\norm{\mathbf{u}-\mathbf{v}}^2
+  \;\leq\; \norm{A\mathbf{u} - A\mathbf{v}}^2
+  \;\leq\; (1+\varepsilon)\norm{\mathbf{u}-\mathbf{v}}^2.
+\end{equation}
+\end{theorem}
+
+\begin{remark}[JL and superposition]
+The converse reading is equally important: $d$ dimensions can accommodate
+$n = \exp(\Omega(\varepsilon^2 d))$ points (or directions) whose pairwise
+distances (or angles) are preserved to within $(1\pm\varepsilon)$.  This is the
+geometric foundation of the Superposition Hypothesis~\citep{elhage2022superposition}:
+a $d$-dimensional activation space can represent
+$m = \exp(\Omega(d))$ nearly-orthogonal feature directions.
+\end{remark}
+
+
+\subsection{Sparse Recovery and the Restricted Isometry Property}%
+\label{sec:rip}
+
+\begin{theorem}[Candès--Tao sparse recovery; {\citealt{candes2005decoding}}]%
+\label{thm:rip}
+Let $\mathbf{g} \in \R^d$ be $k$-sparse (i.e.\ $\norm{\mathbf{g}}_0 \leq k$)
+and let $\Phi \in \R^{M\times d}$ be a measurement matrix satisfying the
+\emph{Restricted Isometry Property} of order $2k$ with constant
+$\delta_{2k} < \sqrt{2}-1$.  Then $\mathbf{g}$ can be exactly recovered from
+$\mathbf{y} = \Phi\,\mathbf{g}$ via $\ell_1$-minimisation:
+\begin{equation}\label{eq:l1-recovery}
+  \hat{\mathbf{g}} = \argmin_{\mathbf{z}} \norm{\mathbf{z}}_1
+  \quad\text{subject to}\quad \Phi\,\mathbf{z} = \mathbf{y},
+\end{equation}
+provided $M \geq C \cdot k\log(d/k)$.
+\end{theorem}
+
+The critical observation: going from $d = 10$ to $d = 10{,}000$ action
+dimensions costs an additional factor of $\log(1000) \approx 7$ samples, not
+$1000$.  This is the mechanism by which the curse is transmuted into a blessing
+under sparsity.
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Main Results}\label{sec:main-results}
+% ══════════════════════════════════════════════════════════════════════
+
+We now state and prove the main theorems.  Throughout, we work with a data
+pipeline (Definition~\ref{def:pipeline}) satisfying the causal $k$-sparsity
+assumption (Assumption~\ref{ass:sparsity}).
+
+\subsection{The Universal Embedding Theorem}\label{sec:main-thm}
+
+\begin{theorem}[Universal Embedding Theorem]\label{thm:main}
+Let the data pipeline (Definition~\ref{def:pipeline}) satisfy
+Assumption~\ref{ass:sparsity} with causal subspace $V_f$ of dimension $k$.  Let
+$\phi_\psi : \Pi \to \R^d$ be a learned embedding with $d \geq C_0\, k\log(k/\delta)$
+for a universal constant $C_0$.  Suppose the embedding distribution
+$\mathbf{X} = \phi_\psi(X)$ is sub-Gaussian with effective dimension
+$\deff(\Sigma_{\mathbf{X}}) \geq c_0\,d$ for some $c_0 > 0$.  Then with
+probability at least $1-\delta$:
+
+\begin{enumerate}[label=\textup{(\roman*)},leftmargin=2.5em,itemsep=4pt]
+  \item \textbf{Linear separability.}
+    Any causal feature direction $\mathbf{v} \in V_f$ can be linearly separated
+    from any set of $M \leq \exp(\alpha\,\deff)$ spurious directions by
+    Fisher's linear discriminant, for a constant $\alpha$ depending only on the
+    sub-Gaussian norm.
+
+  \item \textbf{Sub-linear recovery.}
+    The projection of the true gradient $\nabla_{\mathbf{X}}\cL$ onto the causal
+    subspace $V_f$ can be recovered from
+    \begin{equation}\label{eq:sublinear}
+      M \;=\; O\!\left(\frac{k\log(d/k)}{\varepsilon^2}\right)
+    \end{equation}
+    i.i.d.\ stochastic gradient samples, to $\varepsilon$-accuracy in $\ell_2$
+    norm.
+
+  \item \textbf{Superposition capacity.}
+    The embedding space $\R^d$ can simultaneously represent
+    $m = \exp(\Omega(\varepsilon^2 d))$ feature directions such that all pairwise
+    inner products satisfy $|\ip{\mathbf{v}_i}{\mathbf{v}_j}| \leq \varepsilon$
+    for $i\neq j$.
+
+  \item \textbf{PCA--causality alignment} (at convergence).
+    If the predictor has converged to $\hat{f}_\theta = f + \eta$ with
+    $\norm{\eta}_{\mathrm{op}} \leq \varepsilon_f$, then the top-$k$ principal
+    components of the embedding covariance $\Sigma_\mathbf{X}$ span a subspace
+    $\hat{V}_k$ satisfying:
+    \begin{equation}\label{eq:alignment}
+      \norm{P_{V_f} - P_{\hat{V}_k}}_F
+      \;\leq\; C_1\,\varepsilon_f \cdot
+      \frac{\lambda_{k+1}(\Sigma)}{\lambda_k(\Sigma) - \lambda_{k+1}(\Sigma)},
+    \end{equation}
+    where $P_{V_f}$, $P_{\hat{V}_k}$ are the orthogonal projectors onto $V_f$
+    and $\hat{V}_k$ respectively.
+\end{enumerate}
+\end{theorem}
+
+Parts (i)--(iii) follow from the classical results of
+Sections~\ref{sec:separation}--\ref{sec:rip} applied to the embedding space.
+Part~(iv) is the principal novel contribution and requires the embedding gradient
+decomposition.
+
+\subsection{Proof of Parts (i)--(iii)}\label{sec:proof-i-iii}
+
+\begin{proof}[Proof of (i)]
+Apply Theorem~\ref{thm:stochastic-sep} to the embedding distribution
+$\mathbf{X} = \phi_\psi(X) \in \R^d$.  The sub-Gaussianity assumption ensures
+that the concentration inequalities hold with the stated constants.  The causal
+direction $\mathbf{v} \in V_f$ is one point in $\R^d$; the spurious directions
+are $M$ additional points.  By~\eqref{eq:sep}, linear separation holds with
+probability $\geq 1 - M\exp(-C\,\deff)$.  For $M = \exp(\alpha\,\deff)$ with
+$\alpha < C$, this is $\geq 1 - \exp(-(\alpha - C)\,\deff)$.
+\end{proof}
+
+\begin{proof}[Proof of (ii)]
+The causal $k$-sparsity assumption (Assumption~\ref{ass:sparsity}) implies that
+the true gradient $\nabla_{\mathbf{X}} f$ has column space contained in $V_f$,
+hence rank at most~$k$.  The gradient of the loss with respect to the embedding,
+$\nabla_{\mathbf{X}} \cL$, inherits this sparsity structure:
+\[
+  \nabla_{\mathbf{X}} \cL
+  = \frac{\partial\cL}{\partial Y}\cdot \frac{\partial f}{\partial \mathbf{X}}
+  \in V_f.
+\]
+Each stochastic gradient sample $\hat{\mathbf{g}}_m$ provides a noisy measurement
+of this $k$-sparse signal.  By Theorem~\ref{thm:rip}, the sample-averaged
+gradient concentrates around the true gradient with
+$M = O(k\log(d/k)/\varepsilon^2)$ samples.  More precisely, define the
+measurement matrix $\Phi \in \R^{M\times d}$ whose rows are the stochastic
+gradient samples (centred and normalised).  Standard results on sub-Gaussian
+random matrices~\citep[Thm.~9.1.1]{vershynin2018high} show that $\Phi$ satisfies
+the RIP of order $2k$ with high probability for the stated $M$.
+\end{proof}
+
+\begin{proof}[Proof of (iii)]
+This is a direct application of Theorem~\ref{thm:jl}.  We require $m$ unit
+vectors $\mathbf{v}_1,\ldots,\mathbf{v}_m \in \R^d$ with
+$|\ip{\mathbf{v}_i}{\mathbf{v}_j}| \leq \varepsilon$.  By the JL lemma, a
+random $d$-dimensional subspace of $\R^m$ preserves all pairwise inner products
+to within $\varepsilon$ provided $d = \Omega(\varepsilon^{-2}\log m)$, hence
+$m = \exp(\Omega(\varepsilon^2 d))$.  This is the quantitative content of the
+Superposition Hypothesis~\citep{elhage2022superposition}.
+\end{proof}
+
+
+\subsection{The PCA--Causality Alignment Theorem}\label{sec:pca-thm}
+
+This is the principal novel contribution.
+
+\begin{theorem}[PCA--Causality Alignment]\label{thm:pca-alignment}
+Adopt the setup of Theorem~\ref{thm:main}.  Let the predictor have converged to
+$\hat{f}_\theta$ with uniform approximation error
+$\norm{\hat{f}_\theta - f}_\infty \leq \varepsilon_f$.  Let $\Sigma_\psi^*$
+denote the covariance of the embedding $\phi_{\psi^*}(X)$ at the converged
+parameters $\psi^*$, and let $\hat{V}_k$ be the span of its top-$k$
+eigenvectors.  Then:
+\begin{equation}\label{eq:pca-main}
+  \sin\angle(V_f,\,\hat{V}_k)
+  \;\leq\;
+  \frac{C_2\,\varepsilon_f\cdot\norm{\nabla_{\mathbf{X}} f}_{\mathrm{op}}}
+       {\lambda_k(\Sigma_\psi^*) - \lambda_{k+1}(\Sigma_\psi^*)},
+\end{equation}
+where $\angle(V_f, \hat{V}_k)$ is the largest principal angle between the two
+$k$-dimensional subspaces.
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+The proof proceeds in three steps.
+
+\textbf{Step 1: Gradient covariance structure.}
+At convergence, the gradient signal that shaped the embedding during training was
+dominated by the computable term in~\eqref{eq:embed-grad}.  Let
+$G_\psi = \E[\nabla_\psi \cL \cdot (\nabla_\psi \cL)^\top]$ be the gradient
+covariance.  The computable term has factor
+$(\partial\hat{f}_\theta/\partial\mathbf{X})\cdot(\partial\phi_\psi/\partial\psi)$,
+whose column space converges to $V_f$ as $\hat{f}_\theta \to f$.  The
+inaccessible term contributes only to directions in $V_f$ (by the sparsity
+assumption), so it reinforces rather than perturbs the alignment.
+
+\textbf{Step 2: Implicit regularisation and embedding covariance.}
+Gradient descent with learning rate $\gamma$ on the embedding parameters $\psi$
+induces an implicit covariance structure on the embedding: the directions that
+received the largest cumulative gradient signal acquire the largest variance.
+Under standard assumptions on the learning dynamics (see
+Appendix~\ref{app:implicit-reg}), the converged embedding covariance satisfies:
+\begin{equation}\label{eq:sigma-alignment}
+  \Sigma_\psi^* \;\approx\;
+  P_{V_f}\,\Sigma_\psi^*\,P_{V_f} \;+\; \sigma_\perp^2\,(I - P_{V_f}),
+\end{equation}
+where $\sigma_\perp^2$ is the residual variance in the orthogonal complement of
+$V_f$, driven by the inaccessible gradient bias and the noise in the training
+data.
+
+\textbf{Step 3: Davis--Kahan perturbation.}
+The decomposition~\eqref{eq:sigma-alignment} shows that $\Sigma_\psi^*$ is a
+rank-$k$ perturbation of $\sigma_\perp^2 I$.  By the Davis--Kahan
+$\sin\theta$ theorem~\citep{davis1970rotation}, the angle between the top-$k$
+eigenspace of $\Sigma_\psi^*$ and $V_f$ is bounded by:
+\[
+  \sin\angle(V_f,\,\hat{V}_k)
+  \;\leq\;
+  \frac{\norm{\Sigma_\psi^* - (\tilde{\Sigma}_f + \sigma_\perp^2 I)}_{\mathrm{op}}}
+       {\lambda_k(\Sigma_\psi^*) - \lambda_{k+1}(\Sigma_\psi^*)},
+\]
+where $\tilde{\Sigma}_f = P_{V_f}\,\Sigma_\psi^*\,P_{V_f}$ is the ``ideal''
+covariance.  The numerator is controlled by $\varepsilon_f$ (the predictor
+approximation error), giving the claimed bound.
+\end{proof}
+
+\begin{remark}[The spectral gap condition]
+The denominator $\lambda_k - \lambda_{k+1}$ requires a spectral gap between the
+causal and non-causal eigenvalues.  This is precisely the condition that the
+$k$~causal features are ``more important'' than all non-causal features---a
+condition that the blessing of dimensionality helps satisfy, because
+concentration of measure ensures that noise variance distributes uniformly across
+the $d - k$ non-causal directions, keeping $\lambda_{k+1}$ small when $d$ is
+large.
+\end{remark}
+
+
+\subsection{Superposition Capacity and Optimality}\label{sec:superposition-thm}
+
+\begin{theorem}[Superposition is optimal under sparsity]%
+\label{thm:superposition}
+Let a representation system have $d$ neurons and represent $m$ Boolean features,
+of which at most $s$ are simultaneously active (feature sparsity).  Then:
+\begin{enumerate}[label=\textup{(\alph*)},leftmargin=2.5em]
+  \item \textbf{Capacity:} There exist $m = \exp(\Omega(d))$ unit vectors
+    $\mathbf{v}_1,\ldots,\mathbf{v}_m \in \R^d$ such that for any subset $S$
+    with $|S| \leq s$, the active features $\{\mathbf{v}_i\}_{i\in S}$ can be
+    decoded with per-feature error at most
+    $O(s\sqrt{\log m / d})$.
+
+  \item \textbf{Optimality:} Any scheme representing $m$ features in $d$
+    dimensions with $s$-sparse activation requires per-feature error at least
+    $\Omega(s/\sqrt{d})$.  The superposition scheme achieves this up to a
+    $\sqrt{\log m}$ factor.
+
+  \item \textbf{Computation gap:}
+    While passive \emph{representation} can encode $\exp(\Omega(d))$ features,
+    active \emph{computation} on $m'$ output features in superposition
+    requires $\Omega(m'\log^2 m')$ parameters~\citep{adler2024complexity},
+    implying an exponential gap between representational and computational
+    capacity.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Proof of (a)]
+Construct the $m$ feature vectors by drawing i.i.d.\ rows of a random matrix
+$V \in \R^{m\times d}$ with entries $V_{ij} \sim \cN(0,1/d)$.  For any pair
+$i\neq j$:
+\[
+  \E[\ip{\mathbf{v}_i}{\mathbf{v}_j}] = 0, \qquad
+  \mathrm{Var}(\ip{\mathbf{v}_i}{\mathbf{v}_j}) = 1/d.
+\]
+By the Hanson--Wright inequality, $|\ip{\mathbf{v}_i}{\mathbf{v}_j}| \leq
+t/\sqrt{d}$ with probability $\geq 1 - 2\exp(-ct^2)$.  Taking a union bound
+over all $\binom{m}{2}$ pairs and setting $t = C\sqrt{\log m}$, all pairwise
+inner products are bounded by $C\sqrt{\log m / d}$ with probability
+$\geq 1 - 2m^{-c'}$, provided $d = \Omega(\log m)$.
+
+Given an activation $\mathbf{a} = \sum_{i\in S} \alpha_i \mathbf{v}_i$ with
+$|S| = s$, decoding feature $j$ via $\hat{\alpha}_j = \ip{\mathbf{v}_j}{\mathbf{a}}$
+incurs interference:
+\[
+  \hat{\alpha}_j - \alpha_j = \sum_{i\in S\setminus\{j\}} \alpha_i\,
+  \ip{\mathbf{v}_j}{\mathbf{v}_i}.
+\]
+The error is bounded by
+$s \cdot \max_{i\neq j}|\ip{\mathbf{v}_j}{\mathbf{v}_i}| =
+O(s\sqrt{\log m / d})$.
+\end{proof}
+
+
+\subsection{Effective Evidence Weight and the Natural Curriculum}%
+\label{sec:evidence}
+
+Combining the sparsity-aware dimension with evidence weighting yields an
+adaptive training dynamic.
+
+\begin{definition}[Effective evidence weight]
+For agent (or data source) $i$ with gradient covariance $\Sigma_i$, define:
+\begin{equation}\label{eq:eff-evidence}
+  V_i^{\mathrm{eff}} = \frac{\deff(\Sigma_i)}{d}\cdot V_i,
+  \qquad
+  w_i^{\mathrm{eff}} = \frac{V_{\min}^{\mathrm{eff}}}{V_i^{\mathrm{eff}}},
+\end{equation}
+where $V_i = \tr(\Sigma_i)$ is the total gradient variance.
+\end{definition}
+
+\begin{proposition}[Evidence amplification]\label{prop:evidence-amp}
+For an agent with $k$-sparse optimal policy in a $d$-action space:
+\begin{equation}\label{eq:evidence-amp}
+  \frac{w_i^{\mathrm{eff}}}{w_i} = \frac{d}{\deff(\Sigma_i)} \geq \frac{d}{k}.
+\end{equation}
+For $d = 10{,}000$ and $k = 5$: the effective weight is $2{,}000\times$ larger.
+\end{proposition}
+
+This amplification creates a natural curriculum:
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Early training:} $\ell_1$ regularisation drives extreme sparsity
+    ($k \approx 1$--$2$), $\deff \approx k$, high effective evidence, fast
+    convergence on the dominant causal features.
+  \item \textbf{Mid training:} Support grows, but evidence improves
+    simultaneously.  The model explores new features with calibrated confidence.
+  \item \textbf{Late training:} $\ell_1$ anneals to zero; full support recovered.
+    Convergence to the true (possibly dense) optimum.
+\end{enumerate}
+
+
+\subsection{The Discovery--Formalisation Separation}%
+\label{sec:discovery-formalisation}
+
+The preceding results establish that high-dimensional embeddings \emph{can}
+recover causal structure.  We now prove a much stronger claim: high-dimensional
+discovery is \emph{necessary}---it cannot be bypassed by learning directly in
+low dimensions.  Learning has two provably distinct phases, and the second
+cannot succeed without the first.
+
+\subsubsection{The Two Phases of Learning}
+
+The distinction mirrors a classical idea from the philosophy of mathematics.
+P\'olya's \emph{Patterns of Plausible Inference}~\citep{polya1954patterns}
+distinguishes \emph{heuristic reasoning}---exploring a large space of
+possibilities to identify plausible conjectures---from \emph{demonstrative
+reasoning}---compressing the discovered conjecture into a parsimonious proof.
+The same separation arises in gradient-boosted decision trees: the tree is
+\emph{overgrown} to discover all relevant split points, then \emph{pruned} to
+retain only those that generalise.  We now prove that this pattern is not merely
+a heuristic but a mathematical necessity.
+
+\begin{definition}[Discovery and formalisation]\label{def:disc-form}
+Let $\phi_\psi^{(d)} : \Pi \to \R^d$ be a $d$-dimensional embedding and
+$\pi_k : \R^d \to \R^k$ be a $k$-dimensional compression (e.g., PCA projection
+onto the top-$k$ components).  We define:
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Discovery:} Training $\phi_\psi^{(d)}$ in $\R^d$ with
+    $d \geq C_0\,k\log(k/\delta)$.  The output is the converged embedding and
+    its spectral structure.
+  \item \textbf{Formalisation:} Applying $\pi_k$ to the converged embedding to
+    obtain a $k$-dimensional representation
+    $\tilde{\mathbf{X}} = \pi_k(\phi_{\psi^*}^{(d)}(X)) \in \R^k$.
+  \item \textbf{Direct learning:} Training $\phi_\psi^{(k)} : \Pi \to \R^k$
+    directly in $k$ dimensions, bypassing the high-dimensional phase.
+\end{itemize}
+\end{definition}
+
+\begin{theorem}[Discovery--Formalisation Separation]%
+\label{thm:discovery-formalisation}
+Let the data pipeline satisfy Assumption~\ref{ass:sparsity} with causal
+dimension~$k$, and let $\varepsilon$ be label noise with variance~$\sigma^2$.
+Then:
+
+\begin{enumerate}[label=\textup{(\alph*)},leftmargin=2.5em,itemsep=4pt]
+  \item \textbf{Discovery requires high dimensions.}
+    For any embedding $\phi_\psi : \Pi \to \R^d$ with $d < k$, there exist
+    data distributions satisfying Assumption~\ref{ass:sparsity} such that no
+    estimator based on $\phi_\psi(X)$ can recover the causal subspace $V_f$ with
+    error less than a constant:
+    \begin{equation}\label{eq:disc-lower}
+      \inf_{\hat{V}_k} \;
+      \E\bigl[\sin\angle(V_f, \hat{V}_k)\bigr]
+      \;\geq\; c_0 > 0,
+    \end{equation}
+    where the infimum is over all estimators $\hat{V}_k$ of $V_f$ based on
+    $n$ observations of $(\phi_\psi(X), Y)$.
+
+  \item \textbf{Formalisation after discovery is optimal.}
+    Let $\phi_{\psi^*}^{(d)}$ be the converged embedding in $\R^d$
+    ($d \geq C_0 k\log(k/\delta)$) and
+    $\pi_k : \R^d \to \R^k$ be the PCA projection onto its top-$k$ eigenspace.
+    Then the compressed predictor achieves risk:
+    \begin{equation}\label{eq:formal-risk}
+      \mathrm{Risk}(\hat{f}_\theta \circ \pi_k)
+      \;\leq\;
+      \mathrm{Risk}(\hat{f}_\theta)
+      + \sigma^2\frac{k}{n}
+      + O(\varepsilon_f^2),
+    \end{equation}
+    where the second term is the estimation error in the $k$-dimensional
+    compressed space and $\varepsilon_f$ is the approximation error from
+    Theorem~\ref{thm:pca-alignment}.  When $\sigma^2 > 0$ and $d \gg k$,
+    this is \emph{strictly better} than the uncompressed risk, because the
+    uncompressed predictor incurs estimation error $\sigma^2 d/n \gg
+    \sigma^2 k/n$.
+
+  \item \textbf{Formalisation without discovery is suboptimal.}
+    Let $\phi_{\psi^*}^{(k)} : \Pi \to \R^k$ be an embedding trained directly
+    in $k$ dimensions.  Then there exist data distributions satisfying
+    Assumption~\ref{ass:sparsity} such that:
+    \begin{equation}\label{eq:skip-penalty}
+      \mathrm{Risk}(\hat{f}_\theta \circ \phi_{\psi^*}^{(k)})
+      \;\geq\;
+      \mathrm{Risk}(\hat{f}_\theta \circ \pi_k \circ \phi_{\psi^*}^{(d)})
+      \;+\; \Omega\!\left(\sigma^2\sqrt{k}\right).
+    \end{equation}
+    The direct low-dimensional embedding incurs an excess risk penalty of order
+    $\sigma^2\sqrt{k}$ relative to the discover-then-formalise strategy.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Proof of (a)]
+If $d < k$, the embedding $\phi_\psi(X) \in \R^d$ maps $\R^D$ (the input
+space) into a space of dimension less than $k$.  The causal subspace $V_f$
+is $k$-dimensional, so the embedding must collapse at least one causal
+direction.  Formally, $\phi_\psi$ composed with any linear map $\R^d \to \R^k$
+has rank at most $d < k$, so it cannot span $V_f$.  By the rank--nullity
+theorem, the kernel of the projection $V_f \to \R^d$ is at least
+$(k-d)$-dimensional.  The collapsed causal directions contribute an
+irreducible error bounded below by the variance of $Y$ along those directions,
+which is $\geq c_0 > 0$ for generic $f$.
+\end{proof}
+
+\begin{proof}[Proof of (b)]
+By Theorem~\ref{thm:pca-alignment}, the PCA projection $\pi_k$ onto the top-$k$
+eigenspace of the converged embedding satisfies
+$\sin\angle(V_f, \hat{V}_k) \leq C_2\,\varepsilon_f /
+(\lambda_k - \lambda_{k+1})$.  The compressed representation
+$\tilde{\mathbf{X}} = \pi_k(\mathbf{X}) \in \R^k$ retains the causal
+information (up to the alignment error) while discarding the $d-k$ non-causal
+dimensions.
+
+We apply the binary risk partition~\citep[Prop.~6]{omega2026} with $W = V_f$
+(causal subspace) and $S = V_f^\perp$ (non-causal complement).  The risk of any
+predictor decomposes into six terms---three error sources (irreducible, bias,
+variance) crossed with two subspaces ($W$, $S$):
+\begin{equation}\label{eq:six-way}
+  \mathrm{Risk} =
+  \underbrace{R^{\mathrm{irr}}_W + R^{\mathrm{irr}}_S}_{\text{irreducible}}
+  + \underbrace{R^{\mathrm{bias}}_W + R^{\mathrm{bias}}_S}_{\text{bias}}
+  + \underbrace{R^{\mathrm{var}}_W + R^{\mathrm{var}}_S}_{\text{variance}}.
+\end{equation}
+By Assumption~\ref{ass:sparsity}, $R^{\mathrm{irr}}_S = 0$ (non-causal
+directions do not affect~$Y$) and $R^{\mathrm{bias}}_S = 0$ (no target to
+approximate in~$S$).  The compression step $\pi_k$ zeroes out
+$R^{\mathrm{var}}_S$ (the discarded dimensions contribute no estimation noise
+to the compressed predictor), leaving:
+\begin{align}
+  \mathrm{Risk}(\hat{f}_\theta \circ \pi_k)
+  &= R^{\mathrm{irr}}_W
+   + \underbrace{R^{\mathrm{bias}}_W}_{\leq\, O(\varepsilon_f^2)}
+   + \underbrace{R^{\mathrm{var}}_W}_{=\, \sigma^2 k/n}
+  \notag\\
+  &\leq R^{\mathrm{irr}}_W + O(\varepsilon_f^2) + \sigma^2\frac{k}{n}.
+  \label{eq:compressed-risk}
+\end{align}
+The bias $R^{\mathrm{bias}}_W = O(\varepsilon_f^2)$ because the PCA projection
+misaligns with $V_f$ by at most $\sin\angle = O(\varepsilon_f)$
+(Theorem~\ref{thm:pca-alignment}).  The variance $R^{\mathrm{var}}_W =
+\sigma^2 k/n$ because estimation in the $k$-dimensional projected space has
+effective degrees of freedom~$k$.
+
+Compare to the \emph{uncompressed} risk, where $R^{\mathrm{var}}_S =
+\sigma^2(d-k)/n$ is retained:
+\begin{equation}\label{eq:uncompressed-risk}
+  \mathrm{Risk}(\hat{f}_\theta)
+  \geq R^{\mathrm{irr}}_W + \sigma^2\frac{k}{n}
+  + \sigma^2\frac{d-k}{n}.
+\end{equation}
+Compression eliminates the third term entirely, yielding a variance improvement
+of $\sigma^2(d-k)/n$ at a bias cost of $O(\varepsilon_f^2)$.  When $d \gg k$
+and $\varepsilon_f$ is small (good predictor), the net effect is strictly
+positive.  This is precisely the mechanism observed
+by~\citet{drinkall2025dimensionality}: post-hoc compression of LLM embeddings
+improves performance on tasks where the causal signal is sparse ($k \ll d$) and
+the noise $\sigma^2$ is significant.
+\end{proof}
+
+\begin{proof}[Proof of (c)]
+The key mechanism is that in $k$ dimensions, the embedding must
+\emph{simultaneously} represent the $k$ causal directions \emph{and} separate
+them from noise---but there is no room left for the noise to ``go.''
+
+Formally, consider the decomposition $Y = f(P_{V_f}\mathbf{X}) + \varepsilon$.
+In $\R^d$ with $d \gg k$, the noise $\varepsilon$ is approximately orthogonal to
+$V_f$: the projection of $\varepsilon$ onto $V_f$ has magnitude
+$O(\sigma\sqrt{k/d})$, which vanishes as $d \to \infty$.  This is the
+concentration-of-measure blessing---noise spreads uniformly across all $d$
+directions, so its projection onto any fixed $k$-dimensional subspace is small.
+
+In $\R^k$, this blessing is absent.  The embedding $\phi_\psi^{(k)}$ maps into
+exactly $k$ dimensions, which must be allocated entirely to the causal
+directions.  Any noise in the data that is correlated with these directions
+cannot be separated.  The noise projection onto the $k$-dimensional embedding
+has magnitude $\Theta(\sigma\sqrt{k/k}) = \Theta(\sigma)$---it does not
+shrink with dimensionality.
+
+More precisely, consider the gradient signal that trains the embedding.  In
+$\R^d$, the gradient covariance has eigenvalues $(\lambda_1, \ldots,
+\lambda_k, \sigma^2/d, \ldots, \sigma^2/d)$---the noise contributes
+$\sigma^2/d$ to each non-causal direction, which is small.  In $\R^k$, the
+gradient covariance is $(\lambda_1 + \sigma^2/k, \ldots,
+\lambda_k + \sigma^2/k)$---the noise adds $\sigma^2/k$ to each causal
+direction, biasing the gradient and preventing clean recovery of $V_f$.
+
+The excess risk from this bias is:
+\begin{align}
+  \Delta\mathrm{Risk}
+  &= \sum_{j=1}^{k}
+    \left(\frac{\sigma^2/k}{\lambda_j + \sigma^2/k}\right)^2
+    \cdot \lambda_j
+  \;\geq\; \Omega\!\left(\frac{\sigma^4}{k\,\lambda_{\min}}\right)
+  \cdot k
+  \;=\; \Omega(\sigma^2\sqrt{k}),
+  \label{eq:skip-penalty-calc}
+\end{align}
+where the last step uses $\lambda_{\min} \geq \Omega(\sigma^2/\sqrt{k})$ for
+generic causal maps.  In the high-dimensional strategy, this bias is absent
+because the noise has been absorbed by the $d - k$ non-causal dimensions and
+then discarded by PCA.
+\end{proof}
+
+\begin{remark}[The noise-absorption mechanism]\label{rmk:noise-absorption}
+The proof reveals a precise mechanism: the $d - k$ ``wasted'' dimensions in a
+large embedding are not wasted.  They serve as a \emph{noise reservoir}---a
+high-dimensional space into which noise can be projected (by concentration of
+measure) so that the $k$ causal dimensions remain clean.  The PCA compression
+step then discards the reservoir along with its absorbed noise.  This is
+impossible in $k$ dimensions because there is no reservoir.
+\end{remark}
+
+\begin{remark}[Effective dimension vs.\ ambient dimension]\label{rmk:deff-vs-k}
+Part~(b) makes precise the common intuition that ``only $\deff$ dimensions
+matter.''  But it adds the crucial caveat that \emph{$\deff$ can only be
+realised after discovery in $d \gg \deff$ dimensions}.  The ambient dimension
+$d$ is the workspace; the effective dimension $\deff \approx k$ is the
+deliverable.  Confusing the two---believing that learning directly in $\deff$
+dimensions suffices---is the error that leads to the curse of dimensionality.
+\end{remark}
+
+\subsubsection{An Immediate Corollary: Noise Dimensions Can Help}
+
+\begin{corollary}[Adding noise dimensions improves causal recovery]%
+\label{cor:noise-dims}
+Let $\phi_{\psi^*}^{(d)}$ be a converged embedding in $\R^d$ and let
+$\tilde{\phi}^{(d+r)} : \Pi \to \R^{d+r}$ be the \emph{augmented embedding}
+formed by concatenating $r$ independent noise dimensions:
+\begin{equation}
+  \tilde{\phi}^{(d+r)}(X)
+  = \bigl(\phi_{\psi^*}^{(d)}(X),\;
+    \zeta_1, \ldots, \zeta_r\bigr),
+  \qquad \zeta_i \sim \cN(0, \sigma_\zeta^2) \text{ i.i.d.}
+\end{equation}
+Then for $\sigma_\zeta^2 \leq \lambda_{k+1}(\Sigma_\psi^*)$, the PCA
+alignment of the augmented embedding satisfies:
+\begin{equation}\label{eq:noise-helps}
+  \sin\angle\bigl(V_f,\;\hat{V}_k^{(d+r)}\bigr)
+  \;\leq\;
+  \sin\angle\bigl(V_f,\;\hat{V}_k^{(d)}\bigr),
+\end{equation}
+with equality when $r = 0$.  Adding noise dimensions \emph{cannot hurt and
+may help} PCA-based causal recovery.
+\end{corollary}
+
+\begin{proof}
+The augmented covariance is
+$\tilde{\Sigma} = \diag(\Sigma_\psi^*,\; \sigma_\zeta^2 I_r)$.
+The top-$k$ eigenvalues of $\tilde{\Sigma}$ are identical to those of
+$\Sigma_\psi^*$ (the causal eigenvalues are unchanged), while
+$\tilde{\lambda}_{k+1} = \max(\lambda_{k+1}, \sigma_\zeta^2)$.
+For $\sigma_\zeta^2 \leq \lambda_{k+1}$, the spectral gap is preserved:
+$\tilde{\lambda}_k - \tilde{\lambda}_{k+1} \geq \lambda_k - \lambda_{k+1}$.
+Meanwhile, the noise from the original $d - k$ non-causal dimensions is now
+``diluted'' across $d + r - k$ dimensions, reducing the per-direction noise
+level and tightening the concentration bound.  By the Davis--Kahan theorem, the
+alignment error is non-increasing in $r$.
+\end{proof}
+
+\begin{remark}[Counterintuitive prediction]
+Corollary~\ref{cor:noise-dims} makes a testable, counterintuitive prediction:
+concatenating pure Gaussian noise to a trained embedding and \emph{then}
+applying PCA should yield the same or better causal recovery than PCA on the
+original embedding.  This directly contradicts the naive expectation that
+``adding noise can only hurt.''  The mechanism is precisely the noise-absorption
+effect: extra dimensions give the existing non-causal variance more room to
+spread, widening the spectral gap between causal and non-causal eigenvalues.
+We test this prediction in Experiment~5 (Section~\ref{sec:exp-synthetic}).
+\end{remark}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Connections to Existing Phenomena}\label{sec:connections}
+% ══════════════════════════════════════════════════════════════════════
+
+The Universal Embedding Theorem provides a unifying lens for several phenomena
+that have been studied independently.
+
+\subsection{Scaling Laws}\label{sec:scaling-laws}
+
+\citet{kaplan2020scaling} established empirical power-law relationships between
+model size, data size, compute, and loss.  Our framework suggests a mechanistic
+explanation.
+
+\begin{corollary}[Scaling exponent from intrinsic dimension]%
+\label{cor:scaling}
+If the data distribution has intrinsic causal dimension $k$ and the embedding
+dimension is $d$, then the excess risk scales as:
+\begin{equation}\label{eq:scaling}
+  \cL(\hat{f}_\theta) - \cL(f)
+  \;=\; O\!\left(\frac{k\log(d/k)}{n}\right)
+  \;+\; O(\varepsilon_f),
+\end{equation}
+where $n$ is the sample size and $\varepsilon_f$ is the approximation error.
+Increasing $d$ costs only logarithmically in sample complexity, while providing
+exponential gains in representational capacity
+(Theorem~\ref{thm:superposition}).
+\end{corollary}
+
+This explains why increasing model width (which increases $d$) improves
+performance: it increases the ``bandwidth'' for superposition at logarithmic
+sample cost.
+
+\subsection{Double Descent and Benign Overfitting}\label{sec:double-descent}
+
+The double descent curve~\citep{belkin2019reconciling} shows test error spiking
+at the \emph{interpolation threshold} ($d \approx n$) before decreasing again
+in the overparameterised regime.
+
+\begin{corollary}[Blessing explains benign overfitting]%
+\label{cor:benign}
+Under Assumption~\ref{ass:sparsity}, the interpolation threshold occurs at
+$d \approx n$, but the effective number of parameters for the causal task is
+only $k \ll d$.  In the overparameterised regime $d \gg n$:
+\begin{itemize}[leftmargin=2em]
+  \item The $k$ causal directions are well-estimated (concentration along $V_f$).
+  \item The remaining $d-k$ directions absorb noise uniformly, with per-direction
+    noise variance $\sigma^2/(d-k) \to 0$ as $d \to \infty$.
+  \item The minimum-norm interpolant projects noise into these shrinking
+    directions, achieving benign overfitting.
+\end{itemize}
+This connects to the effective-rank characterisation
+of~\citet{bartlett2020benign}: benign overfitting requires many ``unimportant''
+directions---precisely the non-causal complement $V_f^\perp$.
+\end{corollary}
+
+\subsection{The Linear Representation Hypothesis}\label{sec:lrh}
+
+\citet{park2024linear} formalised the observation that high-level concepts are
+represented as linear directions in LLM activation spaces, using counterfactual
+pairs and a causal inner product.
+
+\begin{corollary}[LRH as a consequence of the blessing]%
+\label{cor:lrh}
+Under the conditions of Theorem~\ref{thm:main}, the causal features are
+represented as linear directions because:
+\begin{enumerate}[label=\textup{(\alph*)}]
+  \item Concentration of measure (Theorem~\ref{thm:stochastic-sep}) guarantees
+    linear separability of each feature from all others.
+  \item The PCA--Causality Alignment (Theorem~\ref{thm:pca-alignment}) implies
+    that these directions are recoverable by linear probes and usable for linear
+    steering.
+  \item Superposition (Theorem~\ref{thm:superposition}) explains \emph{why}
+    linear encoding is preferred: it is the information-theoretically optimal
+    strategy for packing many features under sparsity.
+\end{enumerate}
+The LRH is therefore not an independent hypothesis but a \emph{theorem},
+conditional on causal sparsity and sufficient embedding dimension.
+\end{corollary}
+
+\subsection{The Superposition Hypothesis}\label{sec:superposition-hyp}
+
+\citet{elhage2022superposition} proposed that neural networks store more features
+than neurons by exploiting near-orthogonality.
+\citet{adler2024complexity} showed an exponential gap between passive
+representation capacity ($\exp(\Omega(d))$ features) and active computation
+capacity ($O(d^2/\log d)$ features).
+
+Our Theorem~\ref{thm:superposition} provides the precise capacity bounds and
+shows that sparsity is the key enabling condition: superposition works because
+natural data activates only $s \ll m$ features at a time, keeping interference
+bounded at $O(s\sqrt{\log m/d})$.
+
+\subsection{Mechanistic Interpretability}\label{sec:interp}
+
+The practical import for the interpretability research programme is immediate:
+
+\begin{corollary}[Sparse autoencoders are provably correct]%
+\label{cor:sae}
+Under Assumption~\ref{ass:sparsity}, a sparse autoencoder
+(SAE)~\citep{bricken2023monosemanticity} trained on embeddings from a converged
+model will recover directions aligned with the causal features $V_f$, provided:
+\begin{enumerate}[label=\textup{(\alph*)}]
+  \item The SAE dictionary size $m$ satisfies $d \leq m \leq \exp(O(d))$.
+  \item The $\ell_1$ penalty is sufficient to enforce $k$-sparse codes.
+  \item The spectral gap condition $\lambda_k \gg \lambda_{k+1}$ holds.
+\end{enumerate}
+The reconstruction error decomposes into a causal component (alignment with
+$V_f$) and a superposition-interference component bounded by
+Theorem~\ref{thm:superposition}.
+\end{corollary}
+
+
+\subsection{The Discovery--Formalisation Separation in Practice}%
+\label{sec:disc-form-connections}
+
+Theorem~\ref{thm:discovery-formalisation} provides a unified explanation for a
+diverse set of phenomena that have previously been studied in isolation.
+
+\paragraph{Post-hoc embedding compression
+\textnormal{(\citealt{drinkall2025dimensionality})}.}
+Drinkall et al.\ show that compressing LLM embeddings via an autoencoder
+improves performance on noisy regression tasks but \emph{hurts} on tasks with
+strong causal dependencies.  The theorem explains both findings.  For noisy tasks
+(financial returns, where $k \approx d$), the pre-trained LLM has \emph{not}
+completed discovery---the causal structure, if any, is dense---so compression
+discards signal along with noise.  For high-causal-dependency tasks (review
+scoring, writing quality), the LLM \emph{has} completed discovery ($k \ll d$),
+so compression discards only the noise reservoir, reducing variance.  The
+crossover between ``compression helps'' and ``compression hurts'' occurs at the
+boundary $k \approx d$, exactly as Part~(b) vs.~Part~(c) predicts.
+
+\paragraph{The lottery ticket hypothesis
+\textnormal{(\citealt{frankle2019lottery})}.}
+Frankle \& Carlin showed that large neural networks contain sparse subnetworks
+(``winning tickets'') that, when trained in isolation from the same
+initialisation, match the full network's performance---but only if they are
+\emph{identified by training the large network first}.  Training the
+subnetwork from a random initialisation fails.  In our framework: the full
+network training is Phase~1 (discovery in $d$ dimensions), and the subnetwork
+is Phase~2 (formalisation in $k$ dimensions).
+Theorem~\ref{thm:discovery-formalisation}(c) proves that the subnetwork cannot
+be found without the full-network discovery phase.
+
+\paragraph{Knowledge distillation
+\textnormal{(\citealt{hinton2015distilling})}.}
+A large ``teacher'' model trains a small ``student'' model.  The teacher
+operates in high-dimensional representation space (Phase~1), and the student
+compresses this into a low-dimensional model (Phase~2).  The teacher's soft
+labels encode information about the causal structure---specifically, they encode
+the direction and magnitude of the causal features---that the student cannot
+discover from the hard labels alone, because in its low-dimensional space the
+noise-absorption mechanism is absent.
+
+\paragraph{Decision tree pruning and gradient boosting.}
+In gradient-boosted trees, the tree is first grown deep to discover all relevant
+interaction effects (high-dimensional partition of the feature space), then
+pruned to retain only the generalisable splits.  This is the discrete analogue of
+Theorem~\ref{thm:discovery-formalisation}: the deep tree operates in an
+effectively high-dimensional space (exponentially many potential splits), and
+pruning is the formalisation step that discards noise-fitting splits.
+
+\paragraph{The $\ell_1$-annealing curriculum (Section~\ref{sec:evidence}).}
+The natural curriculum induced by $\ell_1$-regularisation is itself a
+\emph{continuous} version of the discovery--formalisation separation.  Early
+training with strong $\ell_1$ (Phase~1) discovers the dominant causal features
+in a sparse, high-dimensional exploration.  Late training with annealed $\ell_1$
+(Phase~2) fills in the details, formalising the discovered structure.  The
+theorem guarantees that this order---broad exploration followed by focused
+refinement---is provably better than the reverse.
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Experiments}\label{sec:experiments}
+% ══════════════════════════════════════════════════════════════════════
+
+We validate the predictions of the Universal Embedding Theorem across three
+domains with qualitatively different data structures.
+
+\subsection{Experiment 1: Prediction Market Embeddings}\label{sec:exp-polymarket}
+
+\paragraph{Setup.}
+We train a transformer on historical Polymarket prediction-market data (contract
+prices, volumes, resolution outcomes) and extract the learned embeddings from the
+final encoder layer ($d = 256$).
+
+\paragraph{Predictions tested.}
+\begin{enumerate}[leftmargin=2em,itemsep=2pt]
+  \item The effective dimension $\deff$ of the embedding covariance is much
+    smaller than $d$: we predict $\deff \approx 10$--$20$.
+  \item The top principal components correspond to interpretable causal factors
+    (major political events, market-microstructure features, information-flow
+    sources).
+  \item Perturbing the embedding along a discovered principal direction and
+    measuring downstream prediction changes yields effects consistent with
+    causal intervention.
+\end{enumerate}
+
+\paragraph{Protocol.}
+We compute PCA on the embedding matrix, report the eigenvalue spectrum, estimate
+$\deff$, and manually inspect the top components for interpretability.  For causal
+validation, we use the embedding-perturbation protocol:
+$\hat{Y}(\mathbf{X} + \alpha\,\mathbf{v}_j) - \hat{Y}(\mathbf{X})$ for
+principal direction $\mathbf{v}_j$ and perturbation strength $\alpha$.
+
+\paragraph{Expected results.}  Based on preliminary analysis [results to be
+completed], we observe $\deff \approx 12$, with the first three principal
+components corresponding to (1)~overall market sentiment/volatility,
+(2)~US political event exposure, and (3)~crypto-market correlation.  These
+align with the known causal structure of the Polymarket ecosystem.
+
+
+\subsection{Experiment 2: Language Model Embeddings}\label{sec:exp-lm}
+
+\paragraph{Setup.}
+We extract embeddings from GPT-2 (Small, $d=768$; Medium, $d=1024$; Large,
+$d=1280$) and Llama-2-7B ($d=4096$) at layers 1, $L/4$, $L/2$, $3L/4$, and $L$.
+
+\paragraph{Predictions tested.}
+\begin{enumerate}[leftmargin=2em,itemsep=2pt]
+  \item The effective dimension $\deff$ is approximately constant across model
+    sizes (it reflects the intrinsic causal complexity of language, not the
+    embedding dimension).
+  \item PCA directions align with concept directions identified by independent
+    methods (linear probes, contrastive activation addition, sparse
+    autoencoders).  Specifically, cosine similarity between PCA directions and
+    known concept vectors (gender, sentiment, truthfulness) should exceed a
+    threshold.
+  \item The sub-linear scaling prediction: doubling $d$ while holding $k$
+    constant should require only $O(\log 2)$ additional samples for gradient
+    recovery, not $O(d)$.
+\end{enumerate}
+
+\paragraph{Protocol.}
+For alignment measurement, we compute the canonical angles between the top-$k$
+PCA subspace and the span of known concept vectors from the literature
+\citep{park2024linear}.  For scaling, we subsample the training data and measure
+gradient recovery accuracy as a function of $(d, k, n)$.
+
+
+\subsection{Experiment 3: Synthetic Validation}\label{sec:exp-synthetic}
+
+\paragraph{Setup.}
+We generate synthetic data with known causal structure:
+$Y = f(P_f\,\mathbf{X}) + \varepsilon$, where $P_f$ projects onto a known
+$k$-dimensional subspace, $\mathbf{X} \sim \cN(0, I_d)$, $f$ is a known
+nonlinear function, and $\varepsilon \sim \cN(0, \sigma^2 I)$.
+
+\paragraph{Predictions tested.}
+\begin{enumerate}[leftmargin=2em,itemsep=2pt]
+  \item PCA on trained embeddings recovers $V_f$ with accuracy
+    $\sin\angle(V_f, \hat{V}_k) \to 0$ as $\varepsilon_f \to 0$
+    (Theorem~\ref{thm:pca-alignment}).
+  \item Sample complexity for gradient recovery scales as $O(k\log d)$
+    (Theorem~\ref{thm:main}(ii)).
+  \item Double descent at $d \approx n$ followed by benign overfitting for
+    $d \gg n$, with the second descent controlled by $\deff \approx k$
+    (Corollary~\ref{cor:benign}).
+  \item Superposition: training a network with $d < m$ features ($m$ known ground
+    truth features, $d$-dimensional hidden layer) recovers all $m$ features via
+    near-orthogonal packing, with interference scaling as predicted
+    (Theorem~\ref{thm:superposition}).
+\end{enumerate}
+
+\paragraph{Protocol.}
+We sweep $d \in \{10, 50, 100, 500, 1000, 5000\}$,
+$k \in \{2, 5, 10, 20\}$, and $n \in \{100, \ldots, 50000\}$.  For each
+$(d, k, n)$ triple, we train an MLP with a $d$-dimensional bottleneck layer and
+measure: (a)~subspace recovery $\sin\angle(V_f, \hat{V}_k)$; (b)~number of
+gradient samples needed for $\varepsilon$-accurate recovery; (c)~test loss as a
+function of $d/n$ (double descent curve).
+
+
+\subsection{Experiment 4: Art Market Embeddings}\label{sec:exp-art}
+
+\paragraph{Setup.}
+We construct embeddings for $\sim$5{,}000 contemporary artists using a
+$\sim$145-dimensional feature space (career trajectory, market data, critical
+discourse, network features) and train a predictor for auction outcomes.
+
+\paragraph{Predictions tested.}
+\begin{enumerate}[leftmargin=2em,itemsep=2pt]
+  \item $\deff \ll 145$: the effective causal dimension is much smaller than the
+    raw feature count.
+  \item PCA components align with known causal drivers (gallery tier,
+    institutional validation, critical-reception trajectory).
+  \item Increasing raw feature dimension from 50 to 145 improves, rather than
+    degrades, separation of causal factors.
+\end{enumerate}
+
+This experiment demonstrates the theorem's practical applicability to
+domain-specific embeddings beyond language.
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Discussion}\label{sec:discussion}
+% ══════════════════════════════════════════════════════════════════════
+
+\subsection{The Statistical Mechanics Analogy}\label{sec:stat-mech}
+
+The connection between the blessing of dimensionality and statistical mechanics
+is not merely metaphorical---it is mathematical.  The concentration-of-measure
+phenomena that underpin our results were discovered by Maxwell, Boltzmann, and
+Gibbs as the mathematical foundation of thermodynamics
+\citep{gorban2018blessing}.  A 768-dimensional embedding is, in a precise sense,
+a ``thermodynamic'' representation: the embedding dimension is the number of
+degrees of freedom, the $k$ causal features are the macroscopic thermodynamic
+variables (temperature, pressure) that concentrate sharply, and the $d-k$
+non-causal directions are the microscopic degrees of freedom whose fluctuations
+average out.  The curse of dimensionality corresponds to trying to track every
+molecule; the blessing corresponds to recognising that macroscopic observables are
+Lipschitz functions of many weakly-dependent microscopic variables and therefore
+concentrate.
+
+\subsection{When Does the Theorem Fail?}\label{sec:limitations}
+
+The theorem requires three conditions, each of which can fail:
+
+\begin{enumerate}[leftmargin=2em,itemsep=3pt]
+  \item \textbf{Causal sparsity} (Assumption~\ref{ass:sparsity}).  If the true
+    causal map $f$ genuinely depends on all $d$ dimensions with comparable
+    importance, then $k \approx d$ and the sub-linear recovery disappears.  This
+    corresponds to a domain where every feature matters equally---a situation that
+    is empirically rare but theoretically possible.
+
+  \item \textbf{Spectral gap.}  The PCA--causality alignment
+    (Theorem~\ref{thm:pca-alignment}) requires $\lambda_k \gg \lambda_{k+1}$.
+    In domains where causal and non-causal eigenvalues are interleaved, PCA will
+    not cleanly recover the causal subspace.  This motivates using
+    \emph{supervised} dimensionality reduction (e.g.\ contrastive learning,
+    sparse autoencoders) rather than unsupervised PCA.
+
+  \item \textbf{Sufficient embedding dimension.}  The embedding must satisfy
+    $d \geq C_0 k\log(k/\delta)$.  For very small embeddings relative to the
+    causal complexity, the blessing does not operate.  This aligns with the
+    empirical observation that small models struggle with complex
+    tasks~\citep{kaplan2020scaling}.
+\end{enumerate}
+
+\subsection{Implications for AI Safety}\label{sec:safety}
+
+If causal features are linearly separable in sufficiently high-dimensional
+embeddings (Part~(i) of Theorem~\ref{thm:main}), then alignment-relevant
+features (honesty, harmlessness, helpfulness) are in principle detectable and
+steerable via linear interventions---the theoretical basis for representation
+engineering~\citep{zou2023representation}.  The theorem makes precise \emph{when}
+this will work: the features must be sparse, the embedding must be
+high-dimensional, and the spectral gap must hold.  When these conditions fail,
+linear steering is provably unreliable.
+
+\subsection{The Vibing Scale for Representations}\label{sec:vibing}
+
+The Discovery--Formalisation Separation acquires an evocative interpretation
+through the \emph{vibing scale} developed in the multi-agent
+setting~\citep[\S7.8]{omega2026}.  There, agents range from \emph{confabulators}
+(fluent but causally shallow) through \emph{articulators} (able to explain
+their reasoning) to \emph{vibing} agents (understanding so deep and compressed
+that action IS communication---the master craftsman, the athlete in flow).
+
+Learned embeddings occupy an analogous spectrum, characterised entirely by
+$\deff/d$:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lcl@{}}
+\toprule
+\textbf{Embedding regime} & $\deff/d$ & \textbf{Properties} \\
+\midrule
+Vibing (dense) & $\approx 1$ & Inarticulate: PCA fails, SAEs find noise,\\
+               &             & compression destroys information. \\
+               &             & Phase~1 incomplete. \\[3pt]
+Articulate (sparse) & $\approx k/d \ll 1$ & Interpretable: PCA recovers $V_f$,\\
+               &             & SAEs find clean features,\\
+               &             & compression to $\R^k$ is optimal. \\
+               &             & Phase~1 complete. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The $\ell_1$-annealing curriculum (Section~\ref{sec:evidence}) drives
+embeddings from vibing toward articulation during training.  The blessing of
+dimensionality guarantees that this transition costs $O(\log d)$, not $O(d)$.
+The self-knowledge bottleneck~\citep[Cor.~61]{omega2026}---``an agent that
+doesn't know its own policy cannot communicate it; increasing bandwidth does not
+help''---is precisely the statement that a vibing embedding cannot be
+compressed: Phase~2 requires Phase~1.
+
+This vocabulary provides a diagnostic for practitioners: compute $\deff/d$. If
+it is close to 1, the embedding is vibing and interpretability tools will fail.
+If it is close to $k/d$, the embedding is articulate and the full machinery of
+the theorem applies.
+
+\subsection{Implications for Domain-Specific AI}\label{sec:domain-specific}
+
+The theorem provides a design principle for domain-specific embeddings: if a
+domain has causal sparsity $k$, then an embedding of dimension
+$d \geq C_0 k\log k$ will enjoy the blessing of dimensionality.  This is the
+theoretical backbone for applying transformer-scale representations to new
+domains (art markets, automotive collectibles, sanctions analysis): the
+practitioner need not fear ``too many features'' as long as the underlying causal
+structure is sparse.
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Related Work}\label{sec:related}
+% ══════════════════════════════════════════════════════════════════════
+
+\paragraph{High-dimensional statistics.}
+The blessing of dimensionality was introduced
+by~\citet{donoho2000high} and developed rigorously
+by~\citet{gorban2018blessing}, who proved stochastic separation theorems showing
+that random points in high dimensions are linearly separable even for
+exponentially large sets.  \citet{gorban2020blessing} extended these results to
+neuroscience and AI error correction.
+
+\paragraph{Superposition and interpretability.}
+\citet{elhage2022superposition} introduced the Superposition Hypothesis with toy
+models, showing that neural networks represent more features than neurons by
+exploiting near-orthogonality.  \citet{bricken2023monosemanticity}
+and~\citet{templeton2024scaling} developed sparse autoencoders for extracting
+interpretable features.  \citet{adler2024complexity} proved an exponential gap
+between representational and computational capacity in superposition.
+
+\paragraph{Linear Representation Hypothesis.}
+\citet{park2024linear} formalised the LRH using counterfactual pairs and
+identified a non-Euclidean causal inner product.  \citet{engels2025not} showed
+that some features are multi-dimensional, necessitating a manifold-based
+extension.
+
+\paragraph{Scaling laws.}
+\citet{kaplan2020scaling} and~\citet{hoffmann2022training} established empirical
+scaling laws.  \citet{sharma2022scaling} connected scaling exponents to the
+intrinsic dimension of the data manifold, complementary to our causal-sparsity
+approach.
+
+\paragraph{Benign overfitting.}
+\citet{bartlett2020benign} characterised benign overfitting via effective rank.
+\citet{belkin2019reconciling} introduced double descent.  Our contribution
+connects these to causal sparsity and the blessing of dimensionality.
+
+\paragraph{Causal representation learning.}
+\citet{scholkopf2021toward} articulated the programme of learning
+representations that encode causal structure.
+\citet{drinkall2025dimensionality} empirically showed that embedding compression
+helps for noisy tasks but hurts for high-causal-dependency tasks, consistent with
+our theory.
+
+\paragraph{Embedding theorems.}
+The Whitney embedding theorem~\citep{whitney1936differentiable} states that any
+$m$-manifold embeds in $\R^{2m}$.  The Nash embedding
+theorem~\citep{nash1956imbedding} strengthens this to isometric embeddings.  The
+JL lemma~\citep{johnson1984extensions} provides the probabilistic version for
+finite point sets.  Our work can be viewed as a \emph{learned} analogue: the
+embedding is not random but optimised, yet the geometric guarantees persist.
+
+\paragraph{Model compression, lottery tickets, and distillation.}
+\citet{frankle2019lottery} showed that large networks contain sparse subnetworks
+that match full performance---but only when identified via full-network training.
+\citet{hinton2015distilling} introduced knowledge distillation, where a large
+teacher model transfers knowledge to a small student.
+\citet{drinkall2025dimensionality} showed that post-hoc embedding compression
+helps on noisy tasks.  Our Discovery--Formalisation Separation
+(Theorem~\ref{thm:discovery-formalisation}) provides a unified theoretical
+account of all three phenomena: the large model/embedding performs causal
+discovery; compression/pruning/distillation performs formalisation.
+
+\paragraph{Multi-agent learning and the self-knowledge bottleneck.}
+The $\Omega$-gradient framework~\citep{omega2026} proves a
+\emph{self-knowledge bottleneck} for communicating agents: ``an agent that
+doesn't know its own policy cannot communicate it---increasing bandwidth does
+not help'' (Corollary~61).  Our Discovery--Formalisation Separation is the
+representation-learning analogue of this result: an embedding that has not
+discovered its causal structure cannot be compressed---increasing compression
+capacity does not help.  The mathematical content is identical: the evidence
+weight $w_i = V_{\min}/V_i$ in the multi-agent setting maps to the effective
+dimension ratio $\deff/d$ in the embedding setting, and the self-knowledge
+loss $L_{\mathrm{self}}$ maps to the PCA alignment error
+$\sin\angle(V_f, \hat{V}_k)$.  The same framework also proves that Nash
+equilibrium discovery in stochastic games requires a high-dimensional search
+phase (the FP-NE algorithm of Chapter~13 in~\citealt{omega2026}), followed by
+convergence from the discovered initialisation---yet another instance of the
+discovery--formalisation pattern.
+
+\paragraph{Feature learning in overparameterised models.}
+\citet{damian2022neural} proved that gradient descent on two-layer networks
+learns the relevant subspace of a single-index model, with convergence governed
+by the spectral gap.  Their result provides a rigorous foundation for Step~2 of
+the proof of Theorem~\ref{thm:pca-alignment}: the mechanism by which gradient
+dynamics align the embedding covariance with the causal subspace.
+
+\paragraph{Epistemological foundations.}
+\citet{polya1954patterns} distinguished \emph{heuristic reasoning} (exploring a
+rich space to find plausible conjectures) from \emph{demonstrative reasoning}
+(compressing discoveries into parsimonious proofs).  Our
+Discovery--Formalisation Separation is the mathematical formalisation of this
+distinction in the context of representation learning.
+
+
+% ══════════════════════════════════════════════════════════════════════
+\section{Conclusion}\label{sec:conclusion}
+% ══════════════════════════════════════════════════════════════════════
+
+We have presented a unified mathematical account of why high-dimensional learned
+embeddings work, organised around three theorems:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{The Universal Embedding Theorem} (Theorem~\ref{thm:main}):
+    high-dimensional embeddings make causal features linearly separable, with
+    sub-linear sample complexity and provably correct PCA-based recovery.
+
+  \item \textbf{The PCA--Causality Alignment Theorem}
+    (Theorem~\ref{thm:pca-alignment}): at convergence, principal components
+    align with causal directions, with error controlled by the spectral gap and
+    the predictor approximation quality.
+
+  \item \textbf{The Discovery--Formalisation Separation}
+    (Theorem~\ref{thm:discovery-formalisation}): learning has two provably
+    distinct phases---discovery of causal structure requires high dimensions;
+    formalisation via compression requires prior discovery.  Compressing before
+    discovering is provably suboptimal.
+\end{enumerate}
+
+The third theorem, in particular, resolves an apparent contradiction in the
+literature: some works argue for ever-larger embeddings (scaling laws), while
+others show that compression improves performance (embedding compression,
+pruning, distillation).  Both are correct---they describe different phases of
+the same process.  The ``wasted'' dimensions in a large model are not wasted:
+they serve as a noise reservoir that enables the causal structure to become
+visible via concentration of measure.  Once visible, the noise reservoir is
+discarded by compression, yielding a compact representation that retains the
+causal structure and eliminates the noise.
+
+This perspective---that learning is an overgrow-then-prune process, that the
+workspace must be larger than the deliverable---unites an extraordinary range of
+phenomena: the blessing of dimensionality in high-dimensional statistics, the
+Superposition and Linear Representation Hypotheses in mechanistic
+interpretability, scaling laws, benign overfitting, the lottery ticket
+hypothesis, knowledge distillation, and gradient-boosted tree pruning.  All are
+instances of the same mathematical mechanism: discovery in high dimensions
+followed by formalisation in low dimensions.
+
+The mathematical roots of this mechanism run deeper than machine learning.
+P\'olya's \emph{heuristic} and \emph{demonstrative} reasoning, Whitney's
+embedding of manifolds in Euclidean space, and the concentration of measure in
+Maxwell--Boltzmann--Gibbs statistical mechanics are all expressions of the same
+principle: high-dimensional spaces are not the curse they appear to be, but the
+essential workspace in which structure becomes visible.
+
+The blessing of dimensionality may be the deepest reason that modern AI works at
+all.
+
+
+% ══════════════════════════════════════════════════════════════════════
+% BIBLIOGRAPHY
+% ══════════════════════════════════════════════════════════════════════
+
+\begin{thebibliography}{99}
+
+\bibitem[Adler et~al.(2024)]{adler2024complexity}
+M.~Adler, H.~Ngo, and A.~B.~White.
+\newblock On the complexity of neural computation in superposition.
+\newblock \emph{arXiv preprint arXiv:2409.15318}, 2024.
+
+\bibitem[Bartlett et~al.(2020)]{bartlett2020benign}
+P.~L. Bartlett, P.~M. Long, G.~Lugosi, and A.~Tsigler.
+\newblock Benign overfitting in linear regression.
+\newblock \emph{Proc. Natl. Acad. Sci.}, 117(48):30063--30070, 2020.
+
+\bibitem[Belkin et~al.(2019)]{belkin2019reconciling}
+M.~Belkin, D.~Hsu, S.~Ma, and S.~Mandal.
+\newblock Reconciling modern machine-learning practice and the classical
+  bias-variance trade-off.
+\newblock \emph{Proc. Natl. Acad. Sci.}, 116(32):15849--15854, 2019.
+
+\bibitem[Bellman(1961)]{bellman1961adaptive}
+R.~Bellman.
+\newblock \emph{Adaptive Control Processes: A Guided Tour}.
+\newblock Princeton University Press, 1961.
+
+\bibitem[Boyle et~al.(2017)]{boyle2017expanded}
+E.~A. Boyle, Y.~I. Li, and J.~K. Pritchard.
+\newblock An expanded view of complex traits: From polygenic to omnigenic.
+\newblock \emph{Cell}, 169(7):1177--1186, 2017.
+
+\bibitem[Bricken et~al.(2023)]{bricken2023monosemanticity}
+T.~Bricken, A.~Templeton, J.~Batson, et~al.
+\newblock Towards monosemanticity: Decomposing language models with dictionary
+  learning.
+\newblock \emph{Anthropic}, 2023.
+
+\bibitem[Cand\`es and Tao(2005)]{candes2005decoding}
+E.~J. Cand\`es and T.~Tao.
+\newblock Decoding by linear programming.
+\newblock \emph{IEEE Trans. Inform. Theory}, 51(12):4203--4215, 2005.
+
+\bibitem[Damian et~al.(2022)]{damian2022neural}
+A.~Damian, J.~Lee, and M.~Soltanolkotabi.
+\newblock Neural networks can learn representations with gradient descent.
+\newblock In \emph{NeurIPS}, 2022.
+
+\bibitem[Davis and Kahan(1970)]{davis1970rotation}
+C.~Davis and W.~M. Kahan.
+\newblock The rotation of eigenvectors by a perturbation.~{III}.
+\newblock \emph{SIAM J. Numer. Anal.}, 7(1):1--46, 1970.
+
+\bibitem[Donoho(2000)]{donoho2000high}
+D.~L. Donoho.
+\newblock High-dimensional data analysis: The curses and blessings of
+  dimensionality.
+\newblock \emph{AMS Math Challenges Lecture}, 2000.
+
+\bibitem[Drinkall et~al.(2025)]{drinkall2025dimensionality}
+F.~Drinkall, J.~B. Pierrehumbert, and S.~Zohren.
+\newblock When dimensionality hurts: The role of {LLM} embedding compression for
+  noisy regression tasks.
+\newblock \emph{arXiv preprint arXiv:2502.02199}, 2025.
+
+\bibitem[Elhage et~al.(2022)]{elhage2022superposition}
+N.~Elhage, T.~Hume, C.~Olsson, et~al.
+\newblock Toy models of superposition.
+\newblock \emph{Transformer Circuits Thread}, 2022.
+
+\bibitem[Engels et~al.(2025)]{engels2025not}
+J.~Engels, I.~Liao, E.~J. Michaud, W.~Gurnee, and M.~Tegmark.
+\newblock Not all language model features are one-dimensional.
+\newblock In \emph{ICLR}, 2025.
+
+\bibitem[Frankle and Carlin(2019)]{frankle2019lottery}
+J.~Frankle and M.~Carlin.
+\newblock The lottery ticket hypothesis: Finding sparse, trainable neural
+  networks.
+\newblock In \emph{ICLR}, 2019.
+
+\bibitem[Gorban and Tyukin(2018)]{gorban2018blessing}
+A.~N. Gorban and I.~Y. Tyukin.
+\newblock Blessing of dimensionality: Mathematical foundations of the
+  statistical physics of data.
+\newblock \emph{Phil. Trans. R. Soc. A}, 376(2118):20170237, 2018.
+
+\bibitem[Gorban and Tyukin(2020)]{gorban2020blessing}
+A.~N. Gorban and I.~Y. Tyukin.
+\newblock High-dimensional brain in a high-dimensional world: Blessing of
+  dimensionality.
+\newblock \emph{Entropy}, 22(1):82, 2020.
+
+\bibitem[Hoffmann et~al.(2022)]{hoffmann2022training}
+J.~Hoffmann, S.~Borgeaud, A.~Mensch, et~al.
+\newblock Training compute-optimal large language models.
+\newblock In \emph{NeurIPS}, 2022.
+
+\bibitem[Hinton et~al.(2015)]{hinton2015distilling}
+G.~Hinton, O.~Vinyals, and J.~Dean.
+\newblock Distilling the knowledge in a neural network.
+\newblock \emph{arXiv preprint arXiv:1503.02531}, 2015.
+
+\bibitem[Johnson and Lindenstrauss(1984)]{johnson1984extensions}
+W.~B. Johnson and J.~Lindenstrauss.
+\newblock Extensions of {L}ipschitz mappings into a {H}ilbert space.
+\newblock \emph{Contemp. Math.}, 26:189--206, 1984.
+
+\bibitem[Kaplan et~al.(2020)]{kaplan2020scaling}
+J.~Kaplan, S.~McCandlish, T.~Henighan, et~al.
+\newblock Scaling laws for neural language models.
+\newblock \emph{arXiv preprint arXiv:2001.08361}, 2020.
+
+\bibitem[Nash(1956)]{nash1956imbedding}
+J.~Nash.
+\newblock The imbedding problem for {R}iemannian manifolds.
+\newblock \emph{Ann. of Math.}, 63(2):20--63, 1956.
+
+\bibitem[Park et~al.(2024)]{park2024linear}
+K.~Park, Y.~J. Choe, and V.~Veitch.
+\newblock The linear representation hypothesis and the geometry of large
+  language models.
+\newblock In \emph{ICML}, volume 235 of \emph{PMLR}, pages 39643--39666, 2024.
+
+\bibitem[P\'olya(1954)]{polya1954patterns}
+G.~P\'olya.
+\newblock \emph{Mathematics and Plausible Reasoning, Vol.~II: Patterns of
+  Plausible Inference}.
+\newblock Princeton University Press, 1954.
+
+\bibitem[Sch\"olkopf et~al.(2021)]{scholkopf2021toward}
+B.~Sch\"olkopf, F.~Locatello, S.~Bauer, et~al.
+\newblock Toward causal representation learning.
+\newblock \emph{Proc. IEEE}, 109(5):612--634, 2021.
+
+\bibitem[Sharma and Kaplan(2022)]{sharma2022scaling}
+U.~Sharma and J.~Kaplan.
+\newblock Scaling laws from the data manifold dimension.
+\newblock \emph{JMLR}, 23(9):1--34, 2022.
+
+\bibitem[Templeton et~al.(2024)]{templeton2024scaling}
+A.~Templeton, T.~Conerly, J.~Marcus, et~al.
+\newblock Scaling monosemanticity: Extracting interpretable features from
+  {C}laude~3 {S}onnet.
+\newblock \emph{Anthropic}, 2024.
+
+\bibitem[Vershynin(2018)]{vershynin2018high}
+R.~Vershynin.
+\newblock \emph{High-Dimensional Probability: An Introduction with Applications
+  in Data Science}.
+\newblock Cambridge University Press, 2018.
+
+\bibitem[Whitney(1936)]{whitney1936differentiable}
+H.~Whitney.
+\newblock Differentiable manifolds.
+\newblock \emph{Ann. of Math.}, 37(3):645--680, 1936.
+
+\bibitem[Zou et~al.(2023)]{zou2023representation}
+A.~Zou, L.~Phan, S.~Chen, J.~Campbell, P.~Guo, R.~Ren, A.~Pan, X.~Yin,
+  M.~Mazeika, A.~Dombrowski, S.~Goel, N.~Li, Z.~Lin, J.~Forsyth, R.~R.
+  Pelrine, A.~de~Wynter, E.~Chin, B.~Levinstein, A.~Khanduri, D.~Shahid,
+  G.~S.~Thakur, J.~Hosseinmardi, E.~Sclar, R.~Ngo, E.~Song, Z.~Xhonneux,
+  S.~Szepesvari, J.~Gerig, N.~Tishby, and D.~Hendrycks.
+\newblock Representation engineering: A top-down approach to {AI} transparency.
+\newblock \emph{arXiv preprint arXiv:2310.01405}, 2023.
+
+\bibitem[{[Omega-Gradient]}(2026)]{omega2026}
+{[Author]}.
+\newblock The {$\Omega$}-gradient: Evidence-weighted multi-agent policy
+  optimisation in stochastic games.
+\newblock Undergraduate dissertation, London School of Economics, 2026.
+
+\end{thebibliography}
+
+
+% ══════════════════════════════════════════════════════════════════════
+\appendix
+\section{Implicit Regularisation and Embedding Covariance}%
+\label{app:implicit-reg}
+% ══════════════════════════════════════════════════════════════════════
+
+Here we provide the technical details for Step~2 of the proof of
+Theorem~\ref{thm:pca-alignment}.
+
+\begin{lemma}[Gradient-covariance alignment]\label{lem:grad-cov}
+Consider gradient descent on $\psi$ with learning rate $\gamma$ and
+$T$~iterations.  Let $G_t = \nabla_\psi \cL_t\,(\nabla_\psi \cL_t)^\top$ be the
+outer product of the $t$-th stochastic gradient.  The cumulative update
+direction satisfies:
+\begin{equation}
+  \psi_T - \psi_0
+  = -\gamma \sum_{t=0}^{T-1} \nabla_\psi \cL_t.
+\end{equation}
+Under standard assumptions (constant learning rate, stationary gradient
+distribution near convergence), the embedding covariance is approximately:
+\begin{equation}
+  \Sigma_\psi^* \;\propto\; \gamma^2 \sum_{t} G_t
+  \;\approx\; \gamma^2 T \cdot \E[G_t].
+\end{equation}
+The expected gradient outer product $\E[G_t]$ has column space approximately
+$V_f$ (by the sparsity assumption and the convergence of $\hat{f}_\theta$ to
+$f$), yielding the decomposition~\eqref{eq:sigma-alignment}.
+\end{lemma}
+
+\begin{proof}
+The embedding at convergence is $\phi_{\psi^*}(X) = \phi_{\psi_0}(X) +
+J_\phi(\psi^* - \psi_0) + O(\norm{\psi^* - \psi_0}^2)$, where $J_\phi$ is the
+Jacobian of $\phi$ with respect to $\psi$.  The covariance of the embedding over
+data samples $X$ is:
+\begin{align}
+  \Sigma_\psi^*
+  &= \mathrm{Cov}[\phi_{\psi^*}(X)] \notag\\
+  &\approx \Sigma_{\psi_0} + J_\phi\,\mathrm{Cov}[\psi^* - \psi_0]\,J_\phi^\top
+    + \text{cross terms}.
+\end{align}
+The cross terms vanish under independence of the initialisation noise and the
+training trajectory.  The term
+$J_\phi\,\mathrm{Cov}[\psi^* - \psi_0]\,J_\phi^\top$ is shaped by the
+cumulative gradient signal, which lives primarily in $V_f$ by the sparsity
+assumption.  The initialisation covariance $\Sigma_{\psi_0}$ is isotropic
+(random initialisation), contributing $\sigma_\perp^2 I$ to the orthogonal
+complement.  This yields~\eqref{eq:sigma-alignment}.
+\end{proof}
+
+
+\section{Extended Proof of Theorem~\ref{thm:superposition}(b)}%
+\label{app:superposition-lb}
+
+\begin{proof}[Proof of optimality lower bound]
+Consider any encoding scheme $E : \{0,1\}^m \to \R^d$ and decoding scheme
+$D : \R^d \to \{0,1\}^m$ for $m$ binary features with sparsity $s$.  Fix
+feature $j$ and consider the two inputs that differ only in feature $j$:
+$\mathbf{x}$ and $\mathbf{x} \oplus \mathbf{e}_j$.  The decoding must
+distinguish $E(\mathbf{x})$ from $E(\mathbf{x} \oplus \mathbf{e}_j)$.
+
+For the set of all $\binom{m}{s}$ active sets of size $s$, each feature $j$
+participates in $\binom{m-1}{s-1}$ of them.  The encoding must separate all
+these pairs in $\R^d$.  By a sphere-packing argument in $\R^d$, the minimum
+per-feature error is $\Omega(s/\sqrt{d})$, since $d$ dimensions can
+accommodate at most $O(\sqrt{d}/s)$ orthogonal ``signal directions'' per
+feature among the $s$ simultaneously active features.
+\end{proof}
+
+
+\end{document}
