@@ -1,0 +1,43 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+\title{Synthetic Validation Update for the Universal Embedding Theorem}
+\author{Working empirical note}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\paragraph{Scope.}
+This note summarizes the current synthetic experiment stack in the
+project folder for the Universal Embedding Theorem. It is intentionally narrower than the
+full theorem draft: the current focus is on synthetic validation before wiring
+in the Polymarket and language-model embedding tracks.
+
+\paragraph{Implemented protocols.}
+The current runner covers:
+\begin{itemize}
+  \item PCA recovery of a known causal subspace;
+  \item sparse recovery around the $k \log(d / k)$ sample-complexity regime;
+  \item a minimum-norm double-descent proxy for benign overfitting;
+  \item appended-noise augmentation of the learned embedding;
+  \item superposition with random feature dictionaries and sparse activations.
+\end{itemize}
+
+\IfFileExists{generated_results.tex}{
+  \input{generated_results.tex}
+}{
+  \paragraph{Missing generated results.}
+  Run \texttt{python3 experiments/render\_empirical\_note.py} from the project
+  root to materialize the current tables and figure references.
+}
+
+\end{document}
