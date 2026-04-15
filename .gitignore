@@ -22,3 +22,6 @@ dissertation/latex/%OUTDIR%/
 polymarket/pipeline/.env
 polymarket/dashboard/.env.local
 .venv
+**/*.fls
+**/*.fdb_latexmk
+**/*.gz
