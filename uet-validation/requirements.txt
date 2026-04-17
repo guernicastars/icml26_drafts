@@ -5,3 +5,5 @@ matplotlib>=3.7
 torch>=2.1
 transformers>=4.36
 datasets>=2.16
+clickhouse-connect>=0.7
+pytest>=8.0
