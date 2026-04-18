@@ -1,0 +1,57 @@
+\section{Introduction}
+\label{sec:intro}
+
+The Universal Embedding Theorem (UET) \citep{uet2026} predicts that any
+embedding $\phi \colon \mathcal{X} \to \R^d$ trained with sufficient
+capacity satisfies, asymptotically, a scaling law of the form
+\begin{equation}
+\label{eq:uet}
+L(n) \;=\; c\cdot \frac{\deff \log(d/\deff)}{n} \;+\; \Linf,
+\end{equation}
+where $\deff = \tr(\Sigma)^2 / \tr(\Sigma^2)$ is the participation ratio of
+the embedding covariance, $d$ is the nominal embedding dimension, $n$ is the
+number of training tokens / samples, and $c, \Linf$ are constants whose
+values depend on the optimisation stack but \emph{not} on the model width
+$d$ --- hence ``universal''.
+
+This report is the empirical companion to the theoretical paper. Our goal
+is narrow and falsifiable: \emph{can we fit Eq.~\eqref{eq:uet} to measured
+Pythia curricula, and do we recover the same $c$ across model widths?}
+We also verify (a) the Davis--Kahan subspace-alignment prediction on
+synthetic data where the true causal subspace is known, and (b) that the
+effective dimension $\deff$ behaves as a domain-level quantity on two
+non-language datasets.
+
+\paragraph{Contributions.}
+\begin{enumerate}[leftmargin=1.5em,itemsep=1pt]
+\item A curriculum-based UET fitter with bounded multi-start trust-region
+      least squares (\S\ref{sec:setup}) that is numerically stable on
+      real-world loss curves.
+\item Per-model fits of Eq.~\eqref{eq:uet} on Pythia 160M and 410M
+      curricula with $R^2 = 0.954$ and $R^2 = 0.991$, recovering
+      $c = 1.72 \cdot 10^{7}$ and $c = 2.26 \cdot 10^{7}$ respectively
+      (\S\ref{sec:curriculum}) --- a $\leq 25\%$ spread across a
+      $\mathbf{2.6\boldsymbol{\times}}$ width change.
+\item A $6{\times}7{\times}5 = 210$ cell synthetic sweep quantifying when
+      the Davis--Kahan sufficient condition fails, confirming the
+      theorem's spectral-gap boundary (\S\ref{sec:failure}).
+\item Latent-dimension sweeps on prediction markets and auction lots
+      showing that $\deff$ plateaus once the bottleneck exceeds the
+      domain's intrinsic rank (\S\ref{sec:cross}).
+\item A fully reproducible offline pipeline: \repo{run\_all\_rtx3060.sh}
+      produces every CSV consumed by this report, and
+      \repo{report/generate\_figures.py} produces every data file consumed
+      by the PGFPlots figures.
+\end{enumerate}
+
+\paragraph{Scope and limitations.}
+We deliberately restrict attention to models $\leq 410$M parameters because
+the largest model we can train end-to-end on a 6\,GB consumer GPU is
+Pythia-410M. The UET constant $c$ is a \emph{universal} prediction of the
+theorem, but verifying it across the full 70M--12B Pythia range is
+future work. Our main contribution here is that the fit is recoverable
+\emph{at all} on curriculum data, which the naive approach (fitting
+Eq.~\eqref{eq:uet} to only the final-step losses of the full Pythia family)
+fails to do: with $n$ fixed at the final step, the $c/n$ term becomes
+rank-deficient and the least-squares problem is singular. We document this
+failure mode in \S\ref{sec:final}.

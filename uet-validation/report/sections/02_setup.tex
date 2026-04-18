@@ -1,0 +1,84 @@
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Hardware and runtime}
+All experiments run on a single Fedora 43 workstation:
+Intel i9-11900H (16 threads), 64\,GB RAM, NVIDIA RTX~3060 Mobile (6\,GB
+VRAM), CUDA 12.8, PyTorch 2.11. Total wall-clock for the full pipeline is
+$\approx 75$ minutes. No cluster, no multi-GPU.
+
+\subsection{Datasets}
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt]
+\item \textbf{Pythia curricula.} We load the public EleutherAI/pythia-160m and
+      pythia-410m checkpoints at 22 training steps each:
+      \begin{center}\small
+      $\{0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512,$\\
+      $1000, 2000, 4000, 8000, 16000, 32000, 64000, 100000, 120000, 143000\}$.
+      \end{center}
+      At each checkpoint we measure validation
+      loss on 140 Pile sequences and compute $\deff$ from the covariance of
+      pooled hidden states.
+\item \textbf{Pythia final checkpoints.} Four final-step checkpoints
+      (70M, 160M, 410M, 1B) on the same evaluation set, used only to
+      demonstrate the rank-deficient fit failure of \S\ref{sec:final}.
+\item \textbf{Polymarket.} 40{,}470 prediction-market snapshots with 19
+      structured features (price, volume, liquidity, category, ...).
+\item \textbf{Auction catalogues.} 694{,}860 lots from Christie's and
+      Sotheby's (\repo{silver\_extractions} tables) with 37 joined
+      features.
+\item \textbf{Synthetic Davis--Kahan sweep.} Grid over
+      $d \in \{16,32,64,128,256,512\}$,
+      $k \in \{2,4,8,16,32,64,128\}$,
+      $\mathrm{gap} \in \{0.5,1,2,5,10\}$, with $10$ seeds per cell
+      ($2{,}100$ rows total).
+\end{itemize}
+
+\subsection{Pythia tokens-per-step}
+Pythia-deduped uses batch size $1024$ and sequence length $2048$, giving
+$\text{tokens/step} = 1024 \cdot 2048 = 2{,}097{,}152$. We use this
+conversion throughout:
+\[
+n(\text{step}) = \text{step} \cdot 2{,}097{,}152.
+\]
+
+\subsection{Effective dimension}
+For a centred pooled embedding matrix $Z \in \R^{N\times d}$ with covariance
+$\Sigma = Z^\top Z / N$, the effective dimension (participation ratio) is
+\begin{equation}
+\deff \;=\; \frac{\big(\tr \Sigma\big)^{2}}{\tr\big(\Sigma^{2}\big)}
+         \;=\; \frac{\big(\sum_i \lambda_i\big)^2}{\sum_i \lambda_i^2},
+\end{equation}
+and the stable rank is $\|\Sigma\|_F^2 / \|\Sigma\|_2^2$. Both
+quantities are dimensionless and invariant to overall scale.
+
+\subsection{The UET fitter}
+\label{sec:fitter}
+We fit Eq.~\eqref{eq:uet} with a bounded multi-start trust-region
+reflective least-squares solver (\texttt{scipy.optimize.least\_squares},
+method \texttt{"trf"}). The two parameters are constrained to
+$c \geq 0$, $0 \leq \Linf \leq 0.999 \min_j L_j$, which makes the problem
+well-posed even at early training steps where loss is non-monotone.
+For each of nine $\Linf$ initialisations in
+$[0, 0.999\min_j L_j]$ we analytically solve the
+$c$-initialisation by least-squares regression of $L - \Linf$ on the
+feature $x = \deff\log(d/\deff)/n$, then run TRF to convergence and keep
+the run with smallest RMSE. A synthetic recovery test
+(\S\ref{sec:appendix-synth}) confirms the fitter recovers $c$ within
+$10\%$ and $\Linf$ within $0.1$ of ground truth at realistic noise levels.
+
+\subsection{Repository layout}
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+Path & Purpose \\
+\midrule
+\repo{uet/scaling\_fit.py}     & UET fitter, token-conversion constants \\
+\repo{uet/curriculum.py}       & Pythia checkpoint harvesting \\
+\repo{uet/failure.py}          & Davis--Kahan synthetic sweep \\
+\repo{uet/embedding\_train.py} & Bottleneck AE for domain data \\
+\repo{scripts/run\_uet\_fit.py}& Fit driver, per-model + joint \\
+\repo{run\_all\_rtx3060.sh}    & End-to-end pipeline (overnight) \\
+\repo{report/generate\_figures.py} & CSV $\to$ PGFPlots \texttt{.dat} \\
+\bottomrule
+\end{tabular}
+\end{center}

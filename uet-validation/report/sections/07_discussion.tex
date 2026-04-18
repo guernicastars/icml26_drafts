@@ -1,0 +1,74 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{What we verified, what we did not}
+
+\begin{center}\small
+\begin{tabular}{p{5.5cm}p{6.0cm}l}
+\toprule
+Prediction & Evidence & Strength \\
+\midrule
+UET loss form fits a curriculum &
+   Fig.~\ref{fig:uet-fit}, $R^2 \geq 0.95$ & strong \\
+$c$ universal across model widths &
+   Tab.~\ref{tab:uet-fit}, $\Delta c/c \leq 0.25$ over $2.5\times$ params
+   & moderate \\
+Spectral-gap clause is needed &
+   Fig.~\ref{fig:failure-gap}, $4.3\times$ jump in $\sin\theta$ & strong \\
+$k < d$ clause is needed &
+   Fig.~\ref{fig:failure-d}, violations at small $d$ & strong \\
+$\deff$ is domain intrinsic &
+   Fig.~\ref{fig:cross-domain}, saturation at $\deff \approx 5$ & moderate \\
+Discovery--Formalisation separation &
+   Fig.~\ref{fig:curriculum-dynamics}, two regimes visible &
+   qualitative \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{What breaks when you violate numerical assumptions}
+
+The $R^2 \approx 0$ failure of \S\ref{sec:final} is the most important
+diagnostic in this report. It is the standard trap of blindly feeding
+loss numbers into a nonlinear fit: if the design matrix is
+rank-deficient in \emph{any} coordinate, bounded optimisers will place
+explanatory mass wherever the gradient is non-zero (here, entirely on
+$\Linf$). The fix is not a better optimiser; it is a richer design
+matrix, which curriculum sampling provides for free.
+
+\subsection{Adam / AdamW learning-rate scaling}
+
+Because every Pythia checkpoint was trained with the same optimiser
+settings, we did not need to rescale $c$ for learning-rate changes.
+If one were to combine checkpoints across optimiser regimes, the
+Adam/AdamW square-root batch-size rule
+\citep{loshchilov2019adamw}
+\[
+\eta_{\text{eff}} \;\propto\; \sqrt{\tfrac{B}{B_0}}
+\]
+becomes relevant: changing $B$ without rescaling $\eta$ shifts the
+$c$ constant multiplicatively. A joint fit across different $B$ would
+have to normalise by $\sqrt{B}$ first. We flag this as future work for
+cross-family validations (e.g. Pythia + OLMo + Llama-Scaling-Suite).
+
+\subsection{Compute honesty}
+
+The entire empirical suite runs in $\approx 75$ minutes on a consumer
+GPU and requires no cluster access. Extending to Pythia-1B curriculum
+fitting (not just final-step evaluation) would require at most $6$
+hours on an A100 and is the single highest-leverage follow-up. Nothing
+in this report requires compute we do not have; nothing we claim
+required more than what is available.
+
+\subsection{What would falsify UET within our setup}
+
+\begin{itemize}[leftmargin=1.5em,itemsep=2pt]
+\item $R^2 < 0.8$ on either per-model curriculum fit.
+\item $c$ values differing by more than a factor of $5$ between the
+      two Pythia sizes.
+\item $\sin\theta$ scaling unchanged by the spectral-gap clause in
+      the synthetic sweep.
+\item $\deff$ scaling linearly with the AE bottleneck (i.e.~no
+      saturation).
+\end{itemize}
+None of these occurred.

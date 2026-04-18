@@ -1,0 +1,98 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\sisetup{group-separator={,},group-minimum-digits=4}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,decorations.pathreplacing}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{groupplots,fillbetween,statistics}
+
+\tolerance=1200
+\emergencystretch=3em
+\hfuzz=2pt
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\deff}{d_{\mathrm{eff}}}
+\newcommand{\Linf}{L_{\infty}}
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\repo}[1]{\texttt{\small #1}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\title{%
+  \textbf{Empirical Validation of the Universal Embedding Theorem}\\[4pt]
+  \large A Curriculum-Based Scaling-Law Study on Pythia, Prediction Markets,\\
+  and Auction Catalogues
+}
+\author{Anonymous Authors}
+\date{\today \quad {\small (Working Draft --- companion to v3 of the UET paper)}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present a self-contained empirical validation of the Universal Embedding
+Theorem (UET), the scaling law and spectral alignment result of the companion
+theoretical paper. All experiments run end-to-end on a single commodity GPU
+(NVIDIA RTX~3060, 6\,GB VRAM) and evaluate four predictions:
+\textbf{(i)} the UET loss form
+$L(n) = c\,\deff\log(d/\deff)/n + \Linf$ fits
+curriculum checkpoints of Pythia 160M and 410M with $R^2 = 0.954$ and $0.991$
+respectively, yielding recovered ``universal'' constants
+$c \approx 1.7\text{--}2.3 \cdot 10^{7}$ that agree within $25\%$ across the
+two model sizes;
+\textbf{(ii)} a synthetic sweep over $(d, k, \mathrm{gap})$ confirms the
+Davis--Kahan subspace-alignment prediction: the theorem's sufficient condition
+(spectral gap $\geq 2$, $k < d$) suffices to keep $\sin\theta < 0.2$ on
+average, while $54.3\%$ of parameter combinations violate the condition and
+their subspace error jumps to $0.75$;
+\textbf{(iii)} effective dimension $\deff = \tr(\Sigma)^2/\tr(\Sigma^2)$ of
+bottleneck autoencoders on two non-language domains --- Polymarket prediction
+markets ($n{=}40{,}470$) and Christie's/Sotheby's auction lots
+($n{=}694{,}860$) --- saturates at a \emph{domain-specific} latent dimension
+($16\text{--}32$) regardless of the nominal bottleneck width, supporting the
+UET claim that $\deff$ reflects the intrinsic causal rank rather than the
+raw embedding size;
+\textbf{(iv)} all code, data, and this report build fully offline from a
+single \repo{run\_all\_rtx3060.sh} invocation.
+We release curriculum CSVs, fit artifacts, and the PGFPlots generator that
+produces every figure in this document.
+\end{abstract}
+
+\tableofcontents
+
+\input{sections/01_introduction.tex}
+\input{sections/02_setup.tex}
+\input{sections/03_curriculum_fit.tex}
+\input{sections/04_failure_modes.tex}
+\input{sections/05_cross_domain.tex}
+\input{sections/06_final_checkpoints.tex}
+\input{sections/07_discussion.tex}
+\input{sections/08_appendix.tex}
+
+\bibliography{refs}
+
+\end{document}
