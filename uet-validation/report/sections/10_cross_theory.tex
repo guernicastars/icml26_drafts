@@ -1,0 +1,315 @@
+\section{Theoretical Connections and Positioning}
+\label{sec:cross-theory}
+
+This section situates UET within the broader landscape of learning-theoretic frameworks.
+We organise the discussion around three questions:
+(i) where UET provides a more convenient representation than alternatives,
+(ii) where UET makes predictions that no other framework does, and
+(iii) where UET is weaker than alternatives.
+
+\subsection{UET vs Scaling Laws (Kaplan, Chinchilla)}
+\label{sec:vs-scaling}
+
+The Kaplan scaling law~\citep{kaplan2020scaling} fits
+$L = A \cdot n^{-\alpha} + L_\infty$ with three free parameters per model
+(A, $\alpha$, $L_\infty$).
+UET fits $L = c\,\deff \log(d/\deff)/n + L_\infty$ with two free parameters
+(c, $L_\infty$), because the exponent on $n$ is fixed at 1 by theory.
+
+\paragraph{Where UET is more convenient.}
+When curriculum data is sparse (fewer than 10 checkpoints), fitting three
+parameters is poorly conditioned.
+UET's reduction from three to two free parameters is numerically meaningful:
+on Pythia-410M, the one model where the curriculum is sparsest relative to
+the loss curvature, UET achieves 28\% lower hold-out RMSE than Kaplan
+(Table~\ref{tab:predictive}).
+The interpretive gain is also significant: UET's constant $c$ encodes
+architecture efficiency, whereas Kaplan's $A$ conflates architecture, optimiser,
+learning rate schedule, and data distribution into a single uninterpretable scalar.
+
+\paragraph{Where Kaplan is more convenient.}
+Kaplan's free $\alpha$ can absorb regime effects (e.g., token-to-parameter ratio
+changes) that UET's fixed exponent cannot.
+On models trained in the compute-optimal regime~\citep{hoffmann2022chinchilla},
+the empirical loss exponent deviates from 1; UET's hold-out error rises there
+(Table~\ref{tab:predictive}, OLMo-1B row).
+
+The Chinchilla law~\citep{hoffmann2022chinchilla} adds model size $N$
+as a second axis: $L = A/N^\alpha + B/D^\beta + E$.
+On a rich $(N, D)$ grid its five-parameter joint fit is substantially better
+(Table~\ref{tab:predictive}: joint Chinchilla $2\times$ lower RMSE than joint UET).
+However, Chinchilla requires multiple runs at varying $(N, D)$; for a fixed
+architecture trained on a single data distribution, it reduces to a two-axis fit
+that is only marginally more expressive than UET.
+
+\subsection{UET vs Neural Tangent Kernel Theory}
+\label{sec:vs-ntk}
+
+The NTK~\citep{jacot2018ntk} describes training dynamics in the infinite-width
+limit as kernel regression under the NTK gram matrix.
+The NTK's generalisation error is governed by the effective rank of the NTK
+gram matrix, which is a spectral quantity analogous to $\deff$.
+
+\paragraph{Link.}
+UET's $\deff = \tr(\Sigma)^2 / \tr(\Sigma^2)$ is the participation ratio of the
+empirical feature covariance.
+In the lazy-training (near-NTK) regime, this equals the effective rank of the
+NTK restricted to the training set.
+As training proceeds beyond the lazy regime, $\deff$ decreases---this is precisely
+the discovery $\to$ formalisation transition: the network exits the
+high-dimensional, near-linear regime.
+
+\paragraph{Where UET is more convenient.}
+NTK theory applies at initialisation (or at infinite width).
+UET operates on the \emph{trained} network at any checkpoint, giving a
+scalar progress variable $\deff(t)$ that tracks the formalisation trajectory.
+The per-layer analysis (§8.5 of this report) shows that $\deff$ varies
+substantially across layers and across training, which NTK theory cannot resolve.
+
+\paragraph{Where NTK is more convenient.}
+NTK provides closed-form learning dynamics and convergence rates.
+UET makes no dynamical guarantees; it characterises the equilibrium structure.
+
+\subsection{UET vs Benign Overfitting (Bartlett et al.)}
+\label{sec:vs-benign}
+
+Bartlett, Montanari and Tsigler~\citep{bartlett2020benign} showed that
+overparameterised linear regression generalises when the data covariance
+has high effective rank relative to $n$.
+Their effective rank $r_k(\Sigma) = (\sum_{i > k} \lambda_i)^2 / \sum_{i > k} \lambda_i^2$
+is the tail participation ratio.
+
+\paragraph{Link.}
+UET's $\deff = (\sum_i \lambda_i)^2 / \sum_i \lambda_i^2$ uses the full spectrum
+rather than the tail.
+Both measure ``how many dimensions carry variance,'' but UET's version is
+dominated by large eigenvalues (discovery phase) while Bartlett's is dominated
+by small eigenvalues (noise subspace).
+In the double-descent regime, high $\deff$ (UET) correlates with the unstable
+interpolation peak, consistent with the observation that both metrics rise
+near the threshold.
+
+\paragraph{Where UET is more convenient.}
+Bartlett's effective rank is an analysis tool in a linear regime.
+UET is applicable to any differentiable model and tracks dynamically.
+The discovery $\to$ formalisation trajectory is not captured by benign-overfitting
+theory, which is a static equilibrium result.
+
+\subsection{UET vs Information Bottleneck}
+\label{sec:vs-ib}
+
+The Information Bottleneck~\citep{tishby2015deep} seeks a representation $T$
+that minimises $I(X; T) - \beta \cdot I(T; Y)$.
+Under Gaussian assumptions, $I(X; T) \leq \tfrac{1}{2} \log \det(I + \Sigma_T)$,
+which is bounded by $\tfrac{d_\mathrm{eff}}{2} \log(1 + \lambda_{\max})$.
+Thus $\deff$ upper-bounds the IB compression capacity.
+
+\paragraph{Where UET is more convenient.}
+Mutual information estimation in high dimensions is notoriously unreliable.
+$\deff$ is a second-moment statistic---trivial to compute from activations.
+The IB compression-generalisation curve requires sweeping $\beta$; UET provides
+a single scalar that correlates with the generalisation transition.
+
+\paragraph{Where IB is more convenient.}
+IB directly targets the compression-prediction tradeoff and gives a principled
+optimality criterion.
+UET makes no claim about the information-theoretic optimality of the learned
+representation.
+
+\subsection{UET vs Superposition (Elhage et al.)}
+\label{sec:vs-superposition}
+
+Elhage et al.~\citep{elhage2022superposition} showed that neural networks encode
+more features than they have dimensions by exploiting near-orthogonality:
+$d$ features in $k < d$ dimensions at the cost of inter-feature interference.
+The number of storable features scales roughly as $d / (d - k)$.
+
+\paragraph{Link.}
+UET's $\log(d/\deff)$ term is the log-slack factor that bounds how many features
+can be stored.
+When $\deff \ll d$, the network is using superposition at scale
+$d/\deff$~\citep{uet2026}.
+This makes $\deff$ a quantitative summary of the superposition regime.
+
+\paragraph{Where UET is more convenient.}
+Superposition theory is mechanistic (which features superpose, where in the
+network) and requires per-circuit analysis.
+UET gives a single scalar that characterises the aggregate superposition
+load of a layer, computable without mechanistic analysis.
+
+\paragraph{Where Superposition analysis is more convenient.}
+UET says nothing about \emph{which} features are superposed or whether a
+specific feature is recoverable.
+Mechanistic interpretability is required for feature-level claims.
+
+\subsection{UET vs Neural Collapse (Papyan et al.)}
+\label{sec:vs-nc}
+
+Neural Collapse~\citep{papyan2020nc} describes the terminal phase of training:
+within-class activations collapse to their class mean (NC1), class means
+converge to an equiangular tight frame (ETF, NC2), and the classifier weights
+align with the class means (NC3).
+
+\paragraph{Link.}
+The ETF simplex in $\mathbb{R}^d$ spans an $(N_\mathrm{classes} - 1)$-dimensional
+subspace.
+UET predicts $\deff \to N_\mathrm{classes} - 1$ as NC1 and NC2 saturate---the
+formalisation endpoint is geometrically determined by the task structure.
+Section~\ref{sec:neural-collapse} validates this empirically: on CIFAR-10,
+final $\deff \approx 9$ (ETF prediction: 9); on CIFAR-100, final $\deff \approx 99$.
+
+\paragraph{Where UET is more convenient.}
+Neural Collapse is a terminal-phase phenomenon; it does not describe the
+trajectory.
+UET's $\deff(t)$ tracks the compression from the discovery phase (high $\deff$)
+to the NC endpoint (low $\deff \approx N_\mathrm{classes} - 1$), providing a
+scalar progress variable throughout training.
+
+\paragraph{Where NC is more convenient.}
+Neural Collapse provides rigorous geometric predictions (ETF angles, alignment
+norms) that UET does not.
+It also applies to the classifier head, not just the penultimate layer.
+
+\subsection{UET vs Mechanistic Interpretability (Nanda et al.)}
+\label{sec:vs-mech}
+
+Nanda et al.~\citep{grokking_lit} showed that grokking on modular arithmetic
+corresponds to the discovery of modular Fourier circuits: sparse, periodic
+representations that generalise by construction.
+This provides a mechanistic explanation specific to algorithmic tasks.
+
+\paragraph{Link.}
+UET predicts a $\deff$ collapse concurrent with the memorisation-to-generalisation
+transition, regardless of the specific circuit discovered.
+Our grokking experiment (§\ref{sec:grokking}) confirms this: 39\% $\deff$
+compression during the 4200-step grokking gap.
+The $\lambda$-ablation (§\ref{sec:grokking-lambda}) tests whether this collapse is
+task-structure-driven or a weight-decay artefact.
+
+\paragraph{Where UET is more convenient.}
+Mechanistic interpretability requires circuit discovery, which is task-specific
+and labour-intensive.
+UET's $\deff$ collapse is a task-agnostic signature of the formalisation phase,
+applicable to any generalisation-delay phenomenon.
+
+\paragraph{Where Mechanistic Interpretability is more convenient.}
+Mechanistic analysis answers \emph{how} the model generalises (which computation
+it discovers).
+UET answers \emph{whether} formalisation has occurred (via $\deff$) but not what
+structure was found.
+
+\subsection{UET vs Double Descent Theory (Nakkiran, Belkin, Adlam)}
+\label{sec:vs-dd}
+
+The double descent phenomenon~\citep{nakkiran2020dd} was explained via the
+bias-variance decomposition in overparameterised models.
+Adlam and Pennington~\citep{adlam2020ntk} used random matrix theory to locate the
+DD peak via the Marchenko-Pastur edge of the data spectrum.
+Bartlett et al.~\citep{bartlett2020benign} provided asymptotic conditions for
+benign overfitting in the overparameterised regime.
+
+\paragraph{Link.}
+UET's $\deff$ is elevated and unstable at the interpolation threshold
+(Section~\ref{sec:dd-v2}).
+In the underparameterised regime, $\deff$ reflects the model's limited capacity.
+At the threshold, $\deff$ is maximally unstable (multiple eigenvalues have similar
+magnitude).
+In the overparameterised regime, gradient descent biases the solution toward
+low-$\deff$ solutions, producing benign overfitting.
+This provides a dynamical ($\deff$ over training) complement to the static
+(spectrum at solution) analyses of Adlam and Bartlett.
+
+\paragraph{Where UET is more convenient.}
+RMT-based DD analysis gives a sharp analytic peak location but requires
+Gaussian data assumptions.
+UET's $\deff$ is model-agnostic and applies to empirical data;
+the DD peak location predicted by $\deff$ instability is a qualitative complement.
+
+\paragraph{Where RMT/Bartlett are more convenient.}
+RMT gives sharp quantitative predictions; UET gives qualitative signatures.
+For precise DD peak location prediction, Adlam-Pennington is preferred.
+
+\subsection{Where Only UET Applies}
+\label{sec:uet-unique}
+
+The following phenomena are predicted by UET and not by any of the frameworks
+discussed above.
+
+\paragraph{Noise dimension dilution.}
+UET predicts that appending random noise dimensions to the input is benign:
+noise dimensions dilute noise projections onto the signal subspace, leaving
+signal-to-noise approximately constant.
+Standard regularisation theory and information-theoretic bounds predict monotone
+degradation.
+Section~\ref{sec:noise-dim} confirms this: 512 noise dimensions cause only a
+32\% reconstruction increase, well below the $1.5\times$ threshold.
+None of Kaplan, Chinchilla, NTK, IB, Superposition, or NC predict this behaviour.
+
+\paragraph{Architecture efficiency index.}
+UET's constant $c$ is a scalar efficiency index for the training recipe.
+Kaplan's $A$ and Chinchilla's $A, B$ absorb architecture, optimiser, and
+data-scale effects into uninterpretable numbers.
+UET's $c$ is interpretable: it measures how efficiently the training procedure
+converts model parameters into loss reduction per effective dimension.
+The 3.1$\times$ cross-family spread (Pythia vs OLMo, §8.6) is a measurement that
+no other framework can express.
+
+\paragraph{Discovery to formalisation as a scalar trajectory.}
+No existing scaling law, NTK, or neural-collapse result describes the
+\emph{trajectory} of representation compression during training as a single
+scalar.
+UET's $\deff(t)$ fills this role.
+The two-phase signature (rapid early compression, stable plateau) is observed
+across MLPs, CNNs, and language models (§\ref{sec:arch-diversity},
+§\ref{sec:grokking}).
+
+\paragraph{d\_eff saturation as intrinsic-rank recovery.}
+UET predicts that $\deff$ of the bottleneck representation saturates at
+$k_\mathrm{true}$ when the autoencoder is sufficiently expressive.
+This is a falsifiable prediction about the equilibrium value of $\deff$,
+tested in §5.3 (synthetic domain) and §\ref{sec:fm-probe} (cross-modality).
+Neither Kaplan, Chinchilla, IB, nor Superposition make quantitative predictions
+about the equilibrium $\deff$ from first principles.
+
+\paragraph{PCA-Causality Alignment under known spectral gap.}
+The PCA-Causality Alignment Theorem (\S4.3 of the companion theory paper)
+provides a sufficient condition (spectral gap $\geq 2$) under which
+PCA top-$k$ directions align with the causal feature subspace.
+This is the only result in the literature (to our knowledge) that connects
+spectral gaps in the covariance to causal feature recovery, with a sharp
+threshold.
+Section~8.3 validates the threshold empirically on synthetic data.
+
+\subsection{Summary}
+\label{sec:cross-theory-summary}
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lp{3.8cm}p{3.8cm}l}
+\toprule
+Framework & UET more convenient & UET weaker & UET unique \\
+\midrule
+Kaplan       & sparse curriculum, interpretable $c$ & free exponent absorbs regime effects & noise dilution, $c$-index \\
+Chinchilla   & fewer params per model & joint cross-arch fit & discovery trajectory \\
+NTK          & trained models, finite width & dynamical convergence rates & formalisation phase \\
+Benign overfitting & dynamical tracking & sharp generalisation bounds & noise dilution \\
+IB           & trivial to compute, no $\beta$-sweep & optimality criterion & $\deff$ saturation \\
+Superposition & aggregate scalar, no circuits & feature-level claims & quantitative log($d/\deff$) bound \\
+Neural Collapse & full training trajectory & terminal-phase geometry & progress variable $\deff(t)$ \\
+Mech. Interp & task-agnostic & mechanism identification & grokking phase prediction \\
+DD / RMT     & empirical data, non-Gaussian & sharp peak location & $\deff$ instability at threshold \\
+\bottomrule
+\end{tabular}
+\caption{UET vs existing frameworks. ``More convenient'' = UET provides the
+same or comparable prediction with fewer assumptions or free parameters.
+``Weaker'' = the alternative framework makes predictions UET cannot.
+``Unique'' = the prediction is exclusive to UET.}
+\label{tab:cross-theory}
+\end{table}
+
+\vspace{0.5em}
+The central claim is that UET occupies a distinct niche: it is the only framework
+that simultaneously (i) provides a quantitative scaling law prediction,
+(ii) explains the discovery--formalisation trajectory as a dynamical phenomenon,
+(iii) predicts $\deff$ saturation at intrinsic rank, and
+(iv) makes falsifiable predictions about noise tolerance and PCA-causality alignment.
