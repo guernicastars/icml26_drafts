@@ -7,6 +7,7 @@ import numpy as np
 import torch
 from torch import Tensor, nn
 from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +90,8 @@ def train_autoencoder(
     best_state = None
     epochs_no_improve = 0
 
-    for epoch in range(n_epochs):
+    pbar = tqdm(range(n_epochs), desc=f"AE latent={latent_dim}", unit="ep")
+    for epoch in pbar:
         model.train()
         running = 0.0
         n = 0
@@ -118,12 +120,15 @@ def train_autoencoder(
         else:
             epochs_no_improve += 1
 
+        pbar.set_postfix(train=f"{train_loss:.4f}", val=f"{val_loss:.4f}", best=f"{best_val:.4f}")
+
         if epoch % 10 == 0 or epoch == n_epochs - 1:
             logger.info("epoch %d train=%.5f val=%.5f", epoch, train_loss, val_loss)
 
         if epochs_no_improve >= patience:
             logger.info("Early stop at epoch %d (no improvement for %d epochs)", epoch, patience)
             break
+    pbar.close()
 
     if best_state is not None:
         model.load_state_dict(best_state)

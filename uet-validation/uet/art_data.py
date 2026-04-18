@@ -21,7 +21,40 @@ class ArtFeatures:
     targets: np.ndarray
 
 
-JOIN_QUERY = """
+# Per-source silver_extractions schema map: actual_col or None -> NULL
+_SILVER_SCHEMA = {
+    "christies": {
+        "birth_year": "creator_birth_year",
+        "death_year": "creator_death_year",
+        "nationality": "creator_nationality",
+        "date_created": "date_created",
+        "provenance": "provenance",
+        "exhibitions": "exhibitions",
+        "literature": "literature",
+        "condition_summary": "condition_summary",
+        "signed_inscribed": "signed_inscribed",
+        "style_period": "style_period",
+        "origin": "origin",
+        "lot_category": "lot_category",
+    },
+    "sothebys": {
+        "birth_year": "artist_birth_year",
+        "death_year": "artist_death_year",
+        "nationality": "artist_nationality",
+        "date_created": None,
+        "provenance": None,
+        "exhibitions": None,
+        "literature": None,
+        "condition_summary": None,
+        "signed_inscribed": None,
+        "style_period": "creation_period",
+        "origin": None,
+        "lot_category": None,
+    },
+}
+_SILVER_SCHEMA["phillips"] = _SILVER_SCHEMA["sothebys"]
+
+_JOIN_QUERY_BASE = """
 SELECT
     l.lot_uuid AS lot_uuid,
     l.estimate_low AS estimate_low,
@@ -40,29 +73,41 @@ SELECT
     g.is_rare_artist AS is_rare_artist,
     g.artist_id AS artist_id,
     g.vital_status AS vital_status,
-    se.creator_birth_year AS creator_birth_year,
-    se.creator_death_year AS creator_death_year,
-    se.creator_nationality AS creator_nationality,
-    se.medium AS medium,
-    se.date_created AS date_created,
-    se.provenance AS provenance,
-    se.exhibitions AS exhibitions,
-    se.literature AS literature,
-    se.condition_summary AS condition_summary,
-    se.signed_inscribed AS signed_inscribed,
-    se.style_period AS style_period,
-    se.origin AS origin,
-    se.lot_category AS lot_category,
+    {se_cols}
     v.artist_lot_count AS artist_lot_count
-FROM {src}.lots l
-LEFT JOIN {src}.sales s ON s.lot_uuid = l.lot_uuid
-LEFT JOIN {src}.gold_features g ON g.lot_uuid = l.lot_uuid
-LEFT JOIN {src}.silver_extractions se ON se.lot_uuid = l.lot_uuid
-LEFT JOIN {src}.v_gold_with_artist v ON v.lot_uuid = l.lot_uuid
+FROM {{src}}.lots l
+LEFT JOIN {{src}}.sales s ON s.lot_uuid = l.lot_uuid
+LEFT JOIN {{src}}.gold_features g ON g.lot_uuid = l.lot_uuid
+LEFT JOIN {{src}}.silver_extractions se ON se.lot_uuid = l.lot_uuid
+LEFT JOIN {{src}}.v_gold_with_artist v ON v.lot_uuid = l.lot_uuid
 WHERE s.is_sold = 1
   AND s.hammer_price > 0
-{limit_clause}
+{{limit_clause}}
 """
+
+_SE_ALIASES = [
+    ("birth_year", "creator_birth_year"),
+    ("death_year", "creator_death_year"),
+    ("nationality", "creator_nationality"),
+    ("date_created", "date_created"),
+    ("provenance", "provenance"),
+    ("exhibitions", "exhibitions"),
+    ("literature", "literature"),
+    ("condition_summary", "condition_summary"),
+    ("signed_inscribed", "signed_inscribed"),
+    ("style_period", "style_period"),
+    ("origin", "origin"),
+    ("lot_category", "lot_category"),
+]
+
+
+def _build_query(source: str) -> str:
+    schema = _SILVER_SCHEMA.get(source, _SILVER_SCHEMA["sothebys"])
+    parts = []
+    for key, alias in _SE_ALIASES:
+        col = schema.get(key)
+        parts.append(f"    se.{col} AS {alias}" if col else f"    CAST(NULL AS Nullable(String)) AS {alias}")
+    return _JOIN_QUERY_BASE.format(se_cols=",\n".join(parts) + ",")
 
 
 def fetch_art_features(
@@ -76,7 +121,7 @@ def fetch_art_features(
     config = config or ClickHouseConfig.from_env(database=source)
     client = get_client(config)
 
-    query = JOIN_QUERY.format(
+    query = _build_query(source).format(
         src=source,
         limit_clause=f"LIMIT {limit}" if limit else "",
     )

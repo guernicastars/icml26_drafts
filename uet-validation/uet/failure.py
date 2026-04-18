@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
+from tqdm import tqdm
 
 from uet.eigendecomp import (
     covariance,
@@ -105,11 +106,14 @@ def sweep_failure_modes(
     n_seeds: int = 5,
 ) -> list[FailureResult]:
     results = []
-    for seed in range(n_seeds):
-        rng = np.random.default_rng(seed)
-        for d in d_values:
-            for k in k_values:
-                for gap in gap_values:
-                    result = run_single_failure(d, k, gap, n_samples, rng=rng)
-                    results.append(result)
+    total = n_seeds * len(d_values) * len(k_values) * len(gap_values)
+    with tqdm(total=total, desc="failure sweep", unit="cfg") as pbar:
+        for seed in range(n_seeds):
+            rng = np.random.default_rng(seed)
+            for d in d_values:
+                for k in k_values:
+                    for gap in gap_values:
+                        result = run_single_failure(d, k, gap, n_samples, rng=rng)
+                        results.append(result)
+                        pbar.update(1)
     return results

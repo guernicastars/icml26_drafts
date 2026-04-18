@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from uet.failure import sweep_failure_modes
 from uet.plotting import plot_failure_heatmap
+from uet.run_utils import dump_config, dump_metadata, setup_logging, setup_run_dir
 
 logger = logging.getLogger(__name__)
 
@@ -27,13 +28,15 @@ def main():
     parser.add_argument("--n-samples", type=int, default=2000)
     parser.add_argument("--n-seeds", type=int, default=5)
     parser.add_argument("--output-dir", type=Path, default=Path("results"))
+    parser.add_argument("--run-name", type=str, default=None)
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
-    args.output_dir.mkdir(parents=True, exist_ok=True)
+    run_dir = setup_run_dir(args.output_dir, experiment="failure", run_name=args.run_name)
+    setup_logging(run_dir)
+    dump_config(run_dir, args)
 
-    n_configs = len(args.d_values) * len(args.k_values) * len(args.gap_values) * args.n_seeds
-    logger.info("Sweeping %d configurations (%d seeds)", n_configs // args.n_seeds, args.n_seeds)
+    n_configs = len(args.d_values) * len(args.k_values) * len(args.gap_values)
+    logger.info("Sweeping %d configs x %d seeds = %d runs", n_configs, args.n_seeds, n_configs * args.n_seeds)
 
     results = sweep_failure_modes(
         args.d_values, args.k_values, args.gap_values,
@@ -50,12 +53,17 @@ def main():
         for r in results
     ])
 
-    csv_path = args.output_dir / "failure_sweep.csv"
+    csv_path = run_dir / "failure_sweep.csv"
     df.to_csv(csv_path, index=False)
-    logger.info("Saved %s (%d rows)", csv_path, len(df))
+    plot_failure_heatmap(df, run_dir / "failure_sweep.png")
 
-    plot_failure_heatmap(df, args.output_dir / "failure_sweep.png")
-    logger.info("Done")
+    dump_metadata(run_dir, {
+        "n_rows": len(df),
+        "sin_angle_mean": float(df["sin_angle"].mean()),
+        "sin_angle_median": float(df["sin_angle"].median()),
+        "fraction_violated": float((df["condition_violated"] != "none").mean()),
+    })
+    logger.info("Done. Run dir: %s", run_dir)
 
 
 if __name__ == "__main__":

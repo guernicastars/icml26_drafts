@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 from torch import Tensor
+from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 logger = logging.getLogger(__name__)
@@ -55,7 +56,7 @@ def _load_model_and_tokenizer(
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=dtype,
+        dtype=dtype,
         device_map=device if device != "cpu" else None,
         **kwargs,
     )
@@ -102,7 +103,11 @@ def harvest_activations(
     total_loss = 0.0
     total_tokens = 0
 
-    for i in range(0, len(input_ids), batch_size):
+    short_name = model_name.split("/")[-1]
+    n_batches = (len(input_ids) + batch_size - 1) // batch_size
+    pbar = tqdm(range(0, len(input_ids), batch_size), total=n_batches,
+                desc=f"harvest {short_name}", unit="batch")
+    for i in pbar:
         batch = input_ids[i : i + batch_size].to(model.device)
         outputs = model(batch, output_hidden_states=True, labels=batch)
 
@@ -111,14 +116,7 @@ def harvest_activations(
 
         total_loss += outputs.loss.item() * batch.numel()
         total_tokens += batch.numel()
-
-        if len(all_hidden) % 10 == 0:
-            n_collected = sum(h.shape[0] for h in all_hidden)
-            logger.info(
-                "%s: %d/%d seqs, %d embeddings collected",
-                model_name.split("/")[-1], min(i + batch_size, len(input_ids)),
-                len(input_ids), n_collected,
-            )
+        pbar.set_postfix(loss=f"{total_loss / max(total_tokens, 1):.3f}", tokens=total_tokens)
 
     del model
     torch.cuda.empty_cache()
@@ -149,13 +147,14 @@ def compute_model_spectrum(
     device: str = "cuda",
     max_tokens: int = 500_000,
     batch_size: int = 8,
+    seq_len: int = 1024,
     revision: str | None = None,
 ) -> ModelSpectrum:
     from uet.eigendecomp import covariance, effective_dimension, eigenspectrum, stable_rank
 
     embeddings, val_loss = harvest_activations(
         model_name, device=device, max_tokens=max_tokens,
-        batch_size=batch_size, revision=revision,
+        seq_len=seq_len, batch_size=batch_size, revision=revision,
     )
 
     cov = covariance(embeddings)

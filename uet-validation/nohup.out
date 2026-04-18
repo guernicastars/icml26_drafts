@@ -1,0 +1,7 @@
+usage: run_art_embedding.py [-h] [--sources SOURCES [SOURCES ...]]
+                            [--per-source-limit PER_SOURCE_LIMIT]
+                            [--latent-dims LATENT_DIMS [LATENT_DIMS ...]]
+                            [--n-epochs N_EPOCHS] [--batch-size BATCH_SIZE]
+                            [--lr LR] [--device DEVICE]
+                            [--output-dir OUTPUT_DIR] [--run-name RUN_NAME]
+run_art_embedding.py: error: unrecognized arguments:  

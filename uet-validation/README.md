@@ -58,6 +58,29 @@ cp .env.example .env
 set -a; source .env; set +a
 ```
 
+## One-shot runner (RTX 3060 6GB)
+
+```bash
+bash scripts/run_all_rtx3060.sh
+```
+
+Runs all experiments sequentially, logs to `results/master_<stamp>.log`, each
+experiment writes to `results/<experiment>/<stamp>/` with:
+- `config.json` - argparse snapshot
+- `metadata.json` - summary metrics
+- `logs/run.log` - full per-experiment log
+- `*.csv` - metrics tables
+- `*.png` - figures
+- `models/<variant>/autoencoder.pt` - trained weights
+- `models/<variant>/Z.npy` - encoded embeddings
+- `models/<variant>/train_loss.npy`, `val_loss.npy` - loss curves
+- `models/<variant>/eigenvalues.npy`, `spectrum.json` - spectral stats
+
+Expected wall clock on RTX 3060 + i9-11900H: ~4-6 hours total
+(dominated by Pythia scaling + curriculum runs).
+
+Continue even if a step fails - each experiment is independent.
+
 ## Run order (4xA100)
 
 ```bash
