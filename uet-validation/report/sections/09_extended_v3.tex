@@ -88,15 +88,18 @@ hidden layer throughout 60{,}000 gradient steps.
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-  width=0.75\textwidth, height=6.5cm,
+  width=0.85\textwidth, height=6.5cm,
   xlabel={gradient steps},
   ylabel={accuracy},
   ymin=0, ymax=1.05,
   xmin=0, xmax=60000,
   grid=both, grid style={line width=0.1pt, draw=gray!30},
   major grid style={line width=0.2pt, draw=gray!50},
-  legend pos=north west,
-  legend style={font=\small, draw=none, fill=white},
+  legend columns=2,
+  legend style={
+    at={(0.5,-0.30)}, anchor=north, font=\small,
+    draw=none, fill=white, /tikz/every even column/.append style={column sep=0.6cm},
+  },
   tick label style={font=\small},
   label style={font=\small},
   axis y line*=left,
@@ -109,6 +112,10 @@ hidden layer throughout 60{,}000 gradient steps.
     table[x=step, y=test_acc] {data/grokking_trajectory_full.dat};
   \addlegendentry{test accuracy}
 
+  \addplot+[no marks, thick, color=green!55!black, dashed]
+    table[x=step, y expr=(\thisrow{d_eff}-30)/(75-30)] {data/grokking_trajectory.dat};
+  \addlegendentry{$\deff$ (rescaled to $[0,1]$)}
+
   \addplot+[dashed, thin, gray]
     coordinates {(2400,0) (2400,1.05)};
   \addlegendentry{memorisation (step 2400)}
@@ -116,22 +123,6 @@ hidden layer throughout 60{,}000 gradient steps.
   \addplot+[dashdotted, thin, orange]
     coordinates {(6600,0) (6600,1.05)};
   \addlegendentry{generalisation (step 6600)}
-\end{axis}
-\begin{axis}[
-  width=0.75\textwidth, height=6.5cm,
-  xmin=0, xmax=60000,
-  ymin=30, ymax=75,
-  axis y line*=right,
-  axis x line=none,
-  ylabel={$\deff$},
-  legend pos=north east,
-  legend style={font=\small, draw=none, fill=white},
-  tick label style={font=\small},
-  label style={font=\small},
-]
-  \addplot+[no marks, thick, color=green!60!black, dashed]
-    table[x=step, y=d_eff] {data/grokking_trajectory.dat};
-  \addlegendentry{$\deff$ (penultimate)}
 \end{axis}
 \end{tikzpicture}
 \caption{Grokking dynamics for modular addition $(a+b)\bmod 97$. Memorisation
@@ -180,42 +171,33 @@ We measure reconstruction loss and $\deff$ of the latent code.
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-  width=0.75\textwidth, height=5.5cm,
+  width=0.85\textwidth, height=5.5cm,
   xlabel={noise dimensions $m$},
-  ylabel={reconstruction loss},
+  ylabel={reconstruction loss / $\deff$/20},
   ymin=0.6, ymax=1.05,
   xmin=-10, xmax=530,
   grid=both, grid style={line width=0.1pt, draw=gray!30},
   major grid style={line width=0.2pt, draw=gray!50},
-  legend pos=north west,
-  legend style={font=\small, draw=none, fill=white},
+  legend columns=3,
+  legend style={
+    at={(0.5,-0.30)}, anchor=north, font=\small,
+    draw=none, fill=white,
+    /tikz/every even column/.append style={column sep=0.5cm},
+  },
   tick label style={font=\small},
   label style={font=\small},
-  axis y line*=left,
 ]
   \addplot+[mark=o, mark size=2pt, thick, color=blue!80!black]
     table[x=n_noise_dims, y=recon_loss_mean] {data/noise_dim.dat};
   \addlegendentry{reconstruction loss}
 
+  \addplot+[mark=square, mark size=2pt, thick, color=orange!80!black, dashed]
+    table[x=n_noise_dims, y expr=\thisrow{d_eff_mean}/20] {data/noise_dim.dat};
+  \addlegendentry{$\deff$ (rescaled, $\div 20$)}
+
   \addplot+[no marks, dashed, thin, gray]
     coordinates {(-10, 0.708) (530, 0.708)};
   \addlegendentry{baseline ($m=0$)}
-\end{axis}
-\begin{axis}[
-  width=0.75\textwidth, height=5.5cm,
-  xmin=-10, xmax=530,
-  ymin=13, ymax=17,
-  axis y line*=right,
-  axis x line=none,
-  ylabel={$\deff$ of latent},
-  legend pos=south east,
-  legend style={font=\small, draw=none, fill=white},
-  tick label style={font=\small},
-  label style={font=\small},
-]
-  \addplot+[mark=square, mark size=2pt, thick, color=orange!80!black, dashed]
-    table[x=n_noise_dims, y=d_eff_mean] {data/noise_dim.dat};
-  \addlegendentry{$\deff$ (latent)}
 \end{axis}
 \end{tikzpicture}
 \caption{Reconstruction loss and latent $\deff$ vs.\ number of appended noise
