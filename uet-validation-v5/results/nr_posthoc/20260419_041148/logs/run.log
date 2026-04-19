@@ -1,0 +1,43 @@
+2026-04-19 04:11:48,363 INFO __main__ NR-posthoc, device=cuda
+2026-04-19 04:11:48,363 INFO __main__ === pythia-70m ===
+2026-04-19 04:11:48,580 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:48,593 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-70m-deduped/e93a9faa9c77e5d09219f6c868bfc7a1bd65593c/config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:48,747 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:48,747 WARNING huggingface_hub.utils._http Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-04-19 04:11:48,761 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-70m-deduped/e93a9faa9c77e5d09219f6c868bfc7a1bd65593c/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:48,913 INFO httpx HTTP Request: GET https://huggingface.co/api/models/EleutherAI/pythia-70m-deduped/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-04-19 04:11:49,069 INFO httpx HTTP Request: GET https://huggingface.co/api/models/EleutherAI/pythia-70m-deduped/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-04-19 04:11:49,329 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:49,342 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-70m-deduped/e93a9faa9c77e5d09219f6c868bfc7a1bd65593c/config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:49,366 ERROR __main__ harvest failed for pythia-70m: Could not import module 'GPTNeoXForCausalLM'. Are this object's requirements defined correctly?
+2026-04-19 04:11:49,373 INFO __main__ === pythia-160m ===
+2026-04-19 04:11:49,524 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-160m-deduped/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:49,537 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-160m-deduped/582159a2dfe3e712a8d47ae83dec95ae3bde8e7e/config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:49,687 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-160m-deduped/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:49,700 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-160m-deduped/582159a2dfe3e712a8d47ae83dec95ae3bde8e7e/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:49,909 INFO httpx HTTP Request: GET https://huggingface.co/api/models/EleutherAI/pythia-160m-deduped/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-04-19 04:11:50,114 INFO httpx HTTP Request: GET https://huggingface.co/api/models/EleutherAI/pythia-160m-deduped/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-04-19 04:11:50,354 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-160m-deduped/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:50,366 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-160m-deduped/582159a2dfe3e712a8d47ae83dec95ae3bde8e7e/config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:50,369 ERROR __main__ harvest failed for pythia-160m: Could not import module 'GPTNeoXForCausalLM'. Are this object's requirements defined correctly?
+2026-04-19 04:11:50,377 INFO __main__ === pythia-410m ===
+2026-04-19 04:11:50,529 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-410m-deduped/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:50,542 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-410m-deduped/c4fc8d586d62df497f1f9b69d66d3ca419992d3e/config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:50,691 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-410m-deduped/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:50,705 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-410m-deduped/c4fc8d586d62df497f1f9b69d66d3ca419992d3e/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:50,855 INFO httpx HTTP Request: GET https://huggingface.co/api/models/EleutherAI/pythia-410m-deduped/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-04-19 04:11:51,035 INFO httpx HTTP Request: GET https://huggingface.co/api/models/EleutherAI/pythia-410m-deduped/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-04-19 04:11:51,281 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-410m-deduped/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:51,294 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-410m-deduped/c4fc8d586d62df497f1f9b69d66d3ca419992d3e/config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:51,297 ERROR __main__ harvest failed for pythia-410m: Could not import module 'GPTNeoXForCausalLM'. Are this object's requirements defined correctly?
+2026-04-19 04:11:51,304 INFO __main__ === olmo-1b ===
+2026-04-19 04:11:51,452 INFO httpx HTTP Request: HEAD https://huggingface.co/allenai/OLMo-1B-hf/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:51,465 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-1B-hf/aee7752d9c08ee4775e9b0091426d8410e8f6a89/config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:51,619 INFO httpx HTTP Request: HEAD https://huggingface.co/allenai/OLMo-1B-hf/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:51,631 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-1B-hf/aee7752d9c08ee4775e9b0091426d8410e8f6a89/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:51,782 INFO httpx HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-1B-hf/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-04-19 04:11:51,941 INFO httpx HTTP Request: GET https://huggingface.co/api/models/allenai/OLMo-1B-hf/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-04-19 04:11:52,212 INFO httpx HTTP Request: HEAD https://huggingface.co/allenai/OLMo-1B-hf/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:11:52,224 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/allenai/OLMo-1B-hf/aee7752d9c08ee4775e9b0091426d8410e8f6a89/config.json "HTTP/1.1 200 OK"
+2026-04-19 04:11:52,229 ERROR __main__ harvest failed for olmo-1b: Could not import module 'OlmoForCausalLM'. Are this object's requirements defined correctly?
+2026-04-19 04:11:52,243 INFO __main__ wrote /home/vlad/development/ICML26/uet-validation-v5/results/nr_posthoc/20260419_041148/posthoc.csv (0 rows)

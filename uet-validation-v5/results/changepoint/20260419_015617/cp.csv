@@ -1,0 +1,11 @@
+source,tau_idx,tau_step,d_eff_before,d_eff_after,drop_fraction
+curriculum_pythia-160m,20,143000,71.723,49.079,0.3157
+curriculum_pythia-410m,20,143000,78.007,84.151,-0.0788
+curriculum_pythia-70m-deduped,20,143000,69.95,131.474,-0.8795
+curriculum_OLMo-1B,13,738020,121.107,120.835,0.0022
+grokking_lam0,79,80000,31.073,6.5,0.7908
+grokking_lam0.01,79,80000,37.907,29.236,0.2287
+grokking_lam0.1,79,80000,24.788,8.716,0.6484
+grokking_lam0.5,79,80000,10.273,7.888,0.2321
+grokking_lam1,79,80000,8.804,7.769,0.1175
+grokking_lam2,79,80000,6.652,6.128,0.0788

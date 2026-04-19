@@ -1,0 +1,39 @@
+2026-04-19 04:13:42,020 INFO __main__ NR-posthoc, device=cuda
+2026-04-19 04:13:42,020 INFO __main__ === pythia-70m ===
+2026-04-19 04:13:42,196 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:42,209 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-70m-deduped/e93a9faa9c77e5d09219f6c868bfc7a1bd65593c/config.json "HTTP/1.1 200 OK"
+2026-04-19 04:13:42,361 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:42,361 WARNING huggingface_hub.utils._http Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-04-19 04:13:42,373 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-70m-deduped/e93a9faa9c77e5d09219f6c868bfc7a1bd65593c/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-04-19 04:13:42,524 INFO httpx HTTP Request: GET https://huggingface.co/api/models/EleutherAI/pythia-70m-deduped/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-04-19 04:13:42,680 INFO httpx HTTP Request: GET https://huggingface.co/api/models/EleutherAI/pythia-70m-deduped/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-04-19 04:13:42,914 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:42,927 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-70m-deduped/e93a9faa9c77e5d09219f6c868bfc7a1bd65593c/config.json "HTTP/1.1 200 OK"
+2026-04-19 04:13:43,599 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/main/generation_config.json "HTTP/1.1 404 Not Found"
+2026-04-19 04:13:43,778 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:43,791 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-70m-deduped/e93a9faa9c77e5d09219f6c868bfc7a1bd65593c/config.json "HTTP/1.1 200 OK"
+2026-04-19 04:13:43,940 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/main/custom_generate/generate.py "HTTP/1.1 404 Not Found"
+2026-04-19 04:13:44,436 ERROR datasets.load `trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'wikitext' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+2026-04-19 04:13:44,700 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/wikitext/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:44,905 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/Salesforce/wikitext/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:44,917 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/datasets/Salesforce/wikitext/b08601e04326c79dfdd32d625aee71d232d685c3/README.md "HTTP/1.1 200 OK"
+2026-04-19 04:13:45,065 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext.py "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:45,314 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/Salesforce/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext.py "HTTP/1.1 404 Not Found"
+2026-04-19 04:13:45,802 INFO httpx HTTP Request: HEAD https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/wikitext/wikitext.py "HTTP/1.1 200 OK"
+2026-04-19 04:13:45,995 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/wikitext/revision/b08601e04326c79dfdd32d625aee71d232d685c3 "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:46,144 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/Salesforce/wikitext/revision/b08601e04326c79dfdd32d625aee71d232d685c3 "HTTP/1.1 200 OK"
+2026-04-19 04:13:46,338 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/.huggingface.yaml "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:46,543 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/Salesforce/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/.huggingface.yaml "HTTP/1.1 404 Not Found"
+2026-04-19 04:13:46,768 INFO httpx HTTP Request: GET https://datasets-server.huggingface.co/info?dataset=wikitext "HTTP/1.1 404 Not Found"
+2026-04-19 04:13:46,915 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext-103-raw-v1?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:47,066 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/Salesforce/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext-103-raw-v1?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-04-19 04:13:47,214 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:47,412 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/Salesforce/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3?recursive=false&expand=false "HTTP/1.1 200 OK"
+2026-04-19 04:13:47,567 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/dataset_infos.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:47,714 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/Salesforce/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/dataset_infos.json "HTTP/1.1 404 Not Found"
+2026-04-19 04:13:47,862 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext-103-v1?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 04:13:48,079 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/Salesforce/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext-103-v1?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-04-19 04:13:50,203 INFO uet_v5.harvest pythia-70m-deduped  n=99328  d=512  val_loss=3.9898
+2026-04-19 04:13:50,363 INFO __main__ cached H shape=(99328, 512) val_loss=3.9898 -> /home/vlad/development/ICML26/uet-validation-v5/results/nr_posthoc/20260419_041341/pythia-70m_H.npy

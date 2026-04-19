@@ -1,0 +1,2 @@
+2026-04-19 04:23:29,524 INFO __main__ distill_rank device=cuda
+2026-04-19 04:23:29,525 ERROR __main__ no cached H found — run run_nr_posthoc.py first

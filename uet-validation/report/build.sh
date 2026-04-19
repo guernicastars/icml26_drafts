@@ -13,6 +13,7 @@ echo "[1/5] regenerating data files"
 "$python_bin" generate_figures_v2.py
 "$python_bin" generate_figures_v3.py
 "$python_bin" generate_figures_v4.py
+"$python_bin" generate_figures_v5.py
 
 echo "[2/5] pdflatex pass 1"
 pdflatex -interaction=nonstopmode -halt-on-error main.tex > build.log || { tail -60 build.log; exit 1; }

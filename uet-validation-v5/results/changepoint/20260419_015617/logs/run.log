@@ -1,0 +1,12 @@
+2026-04-19 01:56:17,451 INFO __main__ changepoint detection
+2026-04-19 01:56:18,334 INFO __main__ curriculum pythia-160m  tau=143000  drop=0.32
+2026-04-19 01:56:18,339 INFO __main__ curriculum pythia-410m  tau=143000  drop=-0.08
+2026-04-19 01:56:18,342 INFO __main__ curriculum pythia-70m-deduped  tau=143000  drop=-0.88
+2026-04-19 01:56:18,346 INFO __main__ curriculum OLMo-1B  tau=738020  drop=0.00
+2026-04-19 01:56:18,355 INFO __main__ grokking lam=0  tau=80000  drop=0.79
+2026-04-19 01:56:18,358 INFO __main__ grokking lam=0.01  tau=80000  drop=0.23
+2026-04-19 01:56:18,360 INFO __main__ grokking lam=0.1  tau=80000  drop=0.65
+2026-04-19 01:56:18,363 INFO __main__ grokking lam=0.5  tau=80000  drop=0.23
+2026-04-19 01:56:18,366 INFO __main__ grokking lam=1  tau=80000  drop=0.12
+2026-04-19 01:56:18,368 INFO __main__ grokking lam=2  tau=80000  drop=0.08
+2026-04-19 01:56:18,369 INFO __main__ wrote /home/vlad/development/ICML26/uet-validation-v5/results/changepoint/20260419_015617/cp.csv (10 rows)

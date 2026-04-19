@@ -1,0 +1,12 @@
+2026-04-19 04:34:01,589 INFO __main__ distill_rank device=cuda
+2026-04-19 04:34:01,589 INFO __main__ loading H from /home/vlad/development/ICML26/uet-validation-v5/results/nr_posthoc/20260419_043325/pythia-160m_H.npy
+2026-04-19 04:34:14,415 INFO __main__ H shape=(20000, 768)  d_eff=83.41
+2026-04-19 04:34:36,801 INFO uet_v5.distill_rank k=2  mse=1.63952  rel_mse=0.0256  z_deff=1.05
+2026-04-19 04:34:47,603 INFO uet_v5.distill_rank k=2  mse=1.64521  rel_mse=0.0257  z_deff=1.06
+2026-04-19 04:34:59,485 INFO uet_v5.distill_rank k=2  mse=1.64999  rel_mse=0.0258  z_deff=1.04
+2026-04-19 04:35:14,588 INFO uet_v5.distill_rank k=4  mse=1.47626  rel_mse=0.0231  z_deff=2.83
+2026-04-19 04:35:30,940 INFO uet_v5.distill_rank k=4  mse=1.44152  rel_mse=0.0225  z_deff=2.85
+2026-04-19 04:35:42,885 INFO uet_v5.distill_rank k=4  mse=1.45428  rel_mse=0.0227  z_deff=2.62
+2026-04-19 04:35:51,092 INFO uet_v5.distill_rank k=8  mse=1.27165  rel_mse=0.0199  z_deff=5.13
+2026-04-19 04:35:59,710 INFO uet_v5.distill_rank k=8  mse=1.29449  rel_mse=0.0202  z_deff=5.14
+2026-04-19 04:36:07,876 INFO uet_v5.distill_rank k=8  mse=1.29295  rel_mse=0.0202  z_deff=5.32

@@ -1,0 +1,21 @@
+{
+  "n_checkpoints": 42,
+  "final_rows": [
+    {
+      "model": "pythia-160m",
+      "step": 143000,
+      "d_eff": 49.0787,
+      "k_90pct": 479,
+      "signal_count_mp": 543,
+      "spectral_entropy": 5.5959
+    },
+    {
+      "model": "pythia-410m",
+      "step": 143000,
+      "d_eff": 84.1513,
+      "k_90pct": 599,
+      "signal_count_mp": 715,
+      "spectral_entropy": 5.7759
+    }
+  ]
+}

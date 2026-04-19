@@ -1,0 +1,23 @@
+{
+  "pythia-70m": {
+    "d_eff_base": 110.5011,
+    "k_test": 10,
+    "sin_theta_at_m_max_mean": 0.03174,
+    "dk_bound_at_m_max": 0.10094,
+    "sin_below_dk_bound": true
+  },
+  "pythia-160m": {
+    "d_eff_base": 69.8867,
+    "k_test": 10,
+    "sin_theta_at_m_max_mean": 0.0269,
+    "dk_bound_at_m_max": 0.11299,
+    "sin_below_dk_bound": true
+  },
+  "pythia-410m": {
+    "d_eff_base": 76.9807,
+    "k_test": 10,
+    "sin_theta_at_m_max_mean": 0.02224,
+    "dk_bound_at_m_max": 0.12387,
+    "sin_below_dk_bound": true
+  }
+}

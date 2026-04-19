@@ -1,0 +1,11 @@
+2026-04-19 01:57:23,672 INFO __main__ changepoint detection
+2026-04-19 01:57:23,681 INFO __main__ curriculum pythia-160m  tau=8000  drop=0.62
+2026-04-19 01:57:23,683 INFO __main__ curriculum pythia-410m  tau=8000  drop=0.39
+2026-04-19 01:57:23,685 INFO __main__ curriculum pythia-70m-deduped  tau=143000  drop=0.00
+2026-04-19 01:57:23,688 INFO __main__ curriculum OLMo-1B  tau=58000  drop=0.13
+2026-04-19 01:57:23,696 INFO __main__ grokking lam=0  tau=14000  drop=0.90
+2026-04-19 01:57:23,698 INFO __main__ grokking lam=0.01  tau=16000  drop=0.56
+2026-04-19 01:57:23,700 INFO __main__ grokking lam=0.1  tau=4000  drop=0.87
+2026-04-19 01:57:23,703 INFO __main__ grokking lam=0.5  tau=1000  drop=0.87
+2026-04-19 01:57:23,705 INFO __main__ grokking lam=1  tau=1000  drop=0.87
+2026-04-19 01:57:23,706 INFO __main__ grokking lam=2  tau=1000  drop=0.81

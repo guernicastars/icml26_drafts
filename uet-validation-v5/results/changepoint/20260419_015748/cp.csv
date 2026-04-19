@@ -1,0 +1,11 @@
+source,tau_step,d_eff_peak,d_eff_final,drop_fraction,has_interior_peak
+curriculum_pythia-160m,8000,129.139,49.079,0.62,True
+curriculum_pythia-410m,8000,138.89,84.151,0.3941,True
+curriculum_pythia-70m-deduped,143000,131.474,131.474,0.0,False
+curriculum_OLMo-1B,58000,139.102,120.835,0.1313,True
+grokking_lam0,14000,66.336,6.5,0.902,True
+grokking_lam0.01,16000,66.47,29.236,0.5602,True
+grokking_lam0.1,4000,65.693,8.716,0.8673,True
+grokking_lam0.5,1000,62.89,7.888,0.8746,True
+grokking_lam1,1000,58.381,7.769,0.8669,True
+grokking_lam2,1000,31.979,6.128,0.8084,True

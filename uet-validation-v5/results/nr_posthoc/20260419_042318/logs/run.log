@@ -1,0 +1,4 @@
+2026-04-19 04:23:18,376 INFO __main__ NR-posthoc, device=cuda
+2026-04-19 04:23:18,377 INFO __main__ === pythia-70m ===
+2026-04-19 04:23:18,377 INFO __main__ reusing cached H from /home/vlad/development/ICML26/uet-validation-v5/results/nr_posthoc/20260419_041341/pythia-70m_H.npy
+2026-04-19 04:23:18,887 INFO __main__ cached H shape=(99328, 512) val_loss=nan -> /home/vlad/development/ICML26/uet-validation-v5/results/nr_posthoc/20260419_042318/pythia-70m_H.npy
