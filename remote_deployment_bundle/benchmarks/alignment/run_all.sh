@@ -22,7 +22,8 @@ SEEDS="${SEEDS:-42 43 44}"
 POSTERIOR_SAMPLES="${POSTERIOR_SAMPLES:-16}"
 KEEP_LAST="${KEEP_LAST:-50}"
 N_EPOCHS="${N_EPOCHS:-3}"
-NUM_EVAL_PROMPTS="${NUM_EVAL_PROMPTS:-1000}"
+NUM_EVAL_PROMPTS="${NUM_EVAL_PROMPTS:-50}"
+BON_N="${BON_N:-1 4 16}"          # default capped at 16; add 64/256 only on A100+
 MAX_TRAIN_SAMPLES="${MAX_TRAIN_SAMPLES:-}"
 DTYPE="${DTYPE:-auto}"
 REWARD_INT8="${REWARD_INT8:-1}"
@@ -73,6 +74,7 @@ launch_job() {
             --keep-last "$KEEP_LAST" \
             --n-epochs "$N_EPOCHS" \
             --num-eval-prompts "$NUM_EVAL_PROMPTS" \
+            --best-of-n $BON_N \
             --dtype "$DTYPE" \
             $rm_arg \
             $train_limit_arg \

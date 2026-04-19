@@ -56,7 +56,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--posterior-samples", type=int, default=16)
     p.add_argument("--gold-rm", default="Skywork/Skywork-Reward-Llama-3.1-8B-v0.2")
     p.add_argument("--proxy-rm", default="internlm/internlm2-1_8b-reward")
-    p.add_argument("--best-of-n", nargs="+", type=int, default=[1, 4, 16, 64, 256])
+    p.add_argument("--best-of-n", nargs="+", type=int, default=[1, 4, 16])
     p.add_argument("--num-eval-prompts", type=int, default=1000)
     p.add_argument("--eval-max-new-tokens", type=int, default=256)
     p.add_argument("--eval-temperature", type=float, default=1.0)
@@ -369,7 +369,7 @@ def main():
             )
 
             bon_results = best_of_n_eval(
-                model=model, tokenizer=tokenizer, prompts=eval_prompts[:50],
+                model=model, tokenizer=tokenizer, prompts=eval_prompts[:args.num_eval_prompts],
                 gold_rm=gold_rm, gold_tokenizer=gold_tokenizer,
                 proxy_rm=proxy_rm, proxy_tokenizer=proxy_tokenizer,
                 n_values=args.best_of_n, device=device,
