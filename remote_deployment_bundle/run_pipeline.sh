@@ -15,6 +15,11 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Keep all HuggingFace downloads (models, datasets, tokenizers) inside the
+# bundle directory so nothing leaks to ~/.cache on the remote host.
+export HF_HOME="${HF_HOME:-$SCRIPT_DIR/.hf_cache}"
+export HF_DATASETS_CACHE="${HF_DATASETS_CACHE:-$SCRIPT_DIR/.hf_cache/datasets}"
+
 PIPELINE_LOG="${SCRIPT_DIR}/logs/pipeline_$(date +%Y%m%d_%H%M%S).log"
 mkdir -p logs
 exec > >(tee -a "$PIPELINE_LOG") 2>&1

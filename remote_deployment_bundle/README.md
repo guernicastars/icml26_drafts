@@ -61,6 +61,27 @@ Each stage can also be run individually. They have been written to automatically
 
 6. **`./05_collect_results.sh`** — synthesises raw metric tables into a unified summary dashboard.
 
+## Filesystem isolation
+
+Everything stays inside the bundle directory. No files are written outside it:
+
+| What | Where |
+|------|-------|
+| Python packages | `.venv/` (created on first run, reused if exists) |
+| HuggingFace model weights | `.hf_cache/hub/` |
+| HuggingFace datasets | `.hf_cache/datasets/` |
+| Per-job logs | `logs/` |
+| All experiment outputs | `results/` |
+| Master pipeline log | `logs/pipeline_<timestamp>.log` |
+
+`HF_HOME` and `HF_DATASETS_CACHE` are set to `.hf_cache/` in every script so HuggingFace never touches `~/.cache`. If you want to override the cache location (e.g. to a shared NFS volume), set `HF_HOME` before running:
+
+```bash
+HF_HOME=/shared/hf_cache ./run_pipeline.sh
+```
+
+To wipe everything and start clean: `rm -rf .venv .hf_cache logs results`.
+
 ## Outputs and Logging
 
 - All raw execution logs live in **`logs/`** (one log per job).
