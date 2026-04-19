@@ -1,0 +1,11 @@
+{
+  "C_global": 0.16961,
+  "R2": 0.09454,
+  "residual_max": 0.01497,
+  "per_model_C": {
+    "pythia-70m": 0.24019,
+    "pythia-160m": 0.17337,
+    "pythia-410m": 0.12527
+  },
+  "n_points": 36
+}

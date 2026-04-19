@@ -77,6 +77,88 @@ def dump_changepoint() -> None:
     _write("changepoint.dat", df)
 
 
+def dump_nr_phase() -> None:
+    run = _latest(V5_RESULTS / "nr_phase")
+    if run is None or not (run / "phase.csv").exists():
+        print("  SKIP nr_phase: no results yet")
+        return
+    df = pd.read_csv(run / "phase.csv")
+    for k in sorted(df["k"].unique()):
+        sub = df[df["k"] == k].copy()
+        grp = sub.groupby(["sigma_ratio", "ratio_sigma2_lambda_k"],
+                          as_index=False).agg(
+            sin_theta=("sin_theta", "mean"),
+            sin_theta_std=("sin_theta", "std"),
+        )
+        grp = grp.sort_values("sigma_ratio")
+        _write(f"nr_phase_k{k}.dat", grp)
+
+
+def dump_nr_untrained() -> None:
+    run = _latest(V5_RESULTS / "nr_untrained")
+    if run is None or not (run / "untrained.csv").exists():
+        print("  SKIP nr_untrained: no results yet")
+        return
+    df = pd.read_csv(run / "untrained.csv")
+    grp = df.groupby(["condition", "m"], as_index=False).agg(
+        sin_theta=("sin_theta", "mean"),
+        sin_theta_std=("sin_theta", "std"),
+        d_eff_base=("d_eff_base", "first"),
+    )
+    _write("nr_untrained.dat", grp)
+
+
+def dump_nr_checkpoint() -> None:
+    run = _latest(V5_RESULTS / "nr_checkpoint")
+    if run is None or not (run / "checkpoint.csv").exists():
+        print("  SKIP nr_checkpoint: no results yet")
+        return
+    df = pd.read_csv(run / "checkpoint.csv")
+    grp = df[df["m"] > 0].groupby("step", as_index=False).agg(
+        sin_theta=("sin_theta", "mean"),
+        sin_theta_std=("sin_theta", "std"),
+        d_eff=("d_eff_base", "first"),
+    )
+    _write("nr_checkpoint.dat", grp)
+
+
+def dump_nr_layer() -> None:
+    run = _latest(V5_RESULTS / "nr_layer")
+    if run is None or not (run / "layer.csv").exists():
+        print("  SKIP nr_layer: no results yet")
+        return
+    df = pd.read_csv(run / "layer.csv")
+    grp = df[df["m"] > 0].groupby("layer", as_index=False).agg(
+        sin_theta=("sin_theta", "mean"),
+        sin_theta_std=("sin_theta", "std"),
+        d_eff=("d_eff_base", "first"),
+    )
+    _write("nr_layer.dat", grp)
+
+
+def dump_nr_random() -> None:
+    run = _latest(V5_RESULTS / "nr_random")
+    if run is None or not (run / "random.csv").exists():
+        print("  SKIP nr_random: no results yet")
+        return
+    df = pd.read_csv(run / "random.csv")
+    grp = df.groupby(["condition", "m"], as_index=False).agg(
+        sin_theta=("sin_theta", "mean"),
+        sin_theta_std=("sin_theta", "std"),
+        d_eff_base=("d_eff_base", "first"),
+    )
+    _write("nr_random.dat", grp)
+
+
+def dump_dk_constant() -> None:
+    run = _latest(V5_RESULTS / "dk_constant")
+    if run is None or not (run / "dk_fit.csv").exists():
+        print("  SKIP dk_constant: no results yet")
+        return
+    df = pd.read_csv(run / "dk_fit.csv")
+    _write("dk_constant.dat", df)
+
+
 def dump_distill_rank() -> None:
     run = _latest(V5_RESULTS / "distill_rank")
     if run is None or not (run / "rank.csv").exists():
@@ -134,6 +216,12 @@ def main() -> None:
     dump_rmt_trajectory()
     dump_changepoint()
     dump_nr_posthoc()
+    dump_nr_phase()
+    dump_nr_untrained()
+    dump_nr_checkpoint()
+    dump_nr_layer()
+    dump_nr_random()
+    dump_dk_constant()
     dump_distill_rank()
     print("Done.")
 

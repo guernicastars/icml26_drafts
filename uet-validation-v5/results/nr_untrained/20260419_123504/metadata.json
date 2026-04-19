@@ -1,0 +1,10 @@
+{
+  "trained": {
+    "d_eff": 110.1975,
+    "sin_at_m_max": 0.04369
+  },
+  "untrained": {
+    "d_eff": 73.4303,
+    "sin_at_m_max": 0.03951
+  }
+}

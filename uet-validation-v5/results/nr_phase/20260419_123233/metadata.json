@@ -1,0 +1,18 @@
+{
+  "k5": {
+    "transition_sigma_ratio": 5.0,
+    "lambda_k": 29.98894
+  },
+  "k10": {
+    "transition_sigma_ratio": 3.0,
+    "lambda_k": 17.66999
+  },
+  "k25": {
+    "transition_sigma_ratio": 2.0,
+    "lambda_k": 7.6452
+  },
+  "k50": {
+    "transition_sigma_ratio": 1.5,
+    "lambda_k": 4.44791
+  }
+}

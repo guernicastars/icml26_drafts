@@ -1,0 +1,14 @@
+{
+  "pure_gaussian": {
+    "d_eff": 506.7863,
+    "sin_at_m_max": 0.99781
+  },
+  "trained_pythia-70m": {
+    "d_eff": 112.1594,
+    "sin_at_m_max": 0.04645
+  },
+  "untrained_pythia-70m": {
+    "d_eff": 73.4303,
+    "sin_at_m_max": 0.03951
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "step_64": {
+    "d_eff": 6.4518,
+    "sin_theta_at_m200_mean": 0.02328
+  },
+  "step_128": {
+    "d_eff": 9.5616,
+    "sin_theta_at_m200_mean": 0.01949
+  },
+  "step_512": {
+    "d_eff": 35.7706,
+    "sin_theta_at_m200_mean": 0.01796
+  },
+  "step_1000": {
+    "d_eff": 68.9163,
+    "sin_theta_at_m200_mean": 0.02233
+  },
+  "step_4000": {
+    "d_eff": 94.1905,
+    "sin_theta_at_m200_mean": 0.02285
+  },
+  "step_8000": {
+    "d_eff": 92.6219,
+    "sin_theta_at_m200_mean": 0.02415
+  },
+  "step_32000": {
+    "d_eff": 56.5181,
+    "sin_theta_at_m200_mean": 0.02498
+  },
+  "step_143000": {
+    "d_eff": 58.5605,
+    "sin_theta_at_m200_mean": 0.02503
+  }
+}

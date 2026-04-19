@@ -1,0 +1,78 @@
+2026-04-19 12:35:05,475 INFO __main__ trained H: loaded /home/vlad/development/ICML26/uet-validation-v5/results/nr_posthoc/20260419_043325/pythia-70m_H.npy, shape=(99328, 512)
+2026-04-19 12:35:05,545 INFO __main__ === trained Pythia-70M (final checkpoint) ===
+2026-04-19 12:35:20,176 INFO uet_v5.posthoc_noise m=0 seed=0  sin=0.00000  dk_bound=0.00000  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:35:20,177 INFO uet_v5.posthoc_noise m=0 seed=1  sin=0.00000  dk_bound=0.00000  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:35:20,177 INFO uet_v5.posthoc_noise m=0 seed=2  sin=0.00000  dk_bound=0.00000  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:35:21,801 INFO uet_v5.posthoc_noise m=50 seed=0  sin=0.01761  dk_bound=0.10602  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:35:23,093 INFO uet_v5.posthoc_noise m=50 seed=1  sin=0.01622  dk_bound=0.10602  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:35:29,874 INFO uet_v5.posthoc_noise m=50 seed=2  sin=0.01581  dk_bound=0.10602  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:35:38,373 INFO uet_v5.posthoc_noise m=100 seed=0  sin=0.02098  dk_bound=0.11063  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:35:47,688 INFO uet_v5.posthoc_noise m=100 seed=1  sin=0.02328  dk_bound=0.11063  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:35:54,643 INFO uet_v5.posthoc_noise m=100 seed=2  sin=0.02065  dk_bound=0.11063  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:36:04,772 INFO uet_v5.posthoc_noise m=200 seed=0  sin=0.03078  dk_bound=0.11933  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:36:12,696 INFO uet_v5.posthoc_noise m=200 seed=1  sin=0.03070  dk_bound=0.11933  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:36:24,101 INFO uet_v5.posthoc_noise m=200 seed=2  sin=0.02825  dk_bound=0.11933  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:36:43,158 INFO uet_v5.posthoc_noise m=500 seed=0  sin=0.04370  dk_bound=0.14227  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:37:00,898 INFO uet_v5.posthoc_noise m=500 seed=1  sin=0.04430  dk_bound=0.14227  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:37:10,986 INFO uet_v5.posthoc_noise m=500 seed=2  sin=0.04307  dk_bound=0.14227  lambda_k=37.0697  sigma_z2=5.2491
+2026-04-19 12:37:11,253 INFO __main__ === untrained Pythia-70M (step=0, random init) ===
+2026-04-19 12:37:11,495 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:11,512 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-70m-deduped/e93a9faa9c77e5d09219f6c868bfc7a1bd65593c/config.json "HTTP/1.1 200 OK"
+2026-04-19 12:37:11,688 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:11,703 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-70m-deduped/e93a9faa9c77e5d09219f6c868bfc7a1bd65593c/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-04-19 12:37:11,860 INFO httpx HTTP Request: GET https://huggingface.co/api/models/EleutherAI/pythia-70m-deduped/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-04-19 12:37:12,037 INFO httpx HTTP Request: GET https://huggingface.co/api/models/EleutherAI/pythia-70m-deduped/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-04-19 12:37:12,450 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/step0/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:12,468 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-70m-deduped/c913ae980de9355947d0bf73f9f10d580eb79301/config.json "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/76 [00:00<?, ?it/s]Loading weights:   1%|▏         | 1/76 [00:00<00:09,  7.53it/s]Loading weights: 100%|██████████| 76/76 [00:00<00:00, 328.53it/s]
+2026-04-19 12:37:13,367 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/step0/generation_config.json "HTTP/1.1 404 Not Found"
+2026-04-19 12:37:13,526 INFO httpx HTTP Request: HEAD https://huggingface.co/EleutherAI/pythia-70m-deduped/resolve/step0/config.json "HTTP/1.1 307 Temporary Redirect"
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-04-19 12:37:13,527 WARNING huggingface_hub.utils._http Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-04-19 12:37:13,542 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/EleutherAI/pythia-70m-deduped/c913ae980de9355947d0bf73f9f10d580eb79301/config.json "HTTP/1.1 200 OK"
+`trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'wikitext' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+2026-04-19 12:37:14,140 ERROR datasets.load `trust_remote_code` is not supported anymore.
+Please check that the Hugging Face dataset 'wikitext' isn't based on a loading script and remove `trust_remote_code`.
+If the dataset is based on a loading script, please ask the dataset author to remove it and convert it to a standard format like Parquet.
+2026-04-19 12:37:14,289 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/wikitext/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:14,446 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/Salesforce/wikitext/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:14,466 INFO httpx HTTP Request: HEAD https://huggingface.co/api/resolve-cache/datasets/Salesforce/wikitext/b08601e04326c79dfdd32d625aee71d232d685c3/README.md "HTTP/1.1 200 OK"
+2026-04-19 12:37:14,619 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext.py "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:14,909 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/Salesforce/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext.py "HTTP/1.1 404 Not Found"
+2026-04-19 12:37:15,519 INFO httpx HTTP Request: HEAD https://s3.amazonaws.com/datasets.huggingface.co/datasets/datasets/wikitext/wikitext.py "HTTP/1.1 200 OK"
+2026-04-19 12:37:15,710 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/wikitext/revision/b08601e04326c79dfdd32d625aee71d232d685c3 "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:15,929 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/Salesforce/wikitext/revision/b08601e04326c79dfdd32d625aee71d232d685c3 "HTTP/1.1 200 OK"
+2026-04-19 12:37:16,089 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/.huggingface.yaml "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:16,244 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/Salesforce/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/.huggingface.yaml "HTTP/1.1 404 Not Found"
+2026-04-19 12:37:16,488 INFO httpx HTTP Request: GET https://datasets-server.huggingface.co/info?dataset=wikitext "HTTP/1.1 404 Not Found"
+2026-04-19 12:37:16,646 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext-103-raw-v1?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:16,798 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/Salesforce/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext-103-raw-v1?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-04-19 12:37:16,957 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3?recursive=false&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:17,108 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/Salesforce/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3?recursive=false&expand=false "HTTP/1.1 200 OK"
+2026-04-19 12:37:17,362 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/dataset_infos.json "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:17,566 INFO httpx HTTP Request: HEAD https://huggingface.co/datasets/Salesforce/wikitext/resolve/b08601e04326c79dfdd32d625aee71d232d685c3/dataset_infos.json "HTTP/1.1 404 Not Found"
+2026-04-19 12:37:17,772 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext-103-v1?recursive=true&expand=false "HTTP/1.1 307 Temporary Redirect"
+2026-04-19 12:37:18,009 INFO httpx HTTP Request: GET https://huggingface.co/api/datasets/Salesforce/wikitext/tree/b08601e04326c79dfdd32d625aee71d232d685c3/wikitext-103-v1?recursive=true&expand=false "HTTP/1.1 200 OK"
+untrained harvest:   0%|          | 0/12 [00:00<?, ?it/s]untrained harvest:   8%|▊         | 1/12 [00:00<00:06,  1.63it/s]untrained harvest:  33%|███▎      | 4/12 [00:00<00:01,  6.75it/s]untrained harvest:  58%|█████▊    | 7/12 [00:00<00:00, 11.08it/s]untrained harvest:  83%|████████▎ | 10/12 [00:00<00:00, 14.54it/s]untrained harvest: 100%|██████████| 12/12 [00:01<00:00, 11.59it/s]
+2026-04-19 12:37:39,945 INFO uet_v5.posthoc_noise m=0 seed=0  sin=0.00000  dk_bound=0.00000  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:37:39,945 INFO uet_v5.posthoc_noise m=0 seed=1  sin=0.00000  dk_bound=0.00000  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:37:39,946 INFO uet_v5.posthoc_noise m=0 seed=2  sin=0.00000  dk_bound=0.00000  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:37:50,198 INFO uet_v5.posthoc_noise m=50 seed=0  sin=0.01515  dk_bound=0.10693  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:37:58,643 INFO uet_v5.posthoc_noise m=50 seed=1  sin=0.01566  dk_bound=0.10693  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:38:09,075 INFO uet_v5.posthoc_noise m=50 seed=2  sin=0.01557  dk_bound=0.10693  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:38:21,265 INFO uet_v5.posthoc_noise m=100 seed=0  sin=0.02057  dk_bound=0.11158  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:38:34,321 INFO uet_v5.posthoc_noise m=100 seed=1  sin=0.01997  dk_bound=0.11158  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:38:43,214 INFO uet_v5.posthoc_noise m=100 seed=2  sin=0.02002  dk_bound=0.11158  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:38:56,150 INFO uet_v5.posthoc_noise m=200 seed=0  sin=0.02680  dk_bound=0.12036  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:39:09,762 INFO uet_v5.posthoc_noise m=200 seed=1  sin=0.02647  dk_bound=0.12036  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:39:25,943 INFO uet_v5.posthoc_noise m=200 seed=2  sin=0.02755  dk_bound=0.12036  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:39:49,281 INFO uet_v5.posthoc_noise m=500 seed=0  sin=0.04043  dk_bound=0.14349  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:40:15,448 INFO uet_v5.posthoc_noise m=500 seed=1  sin=0.04057  dk_bound=0.14349  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:40:43,480 INFO uet_v5.posthoc_noise m=500 seed=2  sin=0.03753  dk_bound=0.14349  lambda_k=5.7254  sigma_z2=0.6469
+2026-04-19 12:40:43,627 INFO __main__ wrote /home/vlad/development/ICML26/uet-validation-v5/results/nr_untrained/20260419_123504/untrained.csv (30 rows)
+
+=== NR Trained vs Untrained ===
+  trained: {'d_eff': 110.1975, 'sin_at_m_max': 0.04369}
+  untrained: {'d_eff': 73.4303, 'sin_at_m_max': 0.03951}
