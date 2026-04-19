@@ -1,0 +1,30 @@
+{
+  "k2": {
+    "rel_mse_mean": 0.02572
+  },
+  "k4": {
+    "rel_mse_mean": 0.02279
+  },
+  "k8": {
+    "rel_mse_mean": 0.02011
+  },
+  "k16": {
+    "rel_mse_mean": 0.01822
+  },
+  "k32": {
+    "rel_mse_mean": 0.0171
+  },
+  "k64": {
+    "rel_mse_mean": 0.01684
+  },
+  "k128": {
+    "rel_mse_mean": 0.01634
+  },
+  "k256": {
+    "rel_mse_mean": 0.01717
+  },
+  "k512": {
+    "rel_mse_mean": 0.02221
+  },
+  "d_eff_base": 83.41
+}

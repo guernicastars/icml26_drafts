@@ -29,3 +29,15 @@
 2026-04-19 04:38:34,832 INFO uet_v5.distill_rank k=512  mse=1.19647  rel_mse=0.0187  z_deff=7.60
 2026-04-19 04:38:43,942 INFO uet_v5.distill_rank k=512  mse=1.82820  rel_mse=0.0286  z_deff=2.60
 2026-04-19 04:38:43,964 INFO __main__ wrote /home/vlad/development/ICML26/uet-validation-v5/results/distill_rank/20260419_043401/rank.csv (27 rows)
+
+=== Distill Rank Summary ===
+  d_eff_base = 83.41
+  k=   2  rel_mse=0.0257  z_deff=1.05
+  k=   4  rel_mse=0.0228  z_deff=2.76
+  k=   8  rel_mse=0.0201  z_deff=5.20
+  k=  16  rel_mse=0.0182  z_deff=7.94
+  k=  32  rel_mse=0.0171  z_deff=10.23
+  k=  64  rel_mse=0.0168  z_deff=11.78
+  k= 128  rel_mse=0.0163  z_deff=13.13
+  k= 256  rel_mse=0.0172  z_deff=10.38
+  k= 512  rel_mse=0.0222  z_deff=6.36
