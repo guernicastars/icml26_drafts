@@ -36,6 +36,7 @@ sys.path.insert(0, str(BENCHMARK_ROOT))
 from meta_swag.adapters.state import restore_adapter_state, save_manifest, build_manifest
 from meta_swag.posterior.predictive import PosteriorPredictive
 from meta_swag.posterior.meta_swag import aggregate_adapter_checkpoints
+from meta_swag.utils import parse_dtype, supports_bf16
 
 try:
     from meta_swag.axbench_meta_swag import (
@@ -112,7 +113,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--judge-model", default="gpt-4o-mini")
     p.add_argument("--mock-judge", action="store_true", default=True)
     p.add_argument("--real-judge", dest="mock_judge", action="store_false")
-    p.add_argument("--use-bf16", action="store_true", default=True)
+    p.add_argument("--dtype", default="auto",
+                   help="auto|fp16|bf16|fp32. auto picks bf16 on Ampere+, fp16 on Volta (V100).")
     p.add_argument("--topk", type=int, default=8)
     p.add_argument("--beta", type=float, default=1.0)
     p.add_argument("--gemma", type=float, default=0.0)
@@ -514,12 +516,12 @@ def main():
         tokenizer.add_special_tokens({"pad_token": "[PAD]"})
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    use_bf16 = args.use_bf16 and torch.cuda.is_available()
-    print(f"  Device: {device}, bf16: {use_bf16}")
+    dtype = parse_dtype(args.dtype, device)
+    print(f"  Device: {device}, dtype: {dtype}, bf16 native: {supports_bf16(device)}")
 
     base_model = AutoModelForCausalLM.from_pretrained(
         args.model_name,
-        torch_dtype=torch.bfloat16 if use_bf16 else None,
+        torch_dtype=dtype,
     ).eval().to(device)
     if len(tokenizer) != orig_vocab:
         base_model.resize_token_embeddings(len(tokenizer))
@@ -570,7 +572,7 @@ def main():
                     mode="train", embed_dim=base_model.config.hidden_size,
                     low_rank_dimension=args.low_rank_dimension,
                     concept_id=concept_id,
-                    dtype=torch.bfloat16 if use_bf16 else None,
+                    dtype=dtype,
                     intervention_type="addition",
                     metadata_path=str(metadata_path),
                     dump_dir=str(output_dir),

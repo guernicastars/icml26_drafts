@@ -27,6 +27,7 @@ from meta_swag.posterior.meta_swag import aggregate_adapter_checkpoints
 from meta_swag.posterior.predictive import PosteriorPredictive
 from meta_swag.training.checkpoint import RetainedCheckpoint
 from meta_swag.training.dpo_trainer import DPODataset, train_dpo_with_retention
+from meta_swag.utils import parse_dtype, supports_bf16
 
 
 def parse_args() -> argparse.Namespace:
@@ -61,7 +62,11 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--eval-temperature", type=float, default=1.0)
     p.add_argument("--seed-count", type=int, default=3)
     p.add_argument("--base-seed", type=int, default=42)
-    p.add_argument("--use-bf16", action="store_true", default=True)
+    p.add_argument("--dtype", default="auto",
+                   help="auto|fp16|bf16|fp32. auto picks bf16 on Ampere+ and fp16 on Volta (V100).")
+    p.add_argument("--reward-int8", action="store_true", default=True,
+                   help="Load gold/proxy reward models in int8 (halves RM VRAM, required on 32GB cards).")
+    p.add_argument("--no-reward-int8", dest="reward_int8", action="store_false")
     p.add_argument("--laplace-fisher-batches", type=int, default=100)
     p.add_argument("--max-train-samples", type=int, default=None)
     return p.parse_args()
@@ -194,12 +199,12 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    use_bf16 = args.use_bf16 and torch.cuda.is_available()
+    dtype = parse_dtype(args.dtype, device)
 
     print(f"=== Alignment Experiment ===")
     print(f"  Model: {args.base_model}")
     print(f"  Dataset: {args.dataset}")
-    print(f"  Device: {device}, bf16: {use_bf16}")
+    print(f"  Device: {device}, dtype: {dtype}, bf16 native: {supports_bf16(device)}")
     print(f"  Output: {output_dir}")
 
     Path(output_dir / "config.json").write_text(json.dumps(vars(args), indent=2, default=str))
@@ -212,19 +217,31 @@ def main():
 
     print("Loading base model...")
     base_model = AutoModelForCausalLM.from_pretrained(
-        args.base_model, torch_dtype=torch.bfloat16 if use_bf16 else None,
+        args.base_model, torch_dtype=dtype,
     ).to(device)
 
-    print("Loading reward models...")
+    rm_load_kwargs: dict = {"torch_dtype": dtype}
+    if args.reward_int8 and torch.cuda.is_available():
+        from transformers import BitsAndBytesConfig
+        rm_load_kwargs = {
+            "quantization_config": BitsAndBytesConfig(load_in_8bit=True),
+            "device_map": {"": device.index if device.index is not None else 0},
+        }
+
+    print(f"Loading reward models (int8={args.reward_int8})...")
     gold_tokenizer = AutoTokenizer.from_pretrained(args.gold_rm)
     gold_rm = AutoModelForSequenceClassification.from_pretrained(
-        args.gold_rm, torch_dtype=torch.bfloat16 if use_bf16 else None,
-    ).eval().to(device)
+        args.gold_rm, **rm_load_kwargs,
+    ).eval()
+    if "device_map" not in rm_load_kwargs:
+        gold_rm = gold_rm.to(device)
 
     proxy_tokenizer = AutoTokenizer.from_pretrained(args.proxy_rm)
     proxy_rm = AutoModelForSequenceClassification.from_pretrained(
-        args.proxy_rm, torch_dtype=torch.bfloat16 if use_bf16 else None,
-    ).eval().to(device)
+        args.proxy_rm, **rm_load_kwargs,
+    ).eval()
+    if "device_map" not in rm_load_kwargs:
+        proxy_rm = proxy_rm.to(device)
 
     print("Loading dataset...")
     train_data = load_ultrafeedback(args.dataset, args.train_split, args.max_train_samples)
@@ -252,16 +269,12 @@ def main():
         model = setup_lora_model(base_model, args)
         model.to(device)
 
-        ref_model = AutoModelForCausalLM.from_pretrained(
-            args.base_model, torch_dtype=torch.bfloat16 if use_bf16 else None,
-        ).eval().to(device)
-
         train_dataset = DPODataset(train_data, tokenizer, max_length=args.max_length)
 
-        print("Training DPO with checkpoint retention...")
+        print("Training DPO with checkpoint retention (ref via disable_adapter)...")
         retained, manifest = train_dpo_with_retention(
             model=model,
-            ref_model=ref_model,
+            ref_model=None,
             train_dataset=train_dataset,
             device=device,
             lr=args.lr,
@@ -290,7 +303,6 @@ def main():
         pd.DataFrame(meta_rows).to_csv(checkpoints_dir / "checkpoint_metadata.csv", index=False)
         print(f"  Saved {len(retained)} checkpoint vectors -> {checkpoints_dir}")
 
-        del ref_model
         torch.cuda.empty_cache()
 
         scores = np.array([r.train_loss for r in retained], dtype=np.float32)

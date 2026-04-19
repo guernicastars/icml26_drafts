@@ -18,46 +18,63 @@ LOG_DIR="${LOG_DIR:-$PROJECT_ROOT/logs/alignment}"
 mkdir -p "$RESULTS_DIR" "$LOG_DIR"
 
 NUM_GPUS="${NUM_GPUS:-4}"
-SEED_COUNT="${SEED_COUNT:-3}"
+SEEDS="${SEEDS:-42 43 44}"
 POSTERIOR_SAMPLES="${POSTERIOR_SAMPLES:-16}"
 KEEP_LAST="${KEEP_LAST:-50}"
 N_EPOCHS="${N_EPOCHS:-3}"
 NUM_EVAL_PROMPTS="${NUM_EVAL_PROMPTS:-1000}"
 MAX_TRAIN_SAMPLES="${MAX_TRAIN_SAMPLES:-}"
+DTYPE="${DTYPE:-auto}"
+REWARD_INT8="${REWARD_INT8:-1}"
 EXTRA_ARGS="${EXTRA_ARGS:-}"
 
-WAVE_1=(
+MODELS=(
     "meta-llama/Llama-3.1-8B-Instruct|llama-3.1-8b"
     "google/gemma-2-9b-it|gemma-2-9b"
 )
 
-launch_experiment() {
-    local gpu_id="$1"
-    local spec="$2"
+JOBS=()
+for spec in "${MODELS[@]}"; do
+    for seed in $SEEDS; do
+        JOBS+=("${spec}|${seed}")
+    done
+done
 
-    IFS='|' read -r model_name model_tag <<< "$spec"
+launch_job() {
+    local gpu_id="$1"
+    local job="$2"
+
+    IFS='|' read -r model_name model_tag seed <<< "$job"
     local exp_name="${model_tag}_dpo"
     local out_dir="$RESULTS_DIR/$exp_name"
-    local log_file="$LOG_DIR/${exp_name}.log"
+    local log_file="$LOG_DIR/${exp_name}_seed${seed}.log"
 
     mkdir -p "$out_dir"
 
-    echo "[GPU $gpu_id] START $exp_name -> $log_file"
+    echo "[GPU $gpu_id] START $exp_name seed=$seed -> $log_file"
 
     local train_limit_arg=""
     if [ -n "$MAX_TRAIN_SAMPLES" ]; then
         train_limit_arg="--max-train-samples $MAX_TRAIN_SAMPLES"
     fi
 
+    local rm_arg="--reward-int8"
+    if [ "$REWARD_INT8" != "1" ]; then
+        rm_arg="--no-reward-int8"
+    fi
+
     CUDA_VISIBLE_DEVICES="$gpu_id" \
         python -m benchmarks.alignment.run_experiment \
             --base-model "$model_name" \
             --output-dir "$out_dir" \
-            --seed-count "$SEED_COUNT" \
+            --seed-count 1 \
+            --base-seed "$seed" \
             --posterior-samples "$POSTERIOR_SAMPLES" \
             --keep-last "$KEEP_LAST" \
             --n-epochs "$N_EPOCHS" \
             --num-eval-prompts "$NUM_EVAL_PROMPTS" \
+            --dtype "$DTYPE" \
+            $rm_arg \
             $train_limit_arg \
             $EXTRA_ARGS \
             > "$log_file" 2>&1 &
@@ -65,54 +82,48 @@ launch_experiment() {
     echo "$!"
 }
 
-run_wave() {
-    local wave_name="$1"
-    shift
-    local -a specs=("$@")
-
-    echo ""
-    echo "========================================"
-    echo "  $wave_name  ($(date '+%Y-%m-%d %H:%M:%S'))"
-    echo "  ${#specs[@]} experiments across $NUM_GPUS GPUs"
-    echo "========================================"
-
-    local -a pids=()
-    local -a names=()
-
-    for i in "${!specs[@]}"; do
-        local gpu_id=$(( i % NUM_GPUS ))
-        local spec="${specs[$i]}"
-        IFS='|' read -r _ model_tag <<< "$spec"
-        local exp_name="${model_tag}_dpo"
-
-        local pid
-        pid=$(launch_experiment "$gpu_id" "$spec")
-        pids+=("$pid")
-        names+=("$exp_name")
-    done
-
-    local failed=0
-    for i in "${!pids[@]}"; do
-        local pid="${pids[$i]}"
-        local name="${names[$i]}"
-        if wait "$pid"; then
-            echo "[OK]   $name"
-        else
-            echo "[FAIL] $name (see $LOG_DIR/${name}.log)"
-            failed=$((failed + 1))
-        fi
-    done
-
-    echo "  $wave_name complete ($(date '+%Y-%m-%d %H:%M:%S')), $failed failure(s)"
-    return $failed
-}
+# Partition JOBS into waves of NUM_GPUS parallel runs.
+TOTAL=${#JOBS[@]}
+echo "========================================"
+echo "  DPO Alignment: $TOTAL jobs across $NUM_GPUS GPUs"
+echo "  Models: ${MODELS[*]}"
+echo "  Seeds : $SEEDS"
+echo "========================================"
 
 TOTAL_FAIL=0
-run_wave "DPO Alignment (Llama-8B + Gemma-9B)" "${WAVE_1[@]}" || TOTAL_FAIL=$((TOTAL_FAIL + $?))
+wave_idx=0
+for ((start=0; start<TOTAL; start+=NUM_GPUS)); do
+    wave_idx=$((wave_idx + 1))
+    end=$((start + NUM_GPUS))
+    if [ $end -gt $TOTAL ]; then end=$TOTAL; fi
+
+    pids=()
+    names=()
+    echo ""
+    echo "----- wave $wave_idx ($(date '+%H:%M:%S')): jobs [$start..$((end-1))] -----"
+    for ((i=start; i<end; i++)); do
+        gpu_id=$(( (i - start) % NUM_GPUS ))
+        job="${JOBS[$i]}"
+        IFS='|' read -r _ model_tag seed <<< "$job"
+        name="${model_tag}_seed${seed}"
+        pid=$(launch_job "$gpu_id" "$job")
+        pids+=("$pid")
+        names+=("$name")
+    done
+
+    for idx in "${!pids[@]}"; do
+        if wait "${pids[$idx]}"; then
+            echo "[OK]   ${names[$idx]}"
+        else
+            echo "[FAIL] ${names[$idx]} (see $LOG_DIR/${names[$idx]}.log)"
+            TOTAL_FAIL=$((TOTAL_FAIL + 1))
+        fi
+    done
+done
 
 echo ""
 echo "========================================"
-echo "  All experiments complete. Failures: $TOTAL_FAIL"
+echo "  All jobs complete. Failures: $TOTAL_FAIL"
 echo "  Results: $RESULTS_DIR"
 echo "========================================"
 

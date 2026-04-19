@@ -5,6 +5,8 @@ from dataclasses import dataclass
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
+from ..utils import autodetect_dtype
+
 
 @dataclass
 class RewardModelWrapper:
@@ -19,15 +21,27 @@ class RewardModelWrapper:
         cls,
         model_name: str,
         device: torch.device,
-        dtype: torch.dtype = torch.bfloat16,
+        dtype: torch.dtype | None = None,
         max_length: int = 1024,
+        load_in_8bit: bool = False,
     ) -> RewardModelWrapper:
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
+
+        load_kwargs: dict = {}
+        if load_in_8bit and torch.cuda.is_available():
+            from transformers import BitsAndBytesConfig
+            load_kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
+            load_kwargs["device_map"] = {"": device.index if device.index is not None else 0}
+        else:
+            load_kwargs["torch_dtype"] = dtype if dtype is not None else autodetect_dtype(device)
+
         model = AutoModelForSequenceClassification.from_pretrained(
-            model_name, torch_dtype=dtype,
-        ).eval().to(device)
+            model_name, **load_kwargs,
+        ).eval()
+        if "device_map" not in load_kwargs:
+            model = model.to(device)
         return cls(
             model_name=model_name,
             model=model,
@@ -66,8 +80,9 @@ class RewardModelPair:
         gold_name: str,
         proxy_name: str,
         device: torch.device,
-        dtype: torch.dtype = torch.bfloat16,
+        dtype: torch.dtype | None = None,
+        load_in_8bit: bool = False,
     ) -> RewardModelPair:
-        gold = RewardModelWrapper.load(gold_name, device, dtype)
-        proxy = RewardModelWrapper.load(proxy_name, device, dtype)
+        gold = RewardModelWrapper.load(gold_name, device, dtype, load_in_8bit=load_in_8bit)
+        proxy = RewardModelWrapper.load(proxy_name, device, dtype, load_in_8bit=load_in_8bit)
         return cls(gold=gold, proxy=proxy)

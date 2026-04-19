@@ -64,28 +64,46 @@ class DPODataset(Dataset):
 
 
 def _compute_reference_logps(
-    ref_model: torch.nn.Module,
+    ref_model: torch.nn.Module | None,
+    policy_model: torch.nn.Module,
     dataloader: DataLoader,
     device: torch.device,
 ) -> tuple[list[torch.Tensor], list[torch.Tensor]]:
-    ref_chosen_logps_all = []
-    ref_rejected_logps_all = []
-    ref_model.eval()
-    with torch.no_grad():
-        for batch in dataloader:
-            for prefix, storage in [("chosen", ref_chosen_logps_all), ("rejected", ref_rejected_logps_all)]:
-                input_ids = batch[f"{prefix}_input_ids"].to(device)
-                attention_mask = batch[f"{prefix}_attention_mask"].to(device)
-                labels = batch[f"{prefix}_labels"].to(device)
-                outputs = ref_model(input_ids=input_ids, attention_mask=attention_mask)
-                logps = get_batch_logps(outputs.logits, labels)
-                storage.append(logps.cpu())
+    """Precompute reference log-probs once, before any LoRA update.
+
+    If ``ref_model`` is None, use the policy model with the LoRA adapter
+    disabled as the reference — this is the canonical DPO-with-LoRA pattern
+    and avoids holding a second 16 GB copy of the base model.
+    """
+    ref_chosen_logps_all: list[torch.Tensor] = []
+    ref_rejected_logps_all: list[torch.Tensor] = []
+
+    def _forward(module: torch.nn.Module) -> None:
+        module.eval()
+        with torch.no_grad():
+            for batch in dataloader:
+                for prefix, storage in [("chosen", ref_chosen_logps_all), ("rejected", ref_rejected_logps_all)]:
+                    input_ids = batch[f"{prefix}_input_ids"].to(device)
+                    attention_mask = batch[f"{prefix}_attention_mask"].to(device)
+                    labels = batch[f"{prefix}_labels"].to(device)
+                    outputs = module(input_ids=input_ids, attention_mask=attention_mask)
+                    logps = get_batch_logps(outputs.logits, labels)
+                    storage.append(logps.cpu())
+
+    if ref_model is None:
+        if not hasattr(policy_model, "disable_adapter"):
+            raise ValueError("ref_model=None requires a PEFT-wrapped policy model with .disable_adapter()")
+        with policy_model.disable_adapter():
+            _forward(policy_model)
+    else:
+        _forward(ref_model)
+
     return ref_chosen_logps_all, ref_rejected_logps_all
 
 
 def train_dpo_with_retention(
     model: torch.nn.Module,
-    ref_model: torch.nn.Module,
+    ref_model: torch.nn.Module | None,
     train_dataset: DPODataset,
     device: torch.device,
     lr: float = 5e-6,
@@ -143,7 +161,12 @@ def train_dpo_with_retention(
     ref_rejected_cache: list[torch.Tensor] | None = None
 
     if cache_ref_logps:
-        ref_chosen_cache, ref_rejected_cache = _compute_reference_logps(ref_model, dataloader, device)
+        ref_chosen_cache, ref_rejected_cache = _compute_reference_logps(
+            ref_model, model, dataloader, device,
+        )
+    elif ref_model is None:
+        raise ValueError("cache_ref_logps=False requires a concrete ref_model; "
+                         "disable_adapter path only supports a single pre-cache pass.")
 
     progress = tqdm(total=num_training_steps, desc="DPO Training")
     current_step = 0
