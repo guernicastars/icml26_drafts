@@ -9,19 +9,51 @@ This directory contains standalone scripts and code to deploy the Meta-SWAG benc
 - The DPO trainer uses **PEFT `disable_adapter()`** as its reference path rather than loading a second copy of the base model — saves ~16 GB during training.
 - Peak alignment footprint per GPU: ~26 GB (policy 16 GB + activations + optimizer state + int8 RMs ~5 GB). Fits 32 GB V100.
 
-## Pipeline Execution
+## Running the pipeline
 
-Run the scripts numbered 00 → 05 **sequentially**. Each `0x_run_*.sh` launcher parallelises across all 4 GPUs under the hood; per-job stdout is redirected to `logs/` and a summary prints to the terminal.
+### One command (recommended)
 
-1. **`./00_setup.sh`** — creates `.venv`, installs `requirements.txt`, clones/installs Stanford AxBench, then probes every GPU (prints compute capability, VRAM, bf16 support) and warns if Volta cards are present.
+```bash
+./run_pipeline.sh
+```
 
-2. **`./01_prestage.sh`** — downloads datasets and backbone checkpoints serially to prevent race conditions when parallel workers later call the HuggingFace cache.
+Runs all stages 00 → 05 in sequence. Stops immediately on the first failure and prints a summary table showing which stages passed, failed, or were skipped. All output is tee'd to `logs/pipeline_<timestamp>.log` so nothing is lost if the terminal disconnects.
+
+```
+[OK]   00  ./00_setup.sh
+[OK]   01  ./01_prestage.sh
+[FAIL] 02  ./02_run_alignment.sh
+[SKIP] 03  ./03_run_mmlu.sh
+...
+```
+
+**Useful flags:**
+
+| Flag | Effect |
+|------|--------|
+| `--from 02` | Skip setup/prestage and start at a specific stage |
+| `--only 02 03` | Run only the listed stages |
+| `--dry-run` | Print what would run without executing anything |
+
+```bash
+./run_pipeline.sh --from 02          # resume after a completed prestage
+./run_pipeline.sh --only 05          # re-collect results without re-running experiments
+./run_pipeline.sh --dry-run          # sanity-check before submitting to a job scheduler
+```
+
+### Running stages manually
+
+Each stage can also be run individually. They have been written to automatically parallelise across all 4 GPUs; per-job stdout is redirected to `logs/` and a summary prints to the terminal.
+
+1. **`./00_setup.sh`** — creates `.venv`, installs `requirements.txt`, clones/installs Stanford AxBench, probes every GPU (compute capability, VRAM, bf16 support), and validates that `bitsandbytes` and `peft` are importable. Prints the exact line number and a clear message if any step fails.
+
+2. **`./01_prestage.sh`** — downloads datasets and backbone checkpoints serially to prevent HuggingFace cache race conditions when parallel workers start. Gracefully skips missing sub-scripts with a warning instead of crashing silently.
 
 3. **`./02_run_alignment.sh`** — DPO training + Meta-SWAG aggregation + best-of-n reward-overoptimisation curves.
-   - Jobs = `{Llama-3.1-8B-Instruct, Gemma-2-9B-it} × {seed 42, 43, 44}` = **6 jobs in 2 waves of 4 GPUs** (external seed sharding; the Python script runs one seed per process).
+   - Jobs = `{Llama-3.1-8B-Instruct, Gemma-2-9B-it} × {seed 42, 43, 44}` = **6 jobs in 2 waves of 4 GPUs** (external seed sharding; each Python process runs one seed).
    - Env knobs: `NUM_GPUS`, `SEEDS`, `DTYPE`, `REWARD_INT8`, `N_EPOCHS`, `POSTERIOR_SAMPLES`, `KEEP_LAST`, `MAX_TRAIN_SAMPLES`, `EXTRA_ARGS`.
 
-4. **`./03_run_mmlu.sh`** — MMLU on the *aligned* adapters. For each seed under `results/alignment/<model>/seed_*/adapters/<scheme>/mean_vector.npy` the script restores the LoRA state via the saved `manifest.json` and evaluates every scheme (not just the base model). Also records a `base` row for reference.
+4. **`./03_run_mmlu.sh`** — MMLU on the aligned adapters. For each seed under `results/alignment/<model>/seed_*/adapters/<scheme>/mean_vector.npy` the script restores the LoRA state via the saved `manifest.json` and evaluates every Meta-SWAG scheme (not just the base model).
    - Jobs = `{Llama-3.1-8B, Gemma-2-9B} × {STEM, Humanities, Social Sciences, Other}` = **8 jobs in 2 waves of 4 GPUs** (subject-group sharding). Per-group CSVs are merged into a single `mmlu_summary.csv` per model at the end.
    - Env knobs: `NUM_GPUS`, `BATCH_SIZE`, `DTYPE`, `EXTRA_ARGS`.
 
