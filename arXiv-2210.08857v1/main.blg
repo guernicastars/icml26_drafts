@@ -1,0 +1,51 @@
+This is BibTeX, Version 0.99d (TeX Live 2022)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: Main.aux
+The style file: icml.bst
+Database file #1: bibtex/IEEEabrv.bib
+Database file #2: bibtex/localbibliography.bib
+Database file #3: bibtex/Bibliography-MV.bib
+Database file #4: bibtex/Bibliography-PM.bib
+Warning--can't use both volume and number fields in munos2005error
+You've used 62 entries,
+            2773 wiz_defined-function locations,
+            1518 strings with 27596 characters,
+and the built_in function-call counts, 32227 in all, are:
+= -- 2749
+> -- 2188
+< -- 47
++ -- 737
+- -- 675
+* -- 2672
+:= -- 4955
+add.period$ -- 201
+call.type$ -- 62
+change.case$ -- 398
+chr.to.int$ -- 62
+cite$ -- 125
+duplicate$ -- 1423
+empty$ -- 2479
+format.name$ -- 765
+if$ -- 6778
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 67
+newline$ -- 323
+num.names$ -- 255
+pop$ -- 846
+preamble$ -- 1
+purify$ -- 346
+quote$ -- 0
+skip$ -- 1144
+stack$ -- 0
+substring$ -- 999
+swap$ -- 211
+text.length$ -- 18
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 632
+warning$ -- 1
+while$ -- 249
+width$ -- 0
+write$ -- 817
+(There was 1 warning)

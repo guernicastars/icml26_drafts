@@ -1,0 +1,260 @@
+%----------------------------------------------------------------------
+%%% SETUP
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+\subsection{Setup of the game}
+Throughout this work we consider $\nPlayers$-player generic stochastic games where players repeatedly select actions in a shared \ac{MDP} with the goal of maximizing their individual value functions.
+Formally, we study the tabular version with random stopping of general stochastic games, which is specified by a tuple $\game = (\states, \players , \braces{\pures_{\play}, \rewards_{\play}}_{\play \in \players} , \tprob, \stopPr,\stateDist)$ with the following primitives:
+\begin{itemize}
+\item
+A finite set of \emph{agents} $\play \in \players = \{1,2,\dots, \nPlayers\}$ and a finite set of \emph{states} $\states = \{1,\dotsc,\nStates\}$.
+\item
+For each $\play\in\players$, a finite space of \emph{actions} (or \emph{pure strategies}) $\pures_{\play}$ indexed by $\pure_{\play} = 1,\dotsc,\nPures_{\play} = \abs{\pures_{\play}}$.
+We will write $\pures = \prod_{\play \in \players} \pures_{\play}$ and $\pures_{-\play} = \prod_{j\neq i} \pures_{j}$ for the action space of all agents and that of all agents other than $\play$ respectively.
+In a similar vein, we will also write $\pure = (\pure_{\play},\pure_{-\play})$ when we want to highlight the action $\pure_{\play}$ of player $\play$ against the action profile $\pure_{-\play}$ of $\play$'s opponents.
+\item
+For each $\play\in\players$, we will write $\rewards_{\play} \from \states\times \pures \to [-1,1]$ for the \emph{%individual 
+reward function} of agent $\play \in \players$, \ie $\rewards_{\play}(\rstate,\pure_{\play},\pure_{-\play})$ will denote the value of the %instantaneous 
+reward of agent $\play$ when the game is at state $\rstate\in\states$, the focal agent $\play\in\players$ plays $\pure_{\play}\in\pures_{\play}$, and all other agents take actions $\pure_{-\play} \in \pures_{-\play}$.
+\item
+The game transits from one state to another according to a Markov transition process, so that $\tprobof{\rstatealt \given \rstate, \pure}$ denotes the probability of transitioning from $\rstate$ to $\rstate'$ when $\pure \in \pures$ is the action profile chosen by the agents.
+\item
+Given an action profile $\pure$ at state $\rstate$, the process terminates with probability $\stopPr_{\rstate,\action} > 0$, i.e., $\stopPr_{\rstate,\action} = 1 - \sum_{\rstatealt \in \states}\tprobof{\rstatealt \given \rstate, \pure}$; for convenience, we will write $\stopPr \defeq \min_{\rstate,\action}\braces{\stopPr_{\rstate,\action}}$.
+%so any realization of the game (episode) stops at any given state with probability at least $\stopPr > 0$.
+%\PM{This is not true: we actually mean here that a given \emph{episode} stops with such probability \textendash\ but we have not defined the notion of an episode.}\AG{I will write a realization of the game}
+%at least $\stopPr \defeq \min_{\rstate,\action}\braces{\stopPr_{\rstate,\action}} > 0$ is the lower bound on the probability that the game stops at any state $\rstate$ and action profile $\action$. In this work, we will assume that $\stopPr > 0$.
+%\item $\discount$ is a discount factor for future rewards of the MDP, shared by all agents.
+\item
+$\stateDist\in \simplex(\states)$ is the distribution for the initial state of the game.
+\end{itemize}
+
+\para{Episodic Setting} We consider an episodic setting, where in each episode a realization of the game is completed. At every time step $\time \ge \tstart$ of each episode, 
+all agents observe the common state $\rstate_{\time} \in \states$, select actions $\pure_{\time}$ and receive rewards $\{\rewards_{\play}(\rstate_\time,\pure_\time)\}_{\play \in \players}$. Then, with probability $\stopPr_{\rstate_\time,\pure_\time}$ the game terminates, and with probability $1-\stopPr_{\rstate_\time,\pure_\time}$, it moves to the state $\rstate_{\time+1}$, which is drawn according to $\tprob( \cdot | \rstate_{\time}, \pure_{\time})$. %\AG{Maybe $1-\zeta_{s_t,a_t}$ moves to some state $s_{t+1}$? Not big of a difference} \KL{Done! check}
+%The following notation is standard and largely follows by \cite{AgarwalKLM20}. 
+Denoting the realized reward of player $\play$ at time $\time$ as $\realReward_{\play,\time} \defeq \rewards_{\play}(\rstate_{\time}, \pure_{\time})$, we will write $\traj = (\rstate_{\time}, \pure_{\time}, \realReward_{\time})_{\time \leq\stopTime(\traj)}$ to denote the trajectory of the episode, where $\realReward_{\time} \defeq (\realReward_{\play,\time})_{ \play \in \players}$, and $\stopTime(\traj)$ the time the episode terminates. 
+
+
+%----------------------------------------------------------------------
+%% Policies
+%----------------------------------------------------------------------
+\para{Policies and value functions}
+We consider \emph{stationary Markovian} policies, i.e., policies that do not depend on the time-step and the history, given the current state of the game. More specifically, for each agent $\play \in \players$, a \emph{policy} $\policy_{\play} \from \states \to \simplex(\pures_{\play})$ specifies a probability distribution over the actions of agent $\play$ in state $\rstate \in \states$, i.e., $\pure_{\play} \sim \policy_{\play}\parens{\cdot \vert \rstate}$ denotes the (random) action drawn by agent $\play$ at state $\rstate \in \states$ according to $\policy_{\play}$, viewed here as an element of $\policies_{\play} \defeq \simplex(\pures_{\play})^{\states}$.
+In addition, we will also write
+$\policy = (\policy_{\play})_{\play \in \players} \in \policies \defeq \prod_{\play} \policies_{\play}$
+and
+$\policy_{-\play} = (\policy_\playalt)_{\playalt\neq\play} \in \policies_{-\play} \defeq \prod_{\playalt\neq\play} \policies_{\playalt}$ for the policy profile of all agents and all agents other than $\play$, respectively.
+
+The expected reward of agent $\play\in\players$ if agents follow policy $\policy$, starting from initial state $\rstate\in\states$, defines the \emph{value function} of agent $\play$, denoted as $\rvalue_{\play,\rstate}\parens{\policy}$, and is equal to
+\begin{equation}
+\rvalue_{\play,\rstate}\parens{\policy}
+	\defeq\ex_{\traj \sim \MDP} \bracks*{\insum_{\time =\tstart}^{\stopTime\parens{\traj}} \rewards_{\play}\parens{\rstate_{\time},\action_\time} \Big\vert \rstate_\tstart = \rstate}
+\end{equation}
+%where $\stopTime(\traj)$ is the the time that the game will reach the terminal state.
+where $\traj \sim \MDP$ denotes the randomness induced by the policy profile $\policy$, and the state-transition probabilities of the MDP. Overloading the notation, we set $  \rvalue_{\play,\stateDist}\parens{\policy}\defeq\ex_{\rstate\sim\stateDist}\bracks*{   \rvalue_{\play,\rstate}\parens{\policy}}$. 
+Although value functions are, in general, non-convex, they share similar smoothness properties with the payoff functions of normal form games, namely bounded and Lipschitz gradients.
+For precise statements, we defer to the paper's supplement.
+%As we already mentioned,  the realization $(\rstate_{\time}, \pure_{\time}, \reward_{\time})_{\time = \tstart,\dots,\stopTime(\traj)}$ is called an \textit{episode}.\AG{Changed check}
+%\PM{This should go in the beginning as what we are defining above all takes place within an episode \textendash\ so we need to clarify that this is so from the get-go\dots}
+
+
+%----------------------------------------------------------------------
+%% Visitations
+%----------------------------------------------------------------------
+\para{Visitation distribution and the mismatch coefficient}
+
+For a policy profile $\policy \in \policies$ and an arbitrary initial state distribution $\rstate_\tstart\sim\stateDist$, we define the discounted state visitation measure/distribution as
+\begin{equation*}
+		\visitMeas{\stateDist}{\policy}\parens{\rstate} =\ex_{\traj \sim \MDP}\bracks*{\insum_{\time =\tstart}^{\stopTime\parens{\traj}}\one\braces{\rstate_{\time}=\rstate} \Big| \rstate_\tstart \sim \stateDist},\quad	\visitDistr{\stateDist}{\policy}\parens{\rstate} \defeq \visitMeas{\stateDist}{\policy}\parens{\rstate}/\normConst{\stateDist}{\policy}
+\end{equation*}
+% In the paper's supplement, we prove formally that the above definition is well-posed for the random stopping episodic framework described above, \ie
+% \begin{enumerate*}
+% [\itshape a\upshape)]
+% \item
+% $\visitMeas{\stateDist}{\policy}\parens{\rstate}<\infty$;
+% and
+% \item
+% $\normConst{\stateDist}{\policy}=\ex_{\rstate\sim \unif(\states) }\bracks*{\visitMeas{\stateDist}{\policy}\parens{\rstate}}$.
+% \end{enumerate*}\AG{Do we prove b?? We just define it right?}
+% In our proofs, we will leverage a standard property of visitation distributions, namely the equivalence of the expected value of state-action function and the expected cumulative value over a random trajectory.
+In the appendix, we prove formally that the above definition is well-posed for the random stopping episodic framework described above, \ie
+$\visitMeas{\stateDist}{\policy}\parens{\rstate}<\infty$,
+so
+$\normConst{\stateDist}{\policy}\defeq\sum_{\rstate\in\states }\visitMeas{\stateDist}{\policy}\parens{\rstate}$
+%$\normConst{\stateDist}{\policy}\defeq\ex_{\rstate\sim \unif(\states) }\bracks[\big]{\visitMeas{\stateDist}{\policy}\parens{\rstate}}\cdot|\states|$
+is well-defined.
+In our proofs, we will leverage a standard property of visitation distributions, namely the equivalence of the expected value of state-action function and the expected cumulative value over a random trajectory.
+More precisely, we have:
+\begin{restatable}{lemma}{ConversionLemma}\emph{[Conversion Lemma]}
+\label{lem:conversion}
+For an arbitrary state-action function $f\from\states\times \pures \to \R$, a policy profile $\policy$ and an initial state distribution $\rstate_\tstart\sim\stateDist$, we have
+\begin{equation}
+  \ex_{\traj \sim \MDP}\bracks*{\insum_{\time =\tstart}^{\stopTime\parens{\traj}}f( \rstate_\time, \pure_\time)} 
+  = \normConst{\stateDist}{\policy}
+  \ex_{\rstate\sim\visitDistr{\stateDist}{\policy}}\ex_{\pure\sim\policy(\cdot \mid \rstate)}\bracks*{f(\rstate, \pure)}
+\end{equation}
+\end{restatable}
+Finally, to quantify the difficulty of hard-to-reach states via a policy gradient method, we will follow the standard approach of \cite{zhang2021gradient,fan2020theoretical,chen2019information,munos2005error,munos2003error} and use an appropriately-defined distribution ``mismatch coefficient'', generalizing the single-agent counterpart of \citet{AgarwalKLM20}.
+More precisely, for a  stochastic game $\game$, we define the \emph{mismatch coefficient} as $\mismatch\defeq\max_{\policy,\policy'\in\policies}\braces[\big]{\supnorm{\visitMeas{\stateDist}{\policy}/\visitMeas{\stateDist}{\policy'}}}$ or, more simply, as $\mismatch\defeq\max_{\policy,\in\policies}\braces[\big]{\tfrac{1}{\stopPr}\supnorm{\visitDistr{\stateDist}{\policy}/\stateDist}}$.
+Similar to prior work in this direction \cite{AgarwalKLM20,bhandari2019global,daskalakis2020independent}, we will assume $\mismatch$ is finite, which, equivalently, means that $\visitDistr{\stateDist}{\policy}(\rstate)>0$ for any policy $\policy$ and state $\rstate$.
+
+
+%----------------------------------------------------------------------
+%% Solutions
+%----------------------------------------------------------------------
+\subsection{Solution concepts}
+
+The most widely used solution concept in game theory is that of a Nash
+equilibrium \ie a strategy profile  $\eq\in\policies$ that discourages unilateral deviations.
+However, in stochastic games, the definition of a Nash policy is much more involved because of the existence of multiple states and steps, \cf \cite{Sha53,takahashi1962stochastic,fink1964equilibrium,solan2015stochastic} and references therein.
+Formally, we have:
+
+\begin{definition}
+[Nash policies]
+\label{def:NP}
+A policy $\eq = (\eq_{\play})_{\play \in \players} \in \policies$ is said to be a \emph{Nash policy} for a given distribution of initial states $\stateDist \in\simplex\parens{\states}$ if, for every player $\play\in\players$, we have
+% \KL{Don't know if you like the Ac NP}
+% \PM{No opinion.}
+\begin{equation}
+\label{eq:NP}
+\tag{NE}
+\rvalue_{\play,\stateDist}(\eq_{\play};\eq_{-\play}) \geq \rvalue_{\play,\stateDist}(\policy_{\play};\eq_{-\play})\
+	\quad
+	\text{for all $\play\in\players$ and all $\policy_{\play} \in \simplex(\pures_{\play})^{\states}$}.
+\end{equation}
+\end{definition}
+
+%\begin{remark*}
+%A Nash policy $\eq = (\policy_{\play}^*)_{\play \in \players} \in \policies$ will be called \emph{deterministic} if every player $\play\in\players$ assigns a probability of $1$ to some action $\pureq_{\play}(\rstate)$ when the game is at any state $\rstate$;
+%in obvious notation, if $\eq$ is deterministic, we will tacitly treat it as a map $\eq_{\play}\from\states\to\pures_{\play}$.
+%Generically \textendash\ \ie except for a set of games that are meager in the sense of Baire \textendash\ deterministic Nash policies are also \emph{strict}, in the sense that the inequality in \eqref{eq:NP} is strict for all $\policy_{\play} \neq \eq_{\play}$, $\play\in\players$.
+%\endenv
+%\end{remark*}
+
+In contrast to general non-convex continuous games, stochastic games satsify a version of the well-known Polyak-Łojasiewicz condition \cite{polyak1963}
+but with linear gradient growth,
+also known as a \acdef{GDP} \cite{AgarwalKLM20,bhandari2019global}.
+For the multi-agent case, \citet{zhang2021gradient} and \citet{daskalakis2020independent} showed that a similar property holds even in the episodic setting:
+
+\begin{restatable}[\Acl{GDP}]{lemma}{GradientDominance}
+\label{lem:GDP}
+For any policy profile $\policy=(\policy_{\play})_{\play\in\players}\in\policies$, we have that \begin{equation}
+\label{eq:GDP}
+\tag{GDP}
+\rvalue_{\play,\stateDist}(\policyalt_{\play};\policy_{-\play}) -
+	\rvalue_{\play,\stateDist}(\policy_{\play};\policy_{-\play})
+	\leq \mismatch \max_{\bar\policy_{\play}\in\policies_{\play}}
+		\braket{\nabla_{\play}\rvalue_{\play,\stateDist}(\policy)}{\bar{\policy}_{\play}-{\policy_{\play}}}
+\end{equation}
+for any unilateral deviation $\policyalt_{\play}\in\policies_{\play}$ of player $\play\in\players$.
+\end{restatable}
+\begin{remark*}
+In the above and throughout our paper, we will write $\nabla_{\play}$ to denote the gradient of the quantity in question with respect to $\policy_{\play}$, \ie when $\policy_{-\play}$ is kept fixed and only $\policy_{\play}$ is varied. 
+For concision, we will write $\gvalue_{\play}(\policy) = \nabla_{\play} \rvalue_{\play,\stateDist}(\policy)$ for the individual gradient of player $\play$'s value function, and $\gvalue(\policy) = (\gvalue_{\play}(\policy))_{\play\in\players}$ for the ensemble thereof.
+\endenv
+\end{remark*}
+
+Thanks to \eqref{eq:GDP}, it is straightforward to check that \ac{FOS} points of $\rvalue$ are Nash.
+Formally, as in \cite{daskalakis2020independent,LOPP22,zhang2021gradient}, we have the following characterization:
+
+\begin{restatable}[\Acl{FOS} policies are Nash]{lemma}{FOSNE}
+\label{lem:fos2ne}
+A policy $\eq = (\eq_{\play})_{\play \in \players} \in \policies$ is Nash if and only if it satisfies the \acl{FOS} condition
+\begin{equation}
+\label{eq:FOS}
+\tag{FOS}
+\braket{\gvalue(\eq)}{\policy - \eq}
+	\leq 0
+	\quad
+	\text{for all $\policy\in\policies$}.
+\end{equation}
+\end{restatable}
+
+\citet{LOPP22} and \citet{zhang2021gradient} proved a relaxation of the above lemma to the effect that policies that satisfy \eqref{eq:FOS} up to $\eps$ (\ie in lieu of $0$ in the \acs{RHS}) are $\bigoh(\eps)$-Nash.
+Going in the other direction, we will consider the following series of refinements of Nash policies which are particularly important from a learning standpoint \cite{LRS19,solan2015stochastic}:
+
+\begin{definition}
+\label{def:refine}
+Let $\eq = (\eq_{\play})_{\play\in\players} \in \policies$ be a Nash policy.
+We then say that:
+\begin{itemize}
+\item
+$\eq$ is \emph{stable} if $\braket{\gvalue(\policy)}{\policy - \eq} < 0$ for all $\policy\neq\eq$ sufficiently close to $\eq$.
+\item
+$\eq$ is \acli{SOS} if it satisfies the sufficiency condition
+\begin{equation}
+\label{eq:SOS}
+\tag{SOS}
+\parens{\policy - \eq}^{\top} \Jac_{\gvalue}(\eq) \parens{\policy - \eq}
+	< 0
+	\quad
+	\text{for al $\policy\in\policies\exclude{\eq}$},
+\end{equation}
+where $\Jac_{\gvalue}(\eq) = (\nabla_{\playalt} \gvalue_{\play}(\eq))_{\play,\playalt\in\players} = (\nabla_{\playalt} \nabla_{\play} \rvalue_{\play}(\eq))_{\play,\playalt\in\players}$ denotes the Jacobian of $\gvalue$ at $\eq$.
+\item
+$\eq$ is \emph{deterministic} if it induces a deterministic selection rule $\eq_{\play}\from\states\to\pures_{\play}$ for all $\play\in\players$.
+\item
+$\eq$ is \emph{strict} if it is deterministic and \eqref{eq:FOS} holds as a strict inequality whenever $\policy\neq\eq$.
+\end{itemize}
+\end{definition}
+
+\beginrev
+\begin{remark}
+In the above and what follows, ``sufficiently close'' means that there exists a neighborhood $\nhd$ of $\eq$ in $\policies$ such that the stated inequality holds for all $\policy\in\nhd$.
+Unless mentioned otherwise, we will measure distances on $\policies$ relative to the Euclidean norm, but this choice does not impact our results.
+\end{remark}
+\endedit
+
+Intuitively,
+the condition for equilibrium stability is a game-theoretic analogue of first-order KKT sufficiency condition,
+while
+the condition for second-order stationarity is the second-order version thereof.
+In this regard, the distinction between first-order stationary, stable and second-order stationary points is formally analogous to the distinction between critical points, minimizers, and second-order minimum points in optimization.
+As for deterministic policies, we should mention that, generically, deterministic policies are also strict, so we will use the two terms interchangeably.%
+\footnote{The notion of genericity is stated here in the sense of Baire, \ie the stated property holds for all but a ``meager'' set of games (\ie a countable union of nowhere dense sets in the space of all games).}
+
+Importantly, as we show in \cref{app:solutions}, these refinements admit the following characterizations:
+
+\begin{restatable}{proposition}{StationaryProperties}
+\label{prop:var}
+Let $\eq = (\eq_{\play})_{\play\in\players} \in \policies$ be a Nash policy.
+Then:
+\begin{subequations}
+\begin{enumerate}
+[\itshape a\upshape)]
+\item
+If $\eq$ is \acl{SOS}, there exists some $\strong>0$ such that
+\begin{alignat}{2}
+\label{eq:strong}
+\braket{\gvalue(\policy)}{\policy - \eq}
+	&\leq - \strong \, \norm{\policy - \eq}^{2}
+	&\qquad
+	&\text{for all $\policy$ sufficiently close to $\eq$}.
+\shortintertext{%
+\item
+If $\eq$ is strict, there exists some $\strong>0$ such that
+} %end intertext
+\label{eq:sharp}
+\braket{\gvalue(\policy)}{\policy - \eq}
+	&\leq - \strong \, \norm{\policy - \eq}
+	&\qquad
+	&\text{for all $\policy$ sufficiently close to $\eq$}.
+\end{alignat}
+\end{enumerate}
+\end{subequations}
+\end{restatable}
+
+In view of all the above, we get the following string of implications for equilibria in generic games:
+\begin{equation}
+\textrm{strict}
+	/ \textrm{deterministic}
+	\implies \textrm{\ac{SOS}}
+	\implies \textrm{stable}
+	\implies \textrm{FOS}
+	= \textrm{Nash}
+\end{equation}
+For posterity, we should clarify here that, due to the highly complicated structure of the game's value functions, it is not trivial to construct a concrete example where \eqref{eq:strong} holds but \eqref{eq:sharp} does not.
+Examples of strict Nash policies abound in the literature \cite{LRS19,solan2015stochastic}, but we are not otherwise aware of an argument that could be used to close the gap between \eqref{eq:strong} and \eqref{eq:sharp}.
+In view of this, our analysis will treat both cases concurrently (with the obvious anticipation that more refined solution concepts should enjoy stronger convergence guarantees).
+%For posterity, we only note here that it is plausible to except that more refined solution concepts should enjoy stronger convergence properties;
+%we will confirm this intuition in the sequel.

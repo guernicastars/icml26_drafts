@@ -1,0 +1,681 @@
+%----------------------------------------------------------------------
+%% APP: ASYMPTOTIC
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+Our goal in this appendix is to prove \cref{thm:stable,cor:stable}, which we restate below for convenience:
+
+\stable*
+
+\corstable*
+
+Our proof strategy will comprise the following basic steps:
+
+\begin{enumerate}
+
+\item
+To begin with, we will show that the squared distance
+\begin{equation}
+\label{eq:energy}
+\energy(\policy)
+	= \frac{1}{2}\norm{\policy - \eq}^{2}
+\end{equation}
+can be seen as a ``local Lyapunov function'' for \eqref{eq:PG} in the sense that it is locally decreasing near $\eq$, up to a series of error terms \textendash\ both zero-mean and non-zero-mean.
+
+\item
+Due to these errors, the evolution of the iterates $\curr[\energy] \defeq \energy(\curr)$ of $\energy$ over time may exhibit \emph{significant} jumps:
+in particular, a single ``bad'' realization of the noise could carry $\curr$ out of the basin of attraction of $\eq$, possibly never to return.
+To exclude this event, our second step will be to show that the aggregation of these errors can be controlled with probability at least $1-\conf$.
+% This is the most technically challenging part of our argument and it unfolds in a series of lemmas below.
+
+\item
+Conditioned on the above, we will show that, with probability at least $1-\conf$, the iterates $\curr[\energy]$ cannot grow more than a token value.
+%(depending on the basin of attraction of $\eq$).
+As a result, if \eqref{eq:PG} is initialized close to $\eq$, it will remain in a neighborhood thereof for all $\run$ (again, with probability at least $1-\conf$).
+
+\item
+Thanks to this ``stochastic Lyapunov stability'' result, we employ a series of martingale limit theory arguments to extract a subsequence converging to $\eq$.
+
+\item
+Finally, we show that the increments of $\curr[\energy]$ are summable;
+hence, by invoking the Gladyshev's lemma \cite[p.~49]{Pol87}, we conclude that $\curr[\energy]$ converges to some (finite) random variable $\energy_{\infty}$.
+Combining this fact with the existence of a convergent subsequence, we obtain the desired conclusion that $\curr$ converges to $\eq$ with probability at least $1-\conf$.
+\end{enumerate}
+
+In the sequel, we make the above precise in a series of intermediate results.
+
+
+%----------------------------------------------------------------------
+%% Energy
+%----------------------------------------------------------------------
+\subsection{Energy inequality}
+
+We begin by establishing a ``quasi-Lyapunov'' inequality for the iterates $\curr[\energy] = \norm{\curr - \eq}^{2}/2$ of \eqref{eq:energy}.
+
+\begin{lemma}
+\label{lem:energy}
+Let $\curr[\energy] \defeq \energy(\curr)$.
+Then, for all $\run = \running$, we have
+\begin{equation}
+\label{eq:template}
+\next[\energy]
+	\leq \curr[\energy]
+		+ \curr[\step] \braket{\gvalue(\curr)}{\curr - \eq}
+		+ \curr[\step] \curr[\snoise]
+		+ \curr[\step] \curr[\sbias]
+		+ \curr[\step]^{2} \curr[\second]^{2},
+\end{equation}
+where the error terms $\curr[\snoise]$, $\curr[\sbias]$, and $\curr[\second]$ are given by
+\begin{equation}
+\label{eq:errors}
+\curr[\snoise]
+	= \braket{\curr[\noise]}{\curr - \eq},
+%	\\
+	\quad
+\curr[\sbias]
+	= \poldiam \curr[\bbound]
+%	= \curr[\bbound] \norm{\\curr - \eq}
+	\quad
+	\text{and}
+	\quad
+%	\\
+\curr[\second]^{2}
+	= \tfrac{1}{2} \dnorm{\curr[\signal]}^{2}.
+\end{equation}
+with $\poldiam \defeq \max_{\policy,\policyalt\in\policies} \norm{\policy - \policyalt}$.
+\end{lemma}
+
+\begin{proof}
+By the definition of the iterates of \eqref{eq:PG}, we have
+\begin{align}
+\next[\energy]
+	= \frac{1}{2} \norm{\next - \eq}^{2}
+	&= \frac{1}{2} \norm{\proj_{\policies}(\curr + \curr[\step]\curr[\signal]) - \proj_{\policies}(\eq)}^{2}
+	\notag\\
+	&\leq \frac{1}{2} \norm{\curr + \curr[\step]\curr[\signal] - \eq}^{2}
+	\notag\\
+	&= \frac{1}{2} \norm{\curr - \eq}^{2}
+		+ \curr[\step] \braket{\curr[\signal]}{\curr - \eq}
+		+ \frac{1}{2} \curr[\step]^{2} \norm{\curr[\signal]}^{2}
+	\notag\\
+	&= \curr[\energy]
+		+ \curr[\step] \braket{\gvalue(\curr) + \curr[\noise] + \curr[\bias]}{\curr - \eq}
+		+ \frac{1}{2} \curr[\step]^{2} \norm{\curr[\signal]}^{2}
+	\notag\\
+%	&= \curr[\energy] + \curr[\step]\braket{\gvalue(\curr)}{\curr - \eq} + \curr[\step]\curr[\snoise] + \curr[\step]\braket{\curr[\bias]}{\curr - \eq} + \curr[\step]^{2} \curr[\second]^{2}
+%	\notag\\
+	&\leq \curr[\energy]
+		+ \curr[\step] \braket{\gvalue(\curr)}{\curr - \eq}
+		+ \curr[\step] \curr[\snoise]
+		+ \curr[\step] \curr[\sbias]
+		+ \curr[\step]^{2} \curr[\second]^{2}
+\end{align}
+where we used the Cauchy-Schwarz inequality to bound the bias term as $\braket{\curr[\bias]}{\curr -\eq} \leq \dnorm{\curr[\bias]} \cdot \norm{\curr - \eq} \leq \poldiam \curr[\bbound] = \curr[\sbias]$.
+\end{proof}
+
+
+%----------------------------------------------------------------------
+%% Error control
+%----------------------------------------------------------------------
+\subsection{Error control and stability}
+
+The second major step in our proof (and the most challenging one from a technical standpoint) is to establish a suitable measure of control over the error increments in \eqref{eq:energy}, with the aim of showing that the process $\curr$ never leaves a neighborhood of $\eq$.
+
+To make this idea precise, let $\basin = \setdef{\policy\in\policies}{\norm{\policy - \eq} \leq \radius}$ be a ball of radius $\radius$ based on $\eq$ in $\policies$ so that $\braket{\gvalue(\policy)}{\policy - \eq} < 0$ for all $\policy\in\basin\exclude{\eq}$ (without loss of generality, we can assume that $\basin$ is maximal in that regard).
+We will then examine the event that the aggregation of the error terms in \eqref{eq:energy} is not sufficient to drive $\curr$ to escape from $\basin$.
+
+To that end, we will begin by aggregating the errors in \eqref{eq:energy} as
+\begin{equation}
+\label{eq:err-agg}
+\curr[\mart]
+	= \sum_{\runalt=\start}^{\run} \iter[\step] \iter[\snoise]
+	\quad
+	\text{and}
+	\quad
+\curr[\submart]
+	= \sum_{\runalt=\start}^{\run} \bracks{\iter[\step] \iter[\sbias] + \iter[\step]^{2} \iter[\second]^{2}}.
+\end{equation}
+Since $\exof{\curr[\snoise] \given \curr[\filter]} = 0$, we have $\exof{\curr[\mart] \given \curr[\filter]} = \prev[\mart]$, so $\curr[\mart]$ is a martingale;
+likewise, $\exof{\curr[\submart] \given \curr[\filter]} \geq \prev[\submart]$, so $\curr[\submart]$ is a submartingale.
+Then, using a technique of \citet{HIMM19} that builds on an earlier idea by \citet{MZ19}, we will also consider the ``mean square'' error process
+\begin{align}
+\label{eq:noise-tot}
+\curr[\toterr]
+	&= \curr[\mart]^{2}
+		+ \curr[\submart],
+\end{align}
+and the associated indicator events
+\begin{subequations}
+\label{eq:events}
+\begin{align}
+%\label{eq:evt-stay}
+\curr[\event]
+%	\equiv \curr[\event](\basin)
+	&= \braces*{\iter\in\basin \; \text{for all $\runalt=\running,\run$}}
+	\quad
+	\text{and}
+	\quad
+\curr[\eventalt]
+%	\equiv \curr[\eventalt](\thres)
+	= \braces*{\iter[\toterr] \leq \thres \; \text{for all $\runalt = \running,\run$}},
+\end{align}
+\end{subequations}
+where, with a fair amount of hindsight,
+the error tolerance level $\thres>0$ is such that $2\thres + \sqrt{\thres} < \radius$, and we are employing the convention $\event_{0} = \eventalt_{0} = \samples$ (since every statement is true for the elements of the empty set).
+We will then assume that $\init$ is initialized in a ball of radius $\sqrt{2\thres}$ centered at $\eq$, viz.
+\begin{equation}
+\label{eq:nhd-init}
+\nhd
+	= \setdef{\policy\in\policies}{\energy(\policy) \leq \thres}
+	= \setdef{\policy\in\policies}{\norm{\policy-\eq}^{2}/2 \leq \thres}.
+\end{equation}
+With all this in hand, the key to showing that $\curr$ remains close to $\eq$ with high probability is the following conditional estimate:
+
+\begin{lemma}
+\label{lem:events}
+Let $\curr$ be the sequence of play generated by \eqref{eq:PG} initialized at $\init\in\nhd$.
+We then have:
+%with step-size and policy gradient estimates as per \cref{thm:stable}.
+%and with step-size and policy gradient estimates such that $\pexp + \bexp >1$ and $\pexp - \sexp > 1/2$ as per \cref{thm:stable}.
+%We then have:
+\begin{enumerate}
+\item
+$\next[\event] \subseteq \curr[\event]$
+and
+$\next[\eventalt] \subseteq \curr[\eventalt]$
+for all $\run=\running$
+\item
+$\prev[\eventalt] \subseteq \curr[\event]$
+for all $\run=\running$
+\item
+Consider the ``bad realization'' event
+\begin{align}
+\label{eq:evt-bad}
+\curr[\tilde\eventalt]
+	\defeq \prev[\eventalt] \setminus \curr[\eventalt]
+%	= \prev[\eventalt] \cap \{\curr[\toterr] > \thres\}
+%	\notag\\
+	= \braces*{\text{$\iter[\toterr] \leq \thres$ for $\runalt=\running,\run-1$ and $\curr[\toterr] > \thres$}},
+\end{align}
+and
+let $\curr[\tilde\toterr] = \curr[\toterr] \one_{\prev[\eventalt]}$ be the cumulative error subject to the noise being ``small''.
+%at stage $\run$ conditioned on the noise being ``small'' until that time.
+%denote the event that $\iter\in\basin$ for all $\runalt=\running,\run-1$ but $\curr$ escapes $\basin$.
+Then we have:
+\begin{equation}
+\label{eq:noise-tot-cond}
+\exof{\curr[\tilde\toterr]}
+	\leq \exof{\prev[\tilde\toterr]}
+		+ \curr[\step] \poldiam \curr[\bbound]
+		+ \curr[\step]^{2} \poldiam^{2} \curr[\sdev]^{2}
+		+ \tfrac{3}{2}  \curr[\step]^{2} (\vbound^{2} + \curr[\bbound]^{2} + \curr[\sdev]^{2})
+		- \thres \probof{\prev[\tilde\eventalt]},
+\end{equation}
+where, by convention,
+%$\poldiam = \sup_{\dpoint} \norm{\nabla\energy(\policy)}$
+$\tilde\eventalt_{0} = \varnothing$ and $\beforeinit[\tilde\toterr] = 0$.
+\end{enumerate}
+\end{lemma}
+
+\begin{remark*}
+In the above (and what follows), the notation $\one_{A}$ is used to indicate the logical indicator of an event $A\subseteq\samples$, \ie $\one_{A}(\sample) = 1$ if $\sample\in A$ and $\one_{A}(\sample) = 0$ otherwise.
+\end{remark*}
+
+The proof of \cref{lem:events} is quite technical, so we first proceed to derive an important stability result based on this estimate.
+
+\begin{proposition}
+\label{prop:contain}
+Fix some confidence threshold $\conf>0$ and let $\curr$ be the sequence of play generated by \eqref{eq:PG} with step-size and policy gradient estimates as per \cref{thm:stable}.
+%that $\pexp + \bexp >1$ and $\pexp - \sexp > 1/2$ as per \cref{thm:stable}.
+We then have:
+\begin{equation}
+\label{eq:contain}
+\probof{\curr[\eventalt] \given \init\in\nhd}
+	\geq 1-\conf
+	\quad
+	\text{for all $\run=\running$}
+\end{equation}
+provided that $\step$ is small enough \textpar{or $\runoff$ large enough} relative to $\conf$.
+\end{proposition}
+
+\begin{proof}
+We begin by bounding the probability of the ``bad realization'' event $\curr[\tilde\eventalt] = \prev[\eventalt] \setminus \curr[\eventalt]$.
+Indeed, if $\init\in\nhd$, we have:
+\begin{align}
+\label{eq:prob-large1}
+\probof{\curr[\tilde\eventalt]}
+	&= \probof{\prev[\eventalt] \setminus \curr[\eventalt]}
+%	= \probof{\prev[\eventalt] \cap \{\curr[\toterr] > \thres\}}
+%	\notag\\
+	= \exof{\one_{\prev[\eventalt]} \times \oneof{\curr[\toterr] > \thres}}
+%	\notag\\
+	\leq \exof{\one_{\prev[\eventalt]} \times (\curr[\toterr] / \thres)}
+%	\notag\\
+	= \exof{\curr[\tilde\toterr]} / \thres
+\end{align}
+where, in the penultimate step, we used the fact that $\curr[\toterr] \geq 0$ (so $\oneof{\curr[\toterr]>\thres} \leq \curr[\toterr]/\thres$).
+Telescoping \eqref{eq:noise-tot-cond} then yields
+\begin{equation}
+\label{eq:prob-large2}
+\exof{\curr[\tilde\toterr]}
+	\leq \exof{\beforeinit[\tilde\toterr]}
+		+ \poldiam \sum_{\runalt=\start}^{\run} \iter[\step] \iter[\bbound]
+		+ \sum_{\runalt=\start}^{\run} \iter[\step]^{2} \iter[\varrho]^{2}
+		- \thres \sum_{\runalt=\start}^{\run} \probof{\beforeiter[\tilde\eventalt]}
+\end{equation}
+where we set
+\begin{equation}
+\curr[\varrho]^{2}
+	= \poldiam^{2} \curr[\sdev]^{2} + \tfrac{3}{2}  (\vbound^{2} + \curr[\bbound]^{2} + \curr[\sdev]^{2}).
+\end{equation}
+Hence, combining \eqref{eq:prob-large1} and \eqref{eq:prob-large2} and invoking our stated assumptions for $\curr[\step]$, $\curr[\bbound]$ and $\curr[\sdev]$, we get
+\begin{equation}
+\sum_{\runalt=\start}^{\run} \probof{\iter[\tilde\eventalt]}
+	\leq \frac{1}{\thres}
+		\sum_{\runalt=\start}^{\run}
+			\bracks{ \iter[\step] \iter[\bbound] \poldiam
+				+ \iter[\step]^{2} \iter[\varrho]^{2}}
+	\leq \frac{\Const}{\thres}
+\end{equation}
+for some $\Const \equiv \Const(\step,\runoff) > 0$ with $\lim_{\step\to0^{+}} \Const(\step,\runoff) = \lim_{\runoff\to\infty} \Const(\step,\runoff) = 0$ \revise{(since $\curr[\step] = \step / (\run+\runoff)^{\pexp}$ and $\pexp>0$)}.
+
+Now, by choosing $\step$ sufficiently small (or $\runoff$ sufficiently large), we can ensure that $\Const/\thres < \conf$;
+thus, given that the events $\iter[\tilde\eventalt]$ are disjoint for all $\runalt=\running$, we get
+\(
+%\begin{equation}
+\probof[\big]{\union_{\runalt=\start}^{\run} \iter[\tilde\eventalt]}
+	= \sum_{\runalt=\start}^{\run} \probof{\iter[\tilde\eventalt]}
+	\leq \conf.
+%\end{equation}
+\)
+In turn, this implies that
+\(
+%\begin{equation}
+\probof{\curr[\eventalt]}
+	= \probof[\big]{\comp{\init[\tilde\eventalt]} \cap \dotsi \cap \comp{\curr[\tilde\eventalt]}}
+	\geq 1 - \conf,
+%\end{equation}
+\)
+and our assertion follows.
+\end{proof}
+
+
+We conclude this appendix with the proof of our technical result on the events $\curr[\event]$ and $\curr[\eventalt]$:
+
+\begin{proof}[Proof of \cref{lem:events}]
+The first claim of the lemma is obvious.
+For the second, we proceed inductively:
+
+\begin{enumerate}[leftmargin=2.5em]
+\item
+For the base case $\run=\start$, we have $\init[\event] = \{\init \in \basin \} \supseteq \{\init \in \nhd \} = \samples$ (recall that $\init$ is initialized in $\nhd \subseteq \basin$).
+Since $\eventalt_{0} = \samples$, our claim follows.
+
+\item
+Inductively, assume that $\prev[\eventalt] \subseteq \curr[\event]$ for some $\run\geq\start$.
+To show that $\curr[\eventalt] \subseteq \next[\event]$,
+%fix a realization in $\curr[\eventalt]$ so
+suppose that $\iter[\toterr] \leq \thres$ for all $\runalt=\running,\run$.
+Since $\curr[\eventalt] \subseteq \prev[\eventalt]$, this implies that $\curr[\event]$ also occurs, \ie $\iter\in\basin$ for all $\runalt=\running,\run$;
+as such, it suffices to show that $\next\in\basin$.
+To do so, given that $\iter\in\nhd\subseteq\basin$ for all $\runalt=\running\run$,
+we readily obtain
+%telescoping the bound \eqref{eq:template} over $\runalt = \running,\run$ gives
+\begin{equation}
+\afteriter[\energy]
+	\leq \iter[\energy]
+		+ \iter[\step] \iter[\snoise]
+		+ \iter[\step] \iter[\sbias]
+		+ \iter[\step]^{2} \iter[\second]^{2},
+	\quad
+	\text{for all $\runalt = \running\run$},
+\end{equation}
+and hence, after telescoping over $\runalt = \running,\run$, we get
+\begin{equation}
+\next[\energy]
+	\leq \init[\energy]
+		+ \curr[\mart]
+%		+ \curr[\Psi]
+		+ \curr[\submart]
+	\leq \init[\energy]
+		+ \sqrt{\curr[\toterr]}
+%		+ \curr[\Psi]
+		+ \curr[\toterr]
+	\leq \thres
+		+ \sqrt{\thres}
+%		+ \thres
+		+ \thres
+	= 2\thres + \sqrt{\thres}.
+\end{equation}
+%by the inductive hypothesis.
+We conclude that $\energy(\next) \leq 2\thres + \sqrt{\thres}$, \ie $\next\in\basin$, as required for the induction.
+\end{enumerate}
+
+For our third claim, note first that
+\begin{align}
+\label{eq:noise-tot-upd}
+\curr[\toterr]
+	&= (\prev[\mart] + \curr[\step]\curr[\snoise])^{2}
+		+ \prev[\submart]
+		+ \curr[\step] \curr[\sbias]
+		+ \curr[\step]^{2} \curr[\second]^{2}
+	\notag\\
+	&= \prev[\toterr]
+		+ 2 \curr[\step] \curr[\snoise] \prev[\mart]
+		+ \curr[\step]^{2} \curr[\snoise]^{2}
+		+ \curr[\step] \curr[\sbias]
+		+ \curr[\step]^{2} \curr[\second]^{2},
+\end{align}
+so, after taking expectations, we get
+\begin{align}
+\exof{\curr[\toterr] \given \curr[\filter]}
+	= \prev[\toterr]
+		+ 2 \prev[\mart] \curr[\step] \exof{\curr[\snoise] \given \curr[\filter]}
+		+ \exof{
+			\curr[\step]^{2} \curr[\snoise]^{2}
+			+ \curr[\step] \curr[\sbias]
+			+ \curr[\step]^{2} \curr[\second]^{2}
+			\given \curr[\filter] }
+	\geq \prev[\toterr],
+\end{align}
+\ie $\curr[\toterr]$ is a submartingale.
+To proceed, let $\curr[\tilde\toterr] = \curr[\toterr] \one_{\prev[\eventalt]}
+$ so
+\begin{align}
+\label{eq:noise-tot-cond1}
+\curr[\tilde\toterr]
+	= \curr[\toterr] \one_{\prev[\eventalt]}
+	&= \prev[\toterr] \one_{\prev[\eventalt]}
+		+ (\curr[\toterr] - \prev[\toterr]) \one_{\prev[\eventalt]}
+	\notag\\
+	&= \prev[\toterr] \one_{\beforeprev[\eventalt]}
+		- \prev[\toterr] \one_{\prev[\tilde\eventalt]}
+		+ (\curr[\toterr] - \prev[\toterr]) \one_{\prev[\eventalt]},
+	\notag\\
+	&= \prev[\tilde\toterr]
+		+ (\curr[\toterr] - \prev[\toterr]) \one_{\prev[\eventalt]}
+		- \prev[\toterr] \one_{\prev[\tilde\eventalt]},
+\end{align}
+where we used the fact that $\prev[\eventalt] = \beforeprev[\eventalt] \setminus \prev[\tilde\eventalt]$ so $\one_{\prev[\eventalt]} = \one_{\beforeprev[\eventalt]} - \one_{\prev[\tilde\eventalt]}$ (since $\prev[\eventalt] \subseteq \beforeprev[\eventalt]$).
+Then, \eqref{eq:noise-tot-upd} yields
+\begin{align}
+\curr[\toterr] - \prev[\toterr]
+		= 2 \prev[\mart] \curr[\step] \curr[\snoise]
+		+ \curr[\step]^{2} \curr[\snoise]^{2}
+		+ \curr[\step] \curr[\sbias]
+		+ \curr[\step]^{2} \curr[\second]^{2}
+\end{align}
+and hence, given that $\prev[\eventalt]$ is $\curr[\filter]$-measurable, we get:
+\begin{subequations}
+\begin{align}
+\exof{(\curr[\toterr] - \prev[\toterr]) \one_{\prev[\eventalt]}}
+	&\label{eq:noise-tot-zero}
+		= 2 \exof{\curr[\step] \prev[\mart]\curr[\snoise] \one_{\prev[\eventalt]}}
+	\\
+	&\label{eq:noise-tot-noise}
+		+ \exof{\curr[\step]^{2} \curr[\snoise]^{2} \one_{\prev[\eventalt]}}
+	\\
+	&\label{eq:noise-tot-signal}
+		+ \exof{(\curr[\step]\curr[\sbias] + \curr[\step]^{2} \curr[\second]^{2}) \one_{\prev[\eventalt]}}.
+\end{align}
+\end{subequations}
+However, since $\prev[\eventalt]$ and $\prev[\mart]$ are both $\curr[\filter]$-measurable, we have the following estimates:
+
+\begin{enumerate}
+\item
+For the noise term in \eqref{eq:noise-tot-zero}, we have:
+\begin{equation}
+\exof{\prev[\mart] \curr[\snoise] \one_{\prev[\eventalt]}}
+	= \exof{\prev[\mart] \one_{\prev[\eventalt]} \exof{\curr[\snoise] \given \curr[\filter]}}
+	= 0.
+\end{equation}
+
+\item
+The term \eqref{eq:noise-tot-noise} is where the reduction to $\prev[\eventalt]$ kicks in;
+indeed, we have:
+\begin{align}
+\exof{\curr[\snoise]^{2} \one_{\prev[\eventalt]}}
+	&= \exof{\one_{\prev[\eventalt]} \exof{ \abs{\braket{\curr - \eq}{\curr[\noise]}}^{2}
+		\given \curr[\filter]} }
+	\notag\\
+	&\leq \exof{\one_{\prev[\eventalt]} \norm{\curr - \eq}^{2} \exof{\dnorm{\curr[\noise]}^{2}
+		\given \curr[\filter]}}
+	\explain{by Cauchy\textendash Schwarz}
+	\\
+%	&\leq \exof{\one_{\curr[\event]} \norm{\curr - \eq}^{2} \exof{\dnorm{\curr[\noise]}^{2}
+%		\given \curr[\filter]}}
+%	\explain{because $\prev[\eventalt] \subseteq \curr[\event]$}
+%	\\
+	&\leq \poldiam^{2} \curr[\sdev]^{2}.
+%	\explain{by \cref{eq:variance}}
+\end{align}
+
+\item
+Finally, for the term \eqref{eq:noise-tot-signal}, we have:
+\begin{align}
+\label{eq:noise-tot-term1}
+\exof{\curr[\second]^{2} \one_{\prev[\eventalt]}}
+	\leq \tfrac{3}{2}  \bracks{ \vbound^{2} + \curr[\bbound]^{2} + \curr[\sdev]^{2} }
+\end{align}
+where we used the bound $\dnorm{\gvalue(\policy)} \leq \vbound$.
+Likewise, $\curr[\sbias] \one_{\prev[\eventalt]} \leq \poldiam \curr[\bbound]$, so
+\begin{align}
+\label{eq:noise-tot-term2}
+\eqref{eq:noise-tot-signal}
+	&\leq \curr[\step] \poldiam \curr[\bbound]
+		+ \tfrac{3}{2}  \curr[\step]^{2} (\vbound^{2} + \curr[\bbound]^{2} + \curr[\sdev]^{2})
+\end{align}
+\end{enumerate}
+Thus, putting together all of the above, we obtain:
+\begin{equation}
+\exof{(\curr[\toterr] - \prev[\toterr]) \one_{\prev[\eventalt]}}
+	\leq \curr[\step] \poldiam \curr[\bbound]
+		+ \curr[\step]^{2} \poldiam^{2} \curr[\sdev]^{2}
+		+ \tfrac{3}{2}  \curr[\step]^{2} (\vbound^{2} + \curr[\bbound]^{2} + \curr[\sdev]^{2})
+\end{equation}
+Going back to \eqref{eq:noise-tot-cond1}, we have $\prev[\toterr] > \thres$ if $\prev[\tilde\eventalt]$ occurs, so the last term becomes
+\begin{equation}
+\label{eq:noise-tot-term3}
+\exof{\prev[\toterr] \one_{\prev[\tilde\eventalt]}}
+	\geq \thres \exof{\one_{\prev[\tilde\eventalt]}}
+	= \thres \probof{\prev[\tilde\eventalt]}.
+\end{equation}
+Our claim then follows by combining \cref{eq:noise-tot-cond1,eq:noise-tot-term1,,eq:noise-tot-term2,eq:noise-tot-term3}.
+\end{proof}
+
+
+
+%----------------------------------------------------------------------
+%% Subsequence
+%----------------------------------------------------------------------
+\subsection{Extraction of a convergent subsequence}
+
+Our next step is to show that any realization $\curr$ of \eqref{eq:PG} that is contained in $\basin$ admits a subsequence $\state_{\run_{\runalt}}$ converging to $\eq$.
+%Formally, we have:
+
+\begin{proposition}
+\label{prop:subsequence}
+Let $\eq$ be a stable Nash policy, and let $\curr$ be the sequence of play generated by \eqref{eq:PG} with step-size and policy gradient estimates such that $\pexp + \bexp >1$ and $\pexp - \sexp > 1/2$ as per \eqref{eq:schedule}.
+Then $\curr$ admits a subsequence $\state_{\run_{\runalt}}$ that converges to $\eq$ \acl{wp1} on the event $\event = \intersect_{\run} \curr[\event] = \{\curr\in\basin \text{ for all } \run=\running\}$.
+\end{proposition}
+
+\begin{proof}
+Let $\mathcal{Q} = \{ \text{$\curr\in\basin$ for all $\run$} \} \cap \{ \liminf_{\run} \norm{\curr - \eq} > 0 \}$ denote the event that $\curr$ is contained in $\basin$ but the sequence $\curr$ does not admit a subsequence converging to $\eq$.
+We will show that $\probof{\mathcal{Q}} = 0$.
+
+Indeed, assume ad absurdum that $\probof{\mathcal{Q}} > 0$.
+Hence, \acl{wp1} on $\mathcal{Q}$, there exists some positive constant $\const>0$ (again, possibly random) such that $\braket{\gvalue(\curr)}{\curr - \eq} \leq -\const < 0$ for all $\run$.
+Thus, going back to \eqref{eq:energy}, we get
+\begin{equation}
+\next[\energy]
+	\leq \curr[\energy]
+		- \curr[\step] \const
+		+ \curr[\step] \curr[\snoise]
+		+ \curr[\step] \curr[\sbias]
+		+ \curr[\step]^{2} \curr[\second]^{2},
+\end{equation}
+so if we let $\curr[\tau] = \sum_{\runalt=\start}^{\run} \iter[\step]$ and telescope the above, we obtain the bound
+\begin{equation}
+\label{eq:energy-bound1}
+\next[\energy]
+	\leq \init[\energy]
+		- \curr[\tau] \bracks*{
+			\const
+			- \frac{\curr[\mart]}{\curr[\tau]}
+			- \frac{\curr[\submart]}{\curr[\tau]}
+%			- \frac{\sum_{\runalt=\start}^{\run} \curr[\step]\curr[\snoise]}{\curr[\tau]}
+%			- \frac{\sum_{\runalt=\start}^{\run} \curr[\step]\curr[\sbias]}{\curr[\tau]}
+%			- \frac{\sum_{\runalt=\start}^{\run} \curr[\step]^{2} \curr[\second]^{2}}{\curr[\tau]}
+		}	% end bracks
+\end{equation}
+with $\curr[\snoise]$,
+$\curr[\sbias]$
+and
+$\curr[\second]$ given by \eqref{eq:errors},
+and
+$\curr[\mart] = \sum_{\runalt=\start}^{\run} \iter[\step] \iter[\snoise]$,
+$\curr[\submart] = \sum_{\runalt=\start}^{\run} \bracks{\iter[\step] \iter[\sbias] + \iter[\step]^{2} \iter[\second]^{2}}$
+defined as in \eqref{eq:err-agg}.
+Also, \eqref{eq:errorbounds} readily gives
+\begin{equation}
+\sum_{\run=\start}^{\infty} \exof{\curr[\step]^{2} \curr[\snoise]^{2} \given \curr[\filter]}
+	\leq \sum_{\run=\start}^{\infty} \curr[\step]^{2} \exof{ \norm{\curr - \eq}^{2} \dnorm{\curr[\noise]}^{2} \given \curr[\filter]}
+	\leq \poldiam^{2} \sum_{\run=\start}^{\infty} \curr[\step]^{2} \curr[\sdev]^{2}
+	< \infty
+\end{equation}
+so, by the strong law of large numbers for martingale difference sequences \citep[Theorem 2.18]{HH80}, we conclude that $\curr[\mart] / \curr[\tau]$ converges to $0$ \acl{wp1}.
+In a similar vein, for the submartingale $\curr[\submart]$ we have
+\begin{align}
+\exof{\curr[\submart]}
+	&= \sum_{\runalt=\start}^{\run}
+		\iter[\step] \iter[\sbias]
+		+ \sum_{\runalt=\start}^{\run} \iter[\step]^{2} \exof{\iter[\second]^{2}}
+%	\notag\\
+	\leq \poldiam \sum_{\runalt=\start}^{\run} \iter[\step] \iter[\bbound]
+		+ \frac{3}{2} \sum_{\runalt=\start}^{\run} \iter[\step]^{2}
+			\bracks{\vbound^{2} + \iter[\bbound]^{2} + \iter[\sdev]^{2}},
+\end{align}
+so, by \eqref{eq:errorbounds} and the stated conditions for the method's step-size and bias/noise parameters, it follows that $\curr[\submart]$ is bounded in $L^{1}$.
+Therefore, by Doob's submartingale convergence theorem \citep[Theorem~2.5]{HH80}, we further deduce that $\curr[\submart]$ converges \acl{wp1} to some (finite) random variable $\submart_{\infty}$.
+%which implies in turn that $\lim_{\run\to\infty} \curr[\submart] / \curr[\tau] = 0$ \as.
+
+Going back to \eqref{eq:energy-bound1} and letting $\run\to\infty$, the above shows that $\curr[\energy] \to -\infty$ \acl{wp1} on $\mathcal{Q}$.
+Since $\energy$ is nonnegative by construction and $\probof{\mathcal{Q}} > 0$ by assumption, we obtain a contradiction and our proof is complete.
+\end{proof}
+
+
+
+%----------------------------------------------------------------------
+%% Energy values
+%----------------------------------------------------------------------
+\subsection{Convergence of the energy values}
+
+Our last auxiliary result concerns the convergence of the values of the dual energy function $\energy$.
+We encode this as follows.
+
+\begin{proposition}
+\label{prop:energy}
+If \eqref{eq:PG} is run with assumptions as in \cref{prop:contain}, there exists a finite random variable $\energy_{\infty}$ such that
+\begin{equation}
+\label{eq:energy-conv}
+\probof*{\text{$\curr[\energy] \to \energy_{\infty}$ as $\run\to\infty$} \given \text{$\curr\in\basin$ for all $\run$}}
+	= 1.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Let $\curr[\event] = \braces*{\iter\in\basin \; \text{for all $\runalt=\running,\run$}}$ be defined as in \eqref{eq:events}, and let $\curr[\tilde\energy] = \one_{\curr[\event]} \curr[\energy]$.
+Then, by the energy inequality \eqref{eq:template} and the fact that $\next[\event] \subseteq \curr[\event]$, we get
+\begin{align}
+\next[\tilde\energy]
+	= \one_{\next[\event]} \next[\energy]
+	&\leq \one_{\curr[\event]} \next[\energy]
+	\notag\\
+	&\leq \one_{\curr[\event]} \curr[\energy]
+		+ \one_{\curr[\event]} \curr[\step] \braket{\gvalue(\curr)}{\curr - \eq}
+		+ \parens[\big]{
+			\curr[\step] \curr[\snoise]
+			+ \curr[\step] \curr[\sbias]
+			+ \curr[\step]^{2} \curr[\second]^{2}
+			} % end bracks
+			\one_{\curr[\event]}
+	\notag\\
+	&\leq \curr[\tilde\energy]
+		+ \curr[\step] \one_{\curr[\event]} \curr[\snoise]
+		+ \parens[\big]{
+			\curr[\step] \curr[\sbias]
+			+ \curr[\step]^{2} \curr[\second]^{2}
+			} % end bracks
+			\one_{\curr[\event]},
+\end{align}
+where we used the fact that that $\braket{\gvalue(\iter)}{\iter - \eq} \leq 0$ for all $\runalt = \running,\run$ if $\curr[\event]$ occurs.
+Since $\curr[\event]$ is $\curr[\filter]$-measurable, conditioning on $\curr[\filter]$ and taking expectations yields
+\begin{align}
+\exof{\next[\tilde\energy] \given \curr[\filter]}
+	&\leq \curr[\tilde\energy]
+		+ \curr[\step] \one_{\curr[\event]} \exof{\curr[\snoise] \given \curr[\filter]}
+		+ \one_{\curr[\event]} \curr[\step] \curr[\sbias]
+		+ \one_{\curr[\event]} \exof{\curr[\step]^{2} \curr[\second]^{2} \given \curr[\filter]}
+	\notag\\
+	&\leq \curr[\tilde\energy]
+		+ \curr[\step] \poldiam \curr[\bbound]
+		+ \curr[\step] \curr[\sbias]
+		+ \exof{\curr[\step]^{2} \curr[\second]^{2} \given \curr[\filter]}
+	\notag\\
+	&\leq \curr[\tilde\energy]
+		+ \curr[\step] \poldiam \curr[\bbound]
+		+ \frac{3}{2} \bracks[\big]{ \vbound^{2} + \curr[\bbound]^{2} + \curr[\sdev]^{2}}.
+\end{align}
+By our step-size assumptions, we have $\sum_{\run} \curr[\step]^{2} (1 + \curr[\bbound]^{2} + \curr[\sdev]^{2}) < \infty$ and $\sum_{\run} \curr[\step] \curr[\bbound] < \infty$, which means that $\curr[\tilde\energy]$ is an almost supermartingale with almost surely summable increments, \ie
+\begin{equation}
+\sum_{\run=\start}^{\infty} \bracks*{\exof{\next[\tilde\energy] \given \curr[\filter]} - \curr[\tilde\energy]}
+	< \infty
+	\quad
+	\text{\acl{wp1}}
+\end{equation}
+Therefore, by Gladyshev's lemma \citep[p.~49]{Pol87}, we conclude that $\curr[\tilde\energy]$ converges almost surely to some (finite) random variable $\energy_{\infty}$.
+Since $\one_{\curr[\event]} = 1$ for all $\run$ if and only if $\curr\in\basin$ for all $\run$, we conclude that $\probof*{\text{$\curr[\energy]$ converges} \given \text{$\curr\in\basin$ for all $\run$}} = \probof{\text{$\curr[\tilde\energy]$ converges}}= 1$, and our claim follows.
+% \KL{Maybe $\probof{\text{$\curr[\tilde\energy]$ converges} \given  \text{$\curr\in\basin$ for all $\run$}}$}
+% \PM{Recall the definition of $\curr[\tilde\energy]$, it subsumes this.}
+\end{proof}
+
+
+%----------------------------------------------------------------------
+%% Proof of theorem
+%----------------------------------------------------------------------
+\subsection{Putting everything together}
+We are now in a position to prove \cref{thm:stable,cor:stable}.
+
+
+\begin{proof}[Proof of \cref{thm:stable}]
+Let $\event = \intersect_{\run} \curr[\event] = \{\text{$\curr\in\basin$ for all $\run$} \}$ denote the event that $\curr$ lies in $\basin$ for all $\run$.
+By \cref{prop:contain}, if $\init$ is initialized within the neighborhood $\nhd$ defined in \eqref{eq:nhd-init}, we have $\probof{\event \given \init\in\nhd} \geq 1-\thres$, noting also that the neighborhood $\nhd$ is independent of the required confidence level $\thres$.
+Then, by \cref{prop:subsequence,prop:energy}, it follows that
+\begin{enumerate*}
+[\itshape a\upshape)]
+\item
+$\liminf_{\run} \norm{\curr - \eq} = 0$;
+and
+\item
+$\curr[\energy]$ converges,
+\end{enumerate*}
+both events occurring \acl{wp1} on the set $\event \cap \{ \init\in\nhd \}$.
+We thus conclude that $\lim_{\run\to\infty} \curr[\energy] = 0$ and hence
+\begin{align*}
+\probof{ \curr\to\eq \given \init \in \nhd}
+	&\geq \probof{ \event \cap \{ \curr\to\eq \} \given \init \in \nhd}
+	\notag\\
+	&= \probof{ \curr\to\eq \given \init \in \nhd, \event}
+		\times \probof{\event \given \init \in \nhd}
+	\geq 1 - \conf,
+\end{align*}
+and our proof is complete.
+\end{proof}
+
+
+\begin{proof}[Proof of \cref{cor:stable}]
+For \cref{mod:full,mod:stoch}, taking $\bexp = \infty, \sexp = 0$, we obtain $\pexp > 1/2$. Since we have that $\sum_{\run=1}^{\infty}\step_\run = \infty$, we get that $\pexp \leq 1$, i.e., $\pexp \in (1/2,1]$.
+
+For \cref{mod:value}, we have that $\curr[\bbound] = \bigoh(\curr[\expar])$ and $\curr[\sdev] = \bigoh(1/\sqrt{\curr[\expar]})$, i.e., $\bexp = \rexp$ and $\sexp = \rexp/2$. Now, since $\pexp \leq 1$, $\pexp + \bexp >1$ and $\pexp - \sexp > 1/2$, we obtain that $\pexp \in (2/3,1]$ and $(1-p)/2 < r/2 < p - 1/2$.
+\end{proof}

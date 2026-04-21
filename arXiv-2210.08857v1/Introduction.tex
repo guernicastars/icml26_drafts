@@ -1,0 +1,85 @@
+%----------------------------------------------------------------------
+%%% INTRODUCTION
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+Ever since they were introduced by \citet{Sha53} in the 1950's, stochastic games have been one of the staples of non-cooperative game theory, with a range of pioneering applications to
+multi-agent reinforcement learning \cite{SLB08},
+%\cite{jin2021v,Brown20:Combining,Zhang18Decentralized},
+unmanned vehicles \cite{shalev2016safe},
+%\cite{shalev2016safe,cao2020reinforcement, Sallab_2017,Makantasis2019,wulfmeier2017large},
+general game-playing \cite{Silver17:Mastering,Vinyals19:Grandmaster,Mora17:DeepStack},
+etc.
+%\cite{Silver17:Mastering,Vinyals19:Grandmaster,Mora17:DeepStack,Brown18:Superhuman, Brown19:Superhuman},
+%\cf \cite{Silver17:Mastering,shalev2016safe,Vinyals19:Grandmaster,Mora17:DeepStack} and references therein.
+Informally, a stochastic game unfolds in discrete time as follows:
+At each point in time, the players are at a given state which determines the rules of the game for that stage.
+The actions of the players in this state determine not only their instantaneous payoffs (as defined by the stage game), but also the transition probabilities towards the next state of the process.
+In this way, each player has to balance two distinct \textendash\ and often competing \textendash\ objectives:
+optimizing the payoffs of \emph{today} versus picking a possibly suboptimal action which could yield significant benefits \emph{tomorrow} (\ie by influencing the transitions of the process towards a more favorable state for the player).
+
+Since all players in the game are involved in a similar dilemma, the decision-making problem for each player is a very complicated affair.
+In particular, in addition to their changing strategic decisions, the players of the game must also contend with the fact that the stage game itself evolves over time.
+Because of this, even the existence of a Nash equilibrium policy \textendash\ viz. a stationary Markovian policy that is stable to unilateral deviations \cite{fink1964equilibrium} \textendash\ is far more difficult to prove compared to standard, stateless normal form games;
+for a comprehensive survey, \cf \cite{NS03,solan2015stochastic} and references therein.
+
+The question we seek to address in this paper is whether an ensemble of boundedly rational players can reach an equilibrium policy in a stochastic game.
+Specifically, if players do not have sufficient information \textendash\ or the computational resources required \textendash\ to solve a high-dimensional Bellman equation \cite{FilVri97,SB98}, it is not at all clear if they would somehow end up playing a Nash policy in the long run.
+After all, the complexity of most games increases exponentially with the number of players, so the identification of a game's equilibria quickly becomes prohibitively difficult \cite{Yujia22:The}.
+
+
+%----------------------------------------------------------------------
+%% Policies
+%----------------------------------------------------------------------
+\para{Our contributions in the context of related work}
+
+This issue has sparked a vigorous literature with important ramifications for the range of applications mentioned above.
+Nevertheless, these efforts must grapple with a series of strong lower bounds for computing even weaker solution concepts like coarse correlated equilibria in turn-based stochastic games \cite{daskalakis2022complexity, Yujia22:The}.
+On that account, a recent line of work has focused on establishing convergence in \emph{specific} subclasses of stochastic games, such as \emph{min-max} \cite{LPX20,daskalakis2020independent,Wei21:Last,Sayin20:Fictitious,Sayin21:Decentralized,Cen21:Fast} and common interest \emph{potential} games \cite{LOPP22,ding2022independent,zhang2021gradient}.
+However, despite these encouraging results, the general case remains particularly elusive.
+%or computing relaxed solution concepts where either the stationarity or the Markov property has been dropped \cite{daskalakis2022complexity}.
+
+Our paper takes a complementary approach to the above and seeks to study the convergence landscape of a class of \emph{equilibrium policies} \textendash\ not \emph{games}.
+For concreteness, we focus on the general class of policy gradient methods as pioneered by \cite{sutton1999policy,williams1992simple,kakade2001natural,konda1999actor}, and we examine the methods' convergence properties in general random stopping games \textendash\ as opposed to ergodic stochastic games with an infinite horizon \cite{Per13,LPX20}.
+%and subsequently popularized in single-agent reinforcement learning by \cite{agarwal2021theory,xiao2022convergence,jin2018q,pmlr-v119-cai20d,Ratliff2014,chasnov20a}.
+Concretely, this means that the sequence of play evolves episode-by-episode:
+within each episode, the players commit a policy and play the game, and from one episode to the next, they use an iterative gradient step to update their policy and continue playing.
+
+Our main contributions in this general context may be summarized as follows:
+\begin{enumerate}
+\item
+We introduce a flexible algorithmic template for the analysis of policy gradient methods which accounts for different information and update frameworks \textendash\ from perfect policy gradients to value-based estimates obtained on a per-episode basis, \eg via the \reinforce algorithm \cite{williams1992simple,sutton1999policy,baxter2001infinite}.
+\item
+Within this framework, we show that Nash policies that satisfy a certain strategic stability condition are locally attracting with arbitrarily high probability.
+Moreover, to estimate the method's rate of convergence, we focus on Nash policies that satisfy a second-order sufficiency condition similar to the type of sufficiency conditions used in optimization, and we show that such policies enjoy an $\bigoh(1/\sqrt{\run})$ squared distance convergence rate.
+\item
+Finally, we also consider the method's convergence to \emph{deterministic} Nash policies \textendash\ a special case of \ac{SOS} policies \textendash\ and we show that, generically, the above rate can be improved dramatically.
+In particular, by a simple tweak to the method's projection step, the induced sequence of play converges to equilibrium in a \emph{finite} number of iterations, despite all the noise and uncertainty.
+\end{enumerate}
+
+It is also worth noting that our analysis focuses squarely on the actual, episode-by-episode trajectory of play, not any ``best-iterate'' or time-averaged variant thereof.
+\beginrev
+In regards to the latter class of guarantees, the recent work of \citet{JLWY21} proposed an algorithm (called V-learning) which updates the policy $\policy_{\run}$ of the $\run$-th episode based on the observed rewards so far.
+Thanks to the algorithm's regret guarantees, \citet{JLWY21} showed that
+\begin{enumerate*}
+[(\itshape a\upshape)]
+\item
+in min-max games, the time-averaged policy $\bar\state_{\run} = (1/\run) \sum_{\runalt=\start}^{\run} \iter$ converges to equilibrium at a rate of $\bigoh(1/\sqrt{\run})$;
+whereas
+\item
+in \emph{general} stochastic games, the empirical frequency of play converges to the game's set of coarse correlated equilibria (a substantial relaxation of the notion of Nash equilibrium) at a rate of $\bigoh(1/\sqrt{\run})$.
+\end{enumerate*}
+
+By contrast, as we mentioned above, our paper focuses on the \emph{actual} sequence of play, \ie the policy $\curr$ employed at each episode of the game.
+%as opposed to its episodic time-average.
+Moreover, the rates that we obtain all concern the convergence of the players' policies to a \emph{Nash} equilibrium \textendash\ not a correlated equilibrium or other relaxation thereof.
+In this regard, the best-iterate / ergodic convergence rates are incomparable to our own as they concern a weaker type of convergence (time-averaged instead of the actual sequence), and to a weaker solution concept (correlated equilibria instead of Nash equilibria).
+\endedit
+% the versatility of our model enables us to derive that go beyond the so-called ``best-iterate'' guarantees that are commonly used in the aforementioned literature.
+%In addition, obtaining guarantees using stochastic estimators (\cf \reinforce) greatly alleviate the burden of exact gradient computations that are otherwise beyond reach in low-compute / low-memory practical environments.
+This aspect of our results is especially relevant for multi-agent reinforcement learning scenarios where agents learn ``on the fly'', and it has important ramifications for many of the practical applications of stochastic games.
+
+From a technical standpoint, our analysis is based on mapping the problem of multi-agent policy learning to the problem of equilibrium learning in a class of continuous games characterized by the fact that first-order stationary points are necessarily Nash (itself a consequence of the so-called ``gradient dominance'' property of stochastic games).
+By means of this reframing, we are able to leverage a series of recent techniques for establishing local convergence in (non-monotone) continuous games and \aclp{VI} \citep{RBS16,CRMB20,MZ19,HIMM19,HIMM20,AIMM21}, which ultimately also yield convergence in our setting.
+As a result, even though the unbounded variance of the \reinforce estimator is a source of considerable complications, the resulting link between stochastic and continuous games is of particular technical interest because it opens up a wide array of stochastic approximation tools and techniques that can be used for the analysis of multi-agent learning in stochastic games.

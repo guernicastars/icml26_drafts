@@ -1,0 +1,776 @@
+%----------------------------------------------------------------------
+%% APP: MARL
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+%\begin{tcolorbox}[enhanced,width=5.5in, drop fuzzy shadow southwest,	boxrule=0.4pt,sharp corners,colframe=black!80!black,colback=white!10]\small
+In this appendix we will establish the required properties for the gradient of the players' value function.
+More precisely, we prove the following intermediate results:
+\begin{itemize}[topsep=0pt,leftmargin=2ex]
+%\setlength{\itemsep}{0pt}
+%\setlength{\parskip}{.2ex}
+\item In \cref{lem:well-defined-visitation-distribution} we prove that in the random stopping episodic framework visitation the notion of discounted state visitation distribution is well-defined.
+\item In \cref{lem:conversion}, we prove the conversion lemma, a standard lemma that connects a sample by visitation distribution and a random trajectory.
+\item In \cref{lem:GradientViaQ}, we establish different versions of Policy Gradient theorem via $Q$-value function for the random stopping episodic framework.
+\item In \cref{lem:boundness,lem:smoothness}, we establish the boundedness and the Lipschitz smoothness of policy gradient vector field, i.e., 
+$\gvalue(\policy)=(\gvalue_{\play}(\policy))_{\play\in\players} $
+where
+$\gvalue_{\play}(\policy) = \nabla_{\policy_{\play}} \rvalue_{\play,\rstate}(\policy)$
+\end{itemize}
+%\end{tcolorbox}
+
+For a policy profile $\policy \in \policies$ and an arbitrary initial state distribution $\rstate_\tstart\sim\stateDist$, let's recall the definition of  discounted state visitation measure/distribution as
+\begin{equation*}
+		\visitMeas{\stateDist}{\policy}\parens{\rstate} =\ex_{\traj \sim \MDP}\bracks*{\insum_{\time =\tstart}^{\stopTime\parens{\traj}}\one\braces{\rstate_{\time}=\rstate} \Big| \rstate_\tstart \sim \stateDist},\quad	\visitDistr{\stateDist}{\policy}\parens{\rstate} \defeq \visitMeas{\stateDist}{\policy}\parens{\rstate}/\normConst{\stateDist}{\policy}
+\end{equation*}
+% In the paper's supplement, we prove formally that the above definition is well-posed for the random stopping episodic framework described above, \ie
+% \begin{enumerate*}
+% [\itshape a\upshape)]
+% \item
+% $\visitMeas{\stateDist}{\policy}\parens{\rstate}<\infty$;
+% and
+% \item
+% $\normConst{\stateDist}{\policy}=\ex_{\rstate\sim \unif(\states) }\bracks*{\visitMeas{\stateDist}{\policy}\parens{\rstate}}$.
+% \end{enumerate*}\AG{Do we prove b?? We just define it right?}
+% In our proofs, we will leverage a standard property of visitation distributions, namely the equivalence of the expected value of state-action function and the expected cumulative value over a random trajectory.
+To begin with, we prove formally that the above definition is well-posed for the random stopping episodic framework described above, \ie
+$\visitMeas{\stateDist}{\policy}\parens{\rstate}<\infty$,
+so 
+$\normConst{\stateDist}{\policy}\defeq\sum_{\rstate\in\states }\visitMeas{\stateDist}{\policy}\parens{\rstate}$
+is well-defined.
+
+
+\begin{lemma}\label{lem:well-defined-visitation-distribution}
+For any $\rstate \in \states$, $\visitMeas{\stateDist}{\policy}\parens{\rstate} < \infty$ and $\normConst{\stateDist}{\policy}\leq \tfrac{1}{\stopPr}$.
+\end{lemma}
+
+\begin{proof}
+For the sake of the proof, we define a new state $\rstate_f$, indicating that the game has stopped. In other words, we have that $\probof{\rstate_f \given \rstate, \pure} = \stopPr_{\rstate,\pure} \geq \stopPr >0$ for all $\pure \in \pures, \rstate \in \states$. Hence, for $\rstate \in \states$ we obtain:
+\begin{align*}
+\visitMeas{\stateDist}{\policy}\parens{\rstate} &=\ex_{\traj \sim \MDP}\bracks*{\insum_{\time =\tstart}^{\stopTime\parens{\traj}}\one\braces{\rstate_{\time}=\rstate} \Big| \rstate_\tstart \sim \stateDist}
+	\notag\\
+	&=\ex_{\traj \sim \MDP}\left[\sum_{\time=\tstart}^{\infty}\one\{\rstate_\time = \rstate, \rstate_{i} \neq \rstate_f,  1 \leq i \leq t\} \vert \rstate_\tstart \sim \stateDist\right]
+	\notag\\
+	&\leq \sum_{\rstate\in\states} \visitMeas{\stateDist}{\policy}\parens{\rstate}
+%	\notag\\
+	=\ex_{\traj \sim \MDP}\left[\sum_{\time=\tstart}^{\infty}\one\{\rstate_{i} \neq \rstate_f,  1 \leq i \leq \time\} \vert \rstate_\tstart \sim \stateDist\right]
+	\notag\\
+	&= \sum_{\time=\tstart}^{\infty}\probof{\rstate_{i} \neq \rstate_f,  1 \leq i \leq t \given \rstate_\tstart \sim \stateDist}
+	\notag\\
+	&= \sum_{\time=\tstart}^{\infty} \prod_{i = 1}^{\time} \probof{\rstate_{i} \neq \rstate_f \given \rstate_\tstart \sim \stateDist, \rstate_{j} \neq \rstate_f, 1 \leq j \leq i-1}
+	\notag\\
+	&\leq \sum_{\time=\tstart}^{\infty} (1-\stopPr)^{\time}\leq \frac{1}{\stopPr}
+%	\notag\\
+	< \infty.
+	\qedhere
+\end{align*}
+\end{proof}
+
+\ConversionLemma*
+
+\begin{proof}
+\begin{align}
+	 \ex_{\traj \sim \MDP}\bracks*{\insum_{\time =\tstart}^{\stopTime\parens{\traj}}f( \rstate_\time, \pure_\time)}
+ 	&= \sum_{\time = \tstart}^{\infty}\sum_{\rstate \in \states}\sum_{\pure \in \pures} \ex_{\traj\sim\MDP}\left[\one\{\time\leq T(\traj), \rstate_\time = \rstate, \pure_\time = \pure\} f(\rstate, \pure) \right] \notag\\
+	&= \sum_{\rstate \in \states}\sum_{\time = \tstart}^{\infty}\sum_{\pure \in \pures} \prob^{\policy}(\rstate = \rstate_\time \vert \rstate_{\tstart}\sim \stateDist) \policy(\pure \vert \rstate)f(\rstate, \pure) \notag\\
+	&= \sum_{\rstate \in \states}\sum_{\time = \tstart}^{\infty}\prob^{\policy}(\rstate = \rstate_\time \vert \rstate_{\tstart}\sim \stateDist)\sum_{\pure \in \pures}  \policy(\pure \vert \rstate)f(\rstate, \pure) \notag\\
+	&= \sum_{\rstate \in \states}\dpol_{\stateDist}(\rstate) \ex_{\pure \sim \policy(\cdot \vert \rstate)}\left[f(\rstate, \pure)\right]\notag\\
+ 	&= \normConst{\stateDist}{\policy}
+  \ex_{\rstate\sim\visitDistr{\stateDist}{\policy}}\ex_{\pure\sim\policy(\cdot \vert \rstate)}\bracks*{f(\rstate, \pure)}
+\end{align}
+where $\normConst{\stateDist}{\policy}\defeq\ex_{\rstate\sim \unif(\states) }\bracks[\big]{\visitMeas{\stateDist}{\policy}\parens{\rstate}}\cdot\abs*{\states}$ is well-defined by \cref{lem:well-defined-visitation-distribution}.
+\end{proof}
+
+A compact reformulation the aforementioned lemma is via the matrix representation of the discounted visitation distribution:
+
+\begin{lemma}[Conversion Lemma (Matrix form)]
+\label{lem:conversion-matrix}
+For an arbitrary state-action function $f\from\states\times \pures \to \R$ and a policy profile $\policy$, we have
+\begin{equation}
+\ex_{\traj \sim \MDP}\bracks*{\insum_{\time =\tstart}^{\stopTime\parens{\traj}}f(\rstate_\time, \pure_\time )\vert \pure_\tstart=\pure,\rstate_\tstart=\rstate}
+	=e_{\rstate,\pure}^\top\visitMatrix(\policy)f
+\end{equation}
+where $\visitMatrix$ is a  discounted visitation distribution (action-state)-matrix under poliy profile $\policy$ \ie $[\visitMatrix(\policy)]_{\underbrace{(\pure,\rstate)}_{\text{Row Index}}\to\underbrace{(\pure',\rstate')}_{\text{Column Index}}}= \sum_{\time = \tstart}^{\infty}\prob^{\policy}(\rstate_\time=\rstate' , \pure_\time=\pure'\vert \rstate_{\tstart}=\rstate, \pure_\tstart=\pure ) $
+%\tilde{P}^\policy[(\pure',\rstate')\gets (\pure,\rstate)]$
+\end{lemma}
+\begin{proof}
+By definition we have
+\begin{align*}
+e_{\rstate,\pure}^\top\visitMatrix(\policy)f
+	&= \braket{e_{\rstate,\pure}^\top\visitMatrix(\policy)}{f}
+	\notag\\
+	&=\sum_{\rstate' \in \states}\sum_{\pure' \in \pures}
+		\left(e_{\rstate,\pure}^\top\visitMatrix(\policy)\right)_{(\rstate',\pure')} \cdot f(\rstate',\pure')
+	\notag\\
+	&=\sum_{\rstate' \in \states}\sum_{\pure' \in \pures} 
+		e_{\rstate,\pure}^\top\visitMatrix(\policy)e_{\rstate',\pure'} \cdot f(\rstate',\pure')
+	\notag\\
+	&=\sum_{\rstate' \in \states}\sum_{\pure' \in \pures} 
+		\sum_{\time = \tstart}^{\infty}\prob^{\policy}(\rstate_\time=\rstate' , \pure_\time=\pure'\vert \rstate_{\tstart}=\rstate, \pure_\tstart=\pure )\cdot f(\rstate',\pure')
+	\notag\\
+	&= \sum_{\time = \tstart}^{\infty}\sum_{\rstate' \in \states}\sum_{\pure' \in \pures} \ex_{\traj\sim\MDP}\left[\one\{\time\leq T(\traj), \rstate_\time' = \rstate, \pure_\time' = \pure,
+  \} f(\rstate, \pure) \vert  \rstate_{\tstart}=\rstate, \pure_\tstart=\pure 
+   \right]
+   \notag\\
+	&=	 \ex_{\traj \sim \MDP}\bracks*{\insum_{\time =\tstart}^{\stopTime\parens{\traj}}f(\rstate_\time, \pure_\time )\vert \pure_\tstart=\pure,\rstate_\tstart=\rstate}.
+\qedhere
+\end{align*}
+\end{proof}
+\begin{remark}\label{rem:matrix-definitions}
+Notice that $\visitMatrix$ is a well-defined matrix.
+Indeed, let's us define $\transMatrix(\policy)$ as the state-action one step transition matrix: \begin{equation}[\transMatrix(\policy)]_{\underbrace{(\pure,\rstate)}_{\text{Row Index}}\to\underbrace{(\pure',\rstate')}_{\text{Column Index}}}= \prob^{\policy}(\rstate_\tafterstart=\rstate' , \pure_\tafterstart=\pure'\vert \rstate_{\tstart}=\rstate, \pure_\tstart=\pure )=\policy(\pure'\vert \rstate')P(\rstate'|\rstate,\pure).\end{equation}
+Notice that $\transMatrix(\policy)$ is a substochastic matrix and therefore $\mathrm{spectral}(\transMatrix(\policy))<1$ or equivalently $
+(I-\transMatrix(\policy))^{-1}$ is invertible. Thus using Neumann series we have that $(I-\transMatrix(\policy))^{-1}=\sum_{\time=\tstart}^{\infty} \transMatrix(\policy)^{\time}$. By induction, a folklore probabilistic-graph theoretic fact, we can show that $\sum_{\time=\tstart}^{\infty} \transMatrix(\policy)^{\time}=\visitMatrix(\policy)$.
+\end{remark}
+In order to analyze the gradient of MARL policy gradient methods, we will introduce the notions $Q,A$ and their per-player averages that are useful in the MDP analysis. 
+\begin{definition}\label{def:Q&A}
+For a state $\rstate \in \states$, a policy $\policy$ and $\pure = (\pure_{1},\dots,\pure_{\nPlayers}) \in \pures$, we define:
+\begin{enumerate}[(i)]
+	\item The $Q$-value function of player $\play$ as:
+	\begin{equation}
+		Q_{\play}^{\policy}(\rstate,\pure):= \ex_{\traj \sim \MDP(\policy|\rstate)}\left[ \sum_{\time = \tstart}^{T(\traj)} \rewards_{\play}(\rstate_{\time}(\traj), \pure_{\time}(\traj)) \vert \rstate_{\tstart} = \rstate, \pure_{\tstart} = \pure \right]
+	\end{equation}
+	\item The \emph{advantage function} of player $\play$ as:
+	\begin{equation}
+		\adv_{\play}^{\policy}(\rstate,\pure):= Q_{\play}^{\policy}(\rstate,\pure) - \rvalue_{\play,\rstate}(\policy)
+	\end{equation}
+\end{enumerate}
+We also define $\bar{Q}_{\play}^{\policy}, \avgadv_{\play}^{\policy}$ to be the averaged for $\play$-th player single MDP $Q$-value and advantage functions:
+\begin{enumerate}[(i)]
+	\item The averaged $\bar{Q}_{\play}^{\policy}$-value function of player $\play$ as:
+	\begin{equation}
+		\bar{Q}_{\play}^{\policy}(\rstate,\pure_{\play}) := 
+		 \ex_{\pure_{-\play} \sim \policy_{-\play}(\cdot \vert \rstate)}\left[ Q_{\play}^{\policy}\left(\rstate,(\pure_{\play};\pure_{-\play})\right) \right]
+	\end{equation}
+	\item The \emph{averaged advantage function} $\avgadv_{\play}^{\policy}$ of player $\play$ as:
+	\begin{equation}
+		\avgadv_{\play}^{\policy}(\rstate,\pure_{\play}) := \ex_{\pure_{-\play} \sim \policy_{-\play}(\cdot \vert \rstate)}\left[ \adv_{\play}^{\policy}\left(\rstate,(\pure_{\play};\pure_{-\play})\right) \right],
+	\end{equation}
+\end{enumerate}
+\end{definition}
+By \cref{rem:matrix-definitions}, we can rewrite the above notations using $\visitMatrix,\transMatrix$.
+
+\begin{lemma}\label{lem:matrix-rewritting}
+For a policy profile $\policy$, we have:
+\begin{enumerate}
+	\item $
+			Q_{\play}^{\policy}(\rstate,\pure)=e_{\rstate,\pure}^\top\visitMatrix(\policy)\reward_\play
+	$
+	\item $\visitMeas{\stateDist}{\policy}\parens{\rstate} =\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}\policy(\pure'\vert\rstate')
+		e_{\rstate',\pure'}}^\top\visitMatrix(\policy)\sum_{\pure\in\pures} e_{\rstate,\pure}$
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+We separately have using \cref{lem:matrix-rewritting} and \cref{rem:matrix-definitions}.
+\begin{enumerate}
+\item
+For our first claim, a straightforward calculation gives:
+\begin{equation}
+Q_{\play}^{\policy}(\rstate,\pure)= \ex_{\traj \sim \MDP(\policy|\rstate)}\left[ \sum_{\time = \tstart}^{T(\traj)} \rewards_{\play}(\rstate_{\time}(\traj), \pure_{\time}(\traj)) \vert \rstate_{\tstart} = \rstate, \pure_{\tstart} = \pure \right]=e_{\rstate,\pure}^\top\visitMatrix(\policy)\rewards_\play
+\end{equation}
+\item
+As for the second part of the lemma, we have:
+\begin{align*}
+\visitMeas{\stateDist}{\policy}\parens{\rstate} 
+	&=\ex_{\traj \sim \MDP}\bracks*{\insum_{\time =\tstart}^{\stopTime\parens{\traj}}
+		\oneof{\rstate_{\time}=\rstate} \Big| \rstate_\tstart \sim \stateDist}
+	\notag\\
+	&=\ex_{\rstate' \sim \stateDist}\ex_{\traj \sim \MDP}
+		\bracks*{\sum_{\time =\tstart}^{\stopTime\parens{\traj}}\sum_{\pure\in\pures}\one\braces{\rstate_{\time}=\rstate,\pure_{\time}=\pure} \Big| \rstate_\tstart=\rstate'}
+	\notag\\
+	&=\ex_{\rstate' \sim \stateDist}\ex_{\pure' \sim \policy(\cdot\vert\rstate)}\ex_{\traj \sim \MDP}
+		\bracks*{\sum_{\time =\tstart}^{\stopTime\parens{\traj}}\sum_{\pure\in\pures}\one\braces{\rstate_{\time}=\rstate,\pure_{\time}=\pure} \Big| \rstate_\tstart=\rstate',\pure_\tstart=\pure'}
+	\notag\\
+	&=\ex_{\rstate' \sim \stateDist}\ex_{\pure' \sim \policy(\cdot\vert\rstate)}\bracks*{
+		e_{\rstate',\pure'}^\top\visitMatrix(\policy)\sum_{\pure\in\pures} e_{\rstate,\pure}}
+	\notag\\
+	&=\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}\policy(\pure'\vert\rstate')
+		e_{\rstate',\pure'}}^\top\visitMatrix(\policy)\sum_{\pure\in\pures} e_{\rstate,\pure}.
+	\qedhere
+\end{align*}
+\end{enumerate}
+\end{proof}
+
+
+
+Having defined the above notions, we are ready to provide equivalent forms of $\gvalue(\policy)$ that will permit us to prove its boundedness and  smoothness.
+We start with the following versions of the policy gradient theorem for random stopping setting:
+\begin{lemma}\label{lem:GradientViaQ}
+For the  independent gradient operator $\gvalue(\policy)$ per player the following expressions are equal to $\gvalue_{\play}(\policy)$:
+\begin{enumerate}
+	\item $\gvalue_{\play}(\policy) = \ex_{\traj \sim \MDP}\left[\sum_{t = 0}^{T(\traj)}  \nabla_{\play}\left( \log\policy_\play(\pure_{\play,\time}(\traj) \vert \rstate_\time(\traj))\right)\bar{Q}_{\play}^{\policy}(\rstate_\time(\traj),\pure_{\play,\time}(\traj))\right]$
+	\item $\gvalue_{\play}(\policy) =\normConst{\stateDist}{\policy}
+  \ex_{\rstate\sim\visitDistr{\stateDist}{\policy}}\ex_{\pure_\play\sim\policy_\play(\cdot \vert \rstate)}\bracks*{
+  \nabla_{\play}\left( \log\policy_\play(\pure_{\play} \vert \rstate)\right)\bar{Q}_{\play}^{\policy}(\rstate,\pure_{\play})}
+  $
+  \item  $(\gvalue_{\play}(\policy))_{\pure_\play^\circ,\rstate^\circ}=\frac{\pd \rvalue_{\play,\stateDist}(\policy)}{\pd \policy_\play(\pure_\play^\circ \vert \rstate^\circ)} =\dpol_{\stateDist}(\rstate^\circ)
+ \bar{Q}_{\play}^{\policy}(\rstate^\circ,\pure_{\play}^\circ)=\normConst{\stateDist}{\policy}\visitDistr{\stateDist}{\policy}(\rstate^\circ)
+ \bar{Q}_{\play}^{\policy}(\rstate^\circ,\pure_{\play}^\circ)$
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+Recall first that the independent gradient operator $\gvalue(\policy)$ is given by
+%\begin{equation}
+\(
+\gvalue_{\play}(\policy) = \nabla_{\play} \rvalue_{\play,\stateDist}(\policy)
+\)
+%\end{equation}
+Accordingly, we will begin by showing that:
+\begin{equation}
+\nabla_{\play} \left(\rvalue_{\play,\stateDist}(\policy) \right)
+	= \ex_{\traj \sim \MDP}\left[\sum_{t = 0}^{T(\traj)}  \nabla_{\play}\left( \log\policy_\play(\pure_{\play,\time}(\traj) \vert \rstate_\time(\traj))\right)\bar{Q}_{\play}^{\policy}(\rstate_\time(\traj),\pure_{\play,\time}(\traj))\right]
+\end{equation}
+To that end, we will start with an arbitrary $\rstate_{\tstart}$, and by linearity of $\nabla_{\policy_{\play}} (\cdot)$ and $\ex_{\rstate_{\tstart} \sim \stateDist}[\cdot]$, we will obtain the result.
+Indeed, we have:
+\begin{align}
+\nabla_{\play} \left(\rvalue_{\play,\rstate_{\tstart}}(\policy) \right) &= \nabla_{\play}\left(\ex_{\traj}\left[\rewards_{\play}(\traj)\right]\right)
+	\notag\\
+	&= \nabla_{\play}\left(\ex_{\pure_{\play}\sim\policy_{\play}(\cdot \vert \rstate_{\tstart})}\left[\bar{Q}_{\play}^{\policy}(\rstate_{\tstart},\pure_\play) \right]\right)
+	\notag\\
+	&= \nabla_{\play}\left(\sum_{\pure_\play \in \pures_\play} \policy_\play(\pure_\play \vert \rstate_{\tstart})\bar{Q}_{\play}^{\policy}(\rstate_{\tstart},\pure_\play)\right)
+	\notag\\
+	&= \sum_{\pure_\play \in \pures_\play}\nabla_{\play}\left( \policy_\play(\pure_\play \vert \rstate_{\tstart})\right)\bar{Q}_{\play}^{\policy}(\rstate_{\tstart},\pure_\play) + \policy_\play(\pure_\play \vert \rstate_{\tstart})\nabla_{\play}\left(\bar{Q}_{\play}^{\policy}(\rstate_{\tstart},\pure_\play)\right)
+	\notag\\
+	&= \sum_{\pure_\play \in \pures_\play}\nabla_{\play}\left( \log\policy_\play(\pure_\play \vert \rstate_{\tstart})\right)\policy_\play(\pure_\play \vert \rstate_{\tstart})\bar{Q}_{\play}^{\policy}(\rstate_{\tstart},\pure_\play) + \policy_\play(\pure_\play \vert \rstate_{\tstart})\nabla_{\play}\left(\bar{Q}_{\play}^{\policy}(\rstate_{\tstart},\pure_\play)\right)
+	\notag\\
+	&= \ex_{\pure_{\play}\sim\policy_{\play}(\cdot \vert \rstate_{\tstart})}\left[\nabla_{\play}\left( \log\policy_\play(\pure_\play \vert \rstate_{\tstart})\right)\bar{Q}_{\play}^{\policy}(\rstate_{\tstart},\pure_\play) \right]
+	\notag\\
+		&\qquad + \sum_{\pure_\play \in \pures_\play}\policy_\play(\pure_\play \vert \rstate_{\tstart})\nabla_{\play}\left(\ex_{\pure_{-\play}\sim\policy_{-\play}(\cdot \vert \rstate_{\tstart})}\left[\rewards_{\play}(\rstate_{\tstart},\pure) + \sum_{\rstate_1 \in \states}P(\rstate_1 \vert \rstate_{\tstart},\pure)\rvalue_{\play,\rstate_1}(\policy) \right] \right)
+	\notag\\
+	&= \ex_{\pure_{\play}\sim\policy_{\play}(\cdot \vert \rstate_{\tstart})}\left[\nabla_{\play}\left( \log\policy_\play(\pure_\play \vert \rstate_{\tstart})\right)\bar{Q}_{\play}^{\policy}(\rstate_{\tstart},\pure_\play) \right]
+	\notag\\
+		&\qquad +\sum_{\pure_\play \in \pures_\play}\policy_\play(\pure_\play \vert \rstate_{\tstart})\ex_{\pure_{-\play}\sim\policy_{-\play}(\cdot \vert \rstate_{\tstart})}\left[\sum_{\rstate_1 \in \states}P(\rstate_1 \vert \rstate_{\tstart},\pure)\nabla_{\play}\left(\rvalue_{\play,\rstate_1}(\policy)\right)\right] \notag\\
+	&= \ex_{\pure_{\play}\sim\policy_{\play}(\cdot \vert \rstate_{\tstart})}\left[\nabla_{\play}\left( \log\policy_\play(\pure_\play \vert \rstate_{\tstart})\right)\bar{Q}_{\play}^{\policy}(\rstate_{\tstart},\pure_\play) \right]
+	\notag\\
+		&\qquad + \ex_{\pure \sim\policy(\cdot \vert \rstate_{\tstart})}\left[\sum_{\rstate_1 \in \states}P(\rstate_1 \vert \rstate_{\tstart},\pure)\nabla_{\play}\left(\rvalue_{\play,\rstate_1}(\policy)\right)\right] \end{align}
+Thus, we can rewrite it as:
+\begin{align}
+\nabla_{\play} \left(\rvalue_{\play,\rstate_{\tstart}}(\policy) \right)
+	&= \ex_{\pure_{\play}\sim\policy_{\play}(\cdot \vert \rstate_{\tstart})}\left[\nabla_{\play}\left( \log\policy_\play(\pure_\play \vert \rstate_{\tstart})\right)\bar{Q}_{\play}^{\policy}(\rstate_{\tstart},\pure_\play) \right] \notag\\
+		&\qquad + \ex_{\pure \sim\policy(\cdot \vert \rstate_{\tstart})}\left[\sum_{\rstate_1 \in \states}P(\rstate_1 \vert \rstate_{\tstart},\pure)\nabla_{\play}\left(\rvalue_{\play,\rstate_1}(\policy)\right)\right]
+	\notag\\
+	&= \ex_{\traj \sim \MDP(\policy|\rstate_{\tstart})} \left[\nabla_{\play}\left( \log\policy_\play(\pure_{\play,0}(\traj) \vert \rstate_{\tstart})\right)\bar{Q}_{\play}^{\policy}(\rstate_{\tstart},\pure_{\play,0}(\traj)) \right]
+	\notag\\
+		&\qquad + \ex_{\traj \sim \MDP(\policy|\rstate_{\tstart})}\left[\one\left\{T(\traj) \geq 1 \right\}\nabla_{\play}\left(\rvalue_{\play,\rstate_1(\traj)}(\policy)\right)\right]
+	\notag\\
+	&= \sum_{t = 0}^{\infty} \ex_{\traj \sim \MDP(\policy|\rstate_{\tstart})}\left[\one\{\time \leq T(\traj)\} \nabla_{\play}\left( \log\policy_\play(\pure_{\play,\time}(\traj) \vert \rstate_\time(\traj))\right)\bar{Q}_{\play}^{\policy}(\rstate_\time(\traj),\pure_{\play,\time}(\traj))\right]
+	\notag\\
+		&\qquad + \ex_{\traj \sim \MDP(\policy|\rstate_{\tstart})}\left[\one\{T(\traj) = \infty\} A_{\infty} \right]
+	\notag\\
+	&\stackrel{(a)}{=} \ex_{\traj \sim \MDP(\policy|\rstate_{\tstart})}\left[\sum_{t = 0}^{T(\traj)}  \nabla_{\play}\left( \log\policy_\play(\pure_{\play,\time}(\traj) \vert \rstate_\time(\traj))\right)\bar{Q}_{\play}^{\policy}(\rstate_\time(\traj),\pure_{\play,\time}(\traj))\right]
+\end{align}
+where $(a)$ holds because $\probof{T(\traj) = \infty} = 0$, and $A_{\infty}$ is some limiting quantity. 
+
+Hence,we readily obtain:
+\begin{equation}
+	\nabla_{\play} \left(\rvalue_{\play,\stateDist}(\policy) \right) = \ex_{\rstate_{\tstart} \sim \stateDist}\left[\nabla_{\play} \left(\rvalue_{\play,\rstate_{\tstart}}(\policy) \right) \right]
+\end{equation}
+Now by \cref{lem:conversion}, we further have
+\begin{align}
+\nabla_{\play} \left(\rvalue_{\play,\stateDist}(\policy) \right)
+	&=  \normConst{\stateDist}{\policy}
+		\ex_{\rstate\sim\visitDistr{\stateDist}{\policy}}\ex_{\pure\sim\policy(\cdot \vert \rstate)}
+			\bracks*{\nabla_{\play}\left( \log\policy_\play(\pure_{\play} \vert \rstate)\right)\bar{Q}_{\play}^{\policy}(\rstate,\pure_{\play})}
+	\notag\\
+ 	&=\normConst{\stateDist}{\policy}
+	\ex_{\rstate\sim\visitDistr{\stateDist}{\policy}}\ex_{\pure_\play\sim\policy_\play(\cdot \vert \rstate)}
+		\bracks*{\nabla_{\play}\left( \log\policy_\play(\pure_{\play} \vert \rstate)\right)\bar{Q}_{\play}^{\policy}(\rstate,\pure_{\play})}
+\end{align}
+Decoupling $\nabla_\play$ per a state $\rstate^\circ$ and action $\pure_\play^\circ$, we get
+\begin{align*}
+\frac{\pd \rvalue_{\play,\stateDist}(\policy)}{\pd \policy_\play(\pure_\play^\circ \vert \rstate^\circ)}
+	&= \normConst{\stateDist}{\policy}
+		\ex_{\rstate\sim\visitDistr{\stateDist}{\policy}}\ex_{\pure_\play\sim\policy_\play(\cdot \vert \rstate)}
+		\bracks*{\frac{\pd  \left( \log\policy_\play(\pure_{\play} \vert \rstate)\right)}{\pd \policy_\play(\pure_\play^\circ \vert \rstate^\circ)} \bar{Q}_{\play}^{\policy}(\rstate,\pure_{\play})}
+	\notag\\
+	&= \normConst{\stateDist}{\policy}
+	\ex_{\rstate\sim\visitDistr{\stateDist}{\policy}}\ex_{\pure_\play\sim\policy_\play(\cdot \vert \rstate)}
+		\bracks*{\one\{\pure_\play^\circ=\pure_\play, \rstate^\circ=\rstate\} \frac{1}{\policy_\play(\pure_\play^\circ \vert \rstate^\circ)} \bar{Q}_{\play}^{\policy}(\rstate^\circ,\pure_{\play}^\circ)}
+	\notag\\
+	&= \sum_{\rstate \in \states}\dpol_{\stateDist}(\rstate)
+		\sum_{\pure_\play \in \pures_\play} \policy_\play(\pure_{\play} \vert \rstate)
+			\one\{\pure_\play^\circ=\pure_\play, \rstate^\circ=\rstate\}
+			\frac{1}{\policy_\play(\pure_\play^\circ \vert \rstate^\circ)} \bar{Q}_{\play}^{\policy}(\rstate^\circ,\pure_{\play}^\circ)
+	\notag\\
+	&=\dpol_{\stateDist}(\rstate^\circ) \bar{Q}_{\play}^{\policy}(\rstate^\circ,\pure_{\play}^\circ)
+		= \normConst{\stateDist}{\policy}\visitDistr{\stateDist}{\policy}(\rstate^\circ)
+ \bar{Q}_{\play}^{\policy}(\rstate^\circ,\pure_{\play}^\circ).
+ %\frac{\pd  \left( \log\policy_\play(\pure_{\play} \vert \rstate)\right)}{\pd \policy_\play(\pure_\play^\circ \vert \rstate^\circ)}
+%  \bar{Q}_{\play}^{\policy}(\rstate,\pure_{\play})\\
+% 	&=\sum_{\rstate \in \states}\dpol_{\stateDist}(\rstate) \sum_{\pure_\play\setminus{\pure_\play^\circ} \in \pures_\play}  \frac{1}{\policy_\play(\pure_{\play}^\circ \vert \rstate^\circ)}
+%  \bar{Q}_{\play}^{\policy}(\rstate,\pure_{\play})
+	% &= \sum_{\rstate_{\tstart} \in \states}\stateDist(\rstate_\tstart) \sum_{\time=\tstart}^{\infty}\ex_{\traj\sim\MDP(\policy|\rstate_\tstart)}\left[
+	% \frac{1}{\policy(\pure_{\play,\time} \vert \rstate_\time)} \one\{\time \leq T(\traj), \rstate_\time = \rstate, \pure_{\play,\time} = \pure_\play\}\bar{Q}_{\play}^{\policy}(\rstate_\time(\traj),\pure_{\play,\time}(\traj))
+	% \right] \notag\\
+	% &= \sum_{\rstate_{\tstart} \in \states}\stateDist(\rstate_\tstart) \sum_{\time=\tstart}^{\infty} \prob^{\policy}(\rstate \vert \rstate_\tstart) \policy(\pure_\play \vert \rstate)\frac{1}{\policy(\pure_{\play} \vert \rstate)}
+	% \bar{Q}_{\play}^{\policy}(\rstate,\pure_{\play}) \notag\\
+	% &= \sum_{\time=\tstart}^{\infty}\sum_{\rstate_{\tstart} \in \states}\stateDist(\rstate_\tstart)  \prob^{\policy}(\rstate \vert \rstate_\tstart) 1
+	% \bar{Q}_{\play}^{\policy}(\rstate,\pure_{\play}) \notag\\
+%	&= 1 \unvisitest_{\stateDist}(\rstate)\bar{Q}_{\play}^{\policy}(\rstate,\pure_{\play})
+\qedhere
+\end{align*}
+\end{proof}
+
+We are ready to bound the amplitude of the independent player gradient operator:
+\begin{lemma}\label{lem:boundness}
+For a given initial state distribution $\stateDist$, the independent player policy gradient operator $\gvalue(\policy)$ is bounded. More precisely, \begin{equation}\norm{\gvalue_\play(\policy)}\leq \frac{\sqrt{\nPures_{\play}}}{\stopPr^2} \quad \&\quad \norm{\gvalue(\policy)}\leq \frac{\sum_{\play\in\players}\sqrt{\nPures_{\play}}}{\stopPr^2}\end{equation}
+\end{lemma}
+\begin{proof}
+We start by analyzing $\norm{\gvalue_\play(\policy)}^2$ using \cref{lem:GradientViaQ}.
+Specifically, we have:
+\begin{align}
+\norm{\gvalue_\play(\policy)}^2&=\sum_{\pure_\play^\circ,\rstate^\circ,\in \pures_\play,\states}
+	(\gvalue_{\play}(\policy)_{\pure_\play^\circ,\rstate^\circ})^2
+%	\notag\\
+	=\sum_{\rstate^\circ\in\states}\sum_{\pure_\play^\circ\in\pures_\play}\parens{\frac{\pd \rvalue_{\play,\stateDist}(\policy)}{\pd \policy_\play(\pure_\play^\circ \vert \rstate^\circ)}}^2
+	\notag\\
+	&=\sum_{\rstate^\circ\in\states}\sum_{\pure_\play^\circ\in\pures_\play}
+	\parens{\normConst{\stateDist}{\policy}\visitDistr{\stateDist}{\policy}(\rstate^\circ) \bar{Q}_{\play}^{\policy}(\rstate^\circ,\pure_{\play}^\circ)}^2
+	\notag\\
+	&\leq (\normConst{\stateDist}{\policy})^2 \max_{\pure_\play^\circ,\rstate^\circ,\in \pures_\play,\states} \parens{\bar{Q}_{\play}^{\policy}(\rstate^\circ,\pure_{\play}^\circ)}^2\sum_{\rstate^\circ\in\states}\sum_{\pure_\play^\circ\in\pures_\play}\visitDistr{\stateDist}{\policy}(\rstate^\circ)^2
+	\notag\\
+	&\leq \frac{1}{\stopPr^2}\max_{\pure_\play^\circ,\rstate^\circ,\in \pures_\play,\states}
+		\parens{\ex_{\pure_{-\play} \sim \policy_{-\play}(\cdot \vert \rstate)}\left[ Q_{\play}^{\policy}\left(\rstate^\circ,(\pure_{\play}^\circ;\pure_{-\play})\right) \right]}^2\sum_{\rstate^\circ\in\states}\sum_{\pure_\play^\circ\in\pures_\play}\visitDistr{\stateDist}{\policy}(\rstate^\circ)
+	\notag\\
+	&\leq \frac{1}{\stopPr^2}\max_{\pure^\circ,\rstate^\circ,\in \pures,\states} \parens{Q_{\play}^{\policy}(\rstate^\circ,\pure^\circ)}^2\sum_{\pure_\play^\circ\in\pures_\play}\sum_{\rstate^\circ\in\states}\visitDistr{\stateDist}{\policy}(\rstate^\circ)
+	\notag\\
+	&\leq \frac{1}{\stopPr^2}\max_{\pure^\circ,\rstate^\circ,\in \pures,\states} \left(
+		\ex_{\traj \sim \MDP(\policy|\rstate)}\left[ \sum_{\time = \tstart}^{T(\traj)} \rewards_{\play}(\rstate_{\time}(\traj), \pure_{\time}(\traj)) \vert \rstate_{\tstart} = \rstate^\circ, \pure_{\tstart} = \pure^\circ \right]
+	\right)^2
+	\abs{\pures_{\play}}
+%	\sum_{\pure_\play^\circ\in\pures_\play}1
+	\notag\\
+	&\leq \frac{\nPures_{\play}}{\stopPr^2}
+		\left(\ex_{\traj \sim \MDP(\policy|\rstate)}\left[ \sum_{\time = \tstart}^{T(\traj)} 1 \vert \rstate_{\tstart} = \rstate^\circ, \pure_{\tstart} = \pure^\circ \right]
+	\right)^2
+%	\notag\\
+	\leq \frac{\nPures_{\play}}{\stopPr^4}
+\end{align}
+We thus conclude that
+\begin{equation*}
+\norm{\gvalue_\play(\policy)}
+	\leq \frac{\sqrt{\nPures_{\play}}}{\stopPr^2}
+	\quad
+	\text{and}
+	\quad
+\norm{\gvalue(\policy)}
+	\leq \frac{\sum_{\play\in\players}\sqrt{\nPures_{\play}}}{\stopPr^2}.
+	\qedhere
+\end{equation*}
+%as claimed.
+\end{proof}
+
+To prove the smoothness of the policy gradient operator, we have first to establish the performance lemma for our setting. Respectively, we get
+\begin{lemma}[Performance lemma]\label{lem:performance-lemma}
+For any pair of policy profiles $\policy=(\policy_{\play},\policy_{-\play}),\policy'=(\policy_{\play}',\policy_{-\play}')$, it holds
+\begin{equation}
+		\rvalue_{\play,\stateDist}(\policy_{\play},\policy_{-\play}) -  \rvalue_{\play,\stateDist}(\policy_{\play}',\policy_{-\play}') = \ex_{\traj \sim \MDP(\policy|\stateDist)}\left[\sum_{\time = \tstart}^{T(\traj)} \adv_{\play}^{\policy_\play',\policy_{-\play}'}(\rstate_\time,\pure_\time) \right]
+\end{equation}
+where $\MDP(\policy|\stateDist)$ signifies that players follow $\policy$ as policy profile with $\stateDist$ as the initial state distribution. 
+\end{lemma}
+\begin{proof}
+We will initial prove the aforementioned result for an arbitrary deterministic initial state $\rstate_{\tstart}=\rstate$:
+\begin{align}
+	\rvalue_{\play,\rstate}(\policy) -  \rvalue_{\play,\rstate}(\policy') &= 
+	\ex_{\traj \sim \MDP(\policy|\stateDist)}\left[\sum_{\time = \tstart}^{T(\traj)} \rewards_{\play}(\rstate_\time,\pure_\time)\right] - \rvalue_{\play,\rstate}(\policy')
+	\notag\\
+	&= \ex_{\traj \sim \MDP(\policy|\rstate)}\left[\sum_{\time = \tstart}^{T(\traj)}\left(\rewards_{\play}(\rstate_\time,\pure_\time)+\rvalue_{\play,\rstate_\time}(\policy') - \rvalue_{\play,\rstate_\time}(\policy')\right) \right] - \rvalue_{\play,\rstate}(\policy')
+	\notag\\
+	&= \ex_{\traj \sim \MDP(\policy|\rstate)}\left[\sum_{\time = \tstart}^{T(\traj)}\rewards_{\play}(\rstate_\time,\pure_\time)+\sum_{\time = \tstart}^{T(\traj)}\left(\rvalue_{\play,\rstate_\time}(\policy') - \rvalue_{\play,\rstate}(\policy') - \rvalue_{\play,\rstate_\time}(\policy')\right) \right]
+	\notag\\
+	&= \ex_{\traj \sim \MDP(\policy|\rstate)}\left[\sum_{\time = \tstart}^{T(\traj)}\left(\rewards_{\play}(\rstate_\time,\pure_\time)+ \one\{T(\traj) \geq \time+1\}\rvalue_{\play,\rstate_{\time+1}}(\policy')\right) - \rvalue_{\play,\rstate_\time}(\policy')\right]
+	\notag\\
+	&= \ex_{\traj \sim \MDP(\policy|\rstate)}\left[\sum_{\time = \tstart}^{T(\traj)}\left(Q_{\play}^{\policy'}(\rstate_\time,\pure_\time) - \rvalue_{\play,\rstate_\time}(\policy')\right) \right]
+	\notag\\
+	&= \ex_{\traj \sim \MDP(\policy|\rstate)}\left[\sum_{\time = \tstart}^{T(\traj)}\adv_{\play}^{\policy'}(\rstate_\time,\pure_\time) \right]
+\end{align}
+
+where in the last equation we recall the definition of the Advantage function and in the pre-last the equivalent definitions of $Q_{\play}^{\policy}(\rstate,\pure)$
+\begin{align}
+	Q_{\play}^{\policy}(\rstate,\pure) &= \ex_{\traj \sim \MDP(\policy|\rstate)}\left[ \sum_{\time = \tstart}^{T(\traj)} \rewards_{\play}(\rstate_{\time}(\traj), \pure_{\time}(\traj)) \vert \rstate_{\tstart} = \rstate, \pure_{\tstart} = \pure \right] \notag\\
+	&= \rewards_{\play}(\rstate,\pure) + \ex_{\traj \sim \MDP(\policy|\rstate)}\left[\one\{T(\traj) \geq \tafterstart\}\rvalue_{\play,\rstate_1}(\policy) \vert \rstate_{\tstart} = \rstate, \pure_{0} = \pure \right]
+\end{align}
+Applying the linearity of $\ex_{\rstate\sim\stateDist}\bracks*{\cdot}$, we get the desired result:
+\begin{equation}
+		\rvalue_{\play,\stateDist}(\policy) -  \rvalue_{\play,\stateDist}(\policy') = \ex_{\traj \sim \MDP(\policy|\stateDist)}\left[\sum_{\time = \tstart}^{T(\traj)} \adv_{\play}^{\policy'}(\rstate_\time,\pure_\time) \right]=\normConst{\stateDist}{\policy}
+  \ex_{\rstate\sim\visitDistr{\stateDist}{\policy}}\ex_{\pure\sim\policy(\cdot \vert \rstate)}\bracks*{\adv_{\play}^{\policy'}(\rstate,\pure) }
+\end{equation}
+where the last expression comes from \cref{lem:conversion}.
+\end{proof}
+% Thus, we get the following relation:
+% \begin{align}\label{eq: eq1}
+%	 \rvalue_{\play,\rstate}(\policy) -  \rvalue_{\play,\rstate}(\policy') &= 
+%	 \ex_{\traj \sim \MDP(\policy|\rstate)}\left[\sum_{\time = \tstart}^{T(\traj)}\adv_{\play}^{\policy'_\play,\policy_{-\play}}(\rstate_\time,\pure_\time) \right] \notag\\
+%	 & \stackrel{(a)}{=} \sum_{\rstate \in \states}\dpol_{\rstate_0}(\rstate) \ex_{\pure \sim \policy(\cdot \vert \rstate)}\left[\adv_{\play}^{\policy'_\play,\policy_{-\play}}(\rstate_\time,\pure_\time)\right]\notag\\
+% \end{align}
+% 
+Before closing this section by proving the Lipschitz-smoothness of our operator, we describe a useful observation that will be helpful in the smoothness bounds.
+
+\begin{proposition}
+\label{prop:useful-dtv}
+For any pair of policy profiles $\policy=(\policy_{\play},\policy_{-\play}),\policy'=(\policy_{\play}',\policy_{-\play}')$ and an arbitrary initial state distribution $\stateDist$ and a subset $\mathcal{M}\subseteq\players$, it holds that:
+\begin{equation}\sum_{\rstate}
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\sum_{\pure_{\mathcal{M}}}|(\policy_{\mathcal{M}}-\policy_{\mathcal{M}}^{'})(\pure_{\mathcal{M}} \vert \rstate)|\leq \sum_{\play\in\mathcal{M}}\sqrt{\nPures_{\play}}\norm{\policy_\play-\policy'_\play} \end{equation}
+where $\policy_{\mathcal{M}}=(\policy_\play)_{\play\in\mathcal{M}} $ and $\pure_{\mathcal{M}}=(\pure_\play)_{\play\in\mathcal{M}} $, correspondingly.
+\end{proposition}
+
+\begin{proof}
+A series of direct calculations gives:
+\begin{align}
+\sum_{\rstate}
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\sum_{\pure_{\mathcal{M}}}|(\policy_{\mathcal{M}}-\policy_{\mathcal{M}}^{'})(\pure_{\mathcal{M}} \vert \rstate)|
+	&= 2\sum_{\rstate}
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\frac{1}{2}\norm{(\policy_{\mathcal{M}}-\policy_{\mathcal{M}}^{'})}_1
+	\notag\\
+	&= 2\sum_{\rstate}
+		\visitDistr{\stateDist}{\policy_{}}(\rstate)\frac{1}{2}d_{\mathrm{TV}}{(\policy_{\mathcal{M}}(\cdot|\rstate),\policy_{\mathcal{M}}^{'}(\cdot|\rstate))}
+	\notag\\
+	&\leq 2\sum_{\rstate}
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\sum_{\play\in\mathcal{M}}\frac{1}{2}d_{\mathrm{TV}}{(\policy_{\play}(\cdot|\rstate),\policy_{\play}^{'}(\cdot|\rstate))}
+	\notag\\
+	&=\sum_{\rstate} \visitDistr{\stateDist}{\policy_{}}(\rstate)\sum_{\play\in\mathcal{M}}\norm{(\policy_{\play}(\cdot|\rstate)-\policy_{\play}^{'}(\cdot|\rstate))}_1
+	\notag\\
+	&=\sum_{\rstate}
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\sum_{\play\in\mathcal{M}}\sqrt{\nPures_{\play}}\norm{\policy_\play-\policy'_\play}_2
+	\notag\\
+	&=\sum_{\play\in\mathcal{M}}\sqrt{\nPures_{\play}}\norm{\policy_\play-\policy'_\play}_2(\sum_{\rstate}
+\visitDistr{\stateDist}{\policy_{}}(\rstate))
+	\notag\\
+	&=\sum_{\play\in\mathcal{M}}\sqrt{\nPures_{\play}}\norm{\policy_\play-\policy'_\play}_2
+\end{align}
+where $d_{\mathrm{TV}}$ corresponds to the total variation distance,
+%Indeed notice that $d_{\mathrm{TV}}$ actually equals to the normalized difference of the histograms between two distributions.
+%Additionally,
+and the first inequality is a consequence of the triangle inequality for $d_{\mathrm{TV}}$.
+%derived by the ``triangle inequality'' that holds for $d_{\mathrm{TV}}$ in product-measure distributions.
+\end{proof}
+\begin{lemma}
+\label{lem:smoothness}
+For a given initial state distribution $\stateDist$, the independent player policy gradient operator $\gvalue(\policy)$ is Lipschitz continuous. More precisely, for any pair of policy profiles $\policy=(\policy_{\play},\policy_{-\play}),\policy'=(\policy_{\play}',\policy_{-\play}')$, it holds
+\begin{equation}\norm{\gvalue_\play(\policy)-\gvalue_{\play}(\policy')}=
+\norm{\nabla_\play  (\rvalue_{\play,\stateDist}(\policy_{})- 
+\nabla_\play  (\rvalue_{\play,\stateDist}(\policy_{}^{'})} \leq \frac{3\sqrt{\nPures_{\play}}}{\stopPr^3}\sum_{\playalt=1}^{\nPlayers}\sqrt{\nPures_{\playalt}}\norm{\policy_\playalt-\policy'_\playalt}\quad \forall \play\in\players
+\end{equation}
+and consequently,
+\begin{equation}\norm{\gvalue(\policy)-\gvalue(\policy')} \leq \frac{3\nPures}{\stopPr^3}\norm{\policy-\policy'}\end{equation}
+\end{lemma}
+
+\begin{proof}
+For the proof, we will follow the approach of \citet{zhang2021gradient} and \citet{AgarwalKLM20}.
+Our first task is to bound the directional derivative of the $\play$-th player's value function. 
+To that end, let $\policy,\policy'\in\policies$ and $\pertrubation \in \states\times\pures$ such that $\norm{\pertrubation}=1$, and consider $\lambda$-perturbed policies
+\begin{equation}
+\begin{aligned}
+\policy_{\lambda}^{\this}(\pure\vert\rstate)
+	&=(\policy_\play+\lambda\pertrubation,\policy_{-\play})
+	\\
+\policy_{\lambda}^{\that}(\pure\vert\rstate)
+	&=(\policy_\play'+\lambda\pertrubation,\policy_{-\play}')
+\end{aligned}
+\end{equation}
+We then have:
+\begin{subequations}
+\begin{align}
+\abs*{\frac{\pd \rvalue_{\play,\stateDist}(\policy_{\lambda}^{\this})}{\pd \lambda}-
+	\frac{\pd \rvalue_{\play,\stateDist}(\policy_{\lambda}^{\that})}{\pd \lambda}}
+	&=\abs*{\frac{\pd \rvalue_{\play,\stateDist}(\policy_{\lambda}^{\this})- \rvalue_{\play,\stateDist}(\policy_{\lambda}^{\that})}{\pd \lambda}}
+%	\notag\\
+	=\abs*{\frac{\pd\left( \rvalue_{\play,\stateDist}(\policy_{\lambda}^{\this})- \rvalue_{\play,\stateDist}(\policy_{\lambda}^{\that})\right)}{\pd \lambda}}
+	\notag\\
+	&=\abs*{\frac{\pd\left(
+	\normConst{\stateDist}{\policy_{\lambda}^{\this}}
+  \ex_{\rstate\sim\visitDistr{\stateDist}{\policy_{\lambda}^{\this}}}\ex_{\pure\sim\policy_{\lambda}^{\this}(\cdot \vert \rstate)}\bracks*{\adv_{\play}^{\policy_{\lambda}^{\that}}(\rstate,\pure) }
+	\right)}{\pd \lambda}}
+	\label{eq:performance_application}\\
+%	&=
+%	\abs*{\frac{\pd\left(\normConst{\stateDist}{\policy_{\lambda}^{\this}}
+%  \ex_{\rstate\sim\visitDistr{\stateDist}{\policy_{\lambda}^{\this}}}\ex_{\pure\sim\policy_{\lambda}^{\this}(\cdot \vert \rstate)}\bracks*{\adv_{\play}^{\policy_{\lambda}^{\that}}(\rstate,\pure) }
+%	\right)}{\pd \lambda}}
+%	\notag\\
+	&= \abs*{\frac{\pd\left(\normConst{\stateDist}{\policy_{\lambda}^{\this}}
+  \sum_{\rstate,\pure}\visitDistr{\stateDist}{\policy_{\lambda}^{\this}}(\rstate)(\policy_{\lambda}^{\this}-\policy_{\lambda}^{\that})(\pure \vert \rstate)\adv_{\play}^{\policy_{\lambda}^{\that}}(\rstate,\pure)
+	\right)}{\pd \lambda}}
+	\label{eq:zero-of-advantage}\\
+	&= \abs*{\frac{\pd\left(\normConst{\stateDist}{\policy_{\lambda}^{\this}}
+  \sum_{\rstate,\pure}\visitDistr{\stateDist}{\policy_{\lambda}^{\this}}(\rstate)(\policy_{\lambda}^{\this}-\policy_{\lambda}^{\that})(\pure \vert \rstate)Q_{\play}^{\policy_{\lambda}^{\that}}(\rstate,\pure)
+	\right)}{\pd \lambda}}
+	\notag\\
+	&= \abs*{\frac{\pd\left(
+  \sum_{\rstate,\pure}\visitMeas{\stateDist}{\policy_{\lambda}^{\this}}(\rstate)(\policy_{\lambda}^{\this}-\policy_{\lambda}^{\that})(\pure \vert \rstate)Q_{\play}^{\policy_{\lambda}^{\that}}(\rstate,\pure)
+	\right)}{\pd \lambda}}
+\end{align}
+\end{subequations}
+where \eqref{eq:performance_application} follows from \cref{lem:performance-lemma} and \eqref{eq:zero-of-advantage} uses the fact that $\sum_{\pure\in\pures}\policy(\pure\vert\rstate)\adv_{\play}^{\policy}(\rstate,\pure)=$, for all $\rstate\in\states$ and the last one is derived by the definition $\visitDistr{\stateDist}{\policy}\parens{\rstate} \defeq \visitMeas{\stateDist}{\policy}\parens{\rstate}/\normConst{\stateDist}{\policy}$.
+
+By triangular inequality, the linearity of $\pd$ operator and \cref{lem:well-defined-visitation-distribution}, we have:
+\begin{align}
+		\left|\frac{\pd (\rvalue_{\play,\stateDist}(\policy_{\lambda}^{\this})-\rvalue_{\play,\stateDist}(\policy_{\lambda}^{\that}))}{\pd \lambda}\Big|_{\lambda=0}\right|
+	&\leq
+	\abs*{\sum_{\rstate,\pure}\frac{
+  \pd\visitMeas{\stateDist}{\policy_{\lambda}^{\this}}(\rstate)
+  }{\pd \lambda}\Big|_{\lambda=0}
+  (\policy_{}-\policy_{}^{'})(\pure \vert \rstate)Q_{\play}^{\policy_{}^{'}}(\rstate,\pure)}
+	\notag\\
+	&+
+	\normConst{\stateDist}{\policy_{}^{\this}}\abs*{  \sum_{\rstate,\pure}
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\frac{\pd(\policy_{\lambda}^{\this}-\policy_{\lambda}^{\that})(\pure \vert \rstate)}{\pd \lambda}\Big|_{\lambda=0}Q_{\play}^{\policy_{}^{'}}(\rstate,\pure)}
+	\notag\\
+	&+ 
+	\normConst{\stateDist}{\policy_{}^{\this}}\abs*{\sum_{\rstate,\pure}
+  \visitDistr{\stateDist}{\policy_{}}(\rstate)(\policy_{}-\policy_{}^{'})(\pure \vert \rstate)\frac{\pd Q_{\play}^{\policy_{\lambda}^{\that}}(\rstate,\pure)
+	}{\pd \lambda}\Big|_{\lambda=0}}
+\end{align}
+We will bound the following three terms separately:
+\begin{equation}
+\begin{aligned}
+\mathrm{Term}_A
+	&= \abs*{\sum_{\rstate,\pure}\frac{
+  \pd\visitMeas{\stateDist}{\policy_{\lambda}^{\this}}(\rstate)
+  }{\pd \lambda}\Big|_{\lambda=0}
+  (\policy_{}-\policy_{}^{'})(\pure \vert \rstate)Q_{\play}^{\policy_{}^{'}}(\rstate,\pure)}
+	\\
+\mathrm{Term}_B
+	&= \abs*{  \sum_{\rstate,\pure}
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\frac{\pd(\policy_{\lambda}^{\this}-\policy_{\lambda}^{\that})(\pure \vert \rstate)}{\pd \lambda}\Big|_{\lambda=0}Q_{\play}^{\policy_{}^{'}}(\rstate,\pure)}
+	\\
+\mathrm{Term}_C
+	&= \abs*{\sum_{\rstate,\pure}
+  \visitDistr{\stateDist}{\policy_{}}(\rstate)(\policy_{}-\policy_{}^{'})(\pure \vert \rstate)\frac{\pd Q_{\play}^{\policy_{\lambda}^{\that}}(\rstate,\pure)}{\pd \lambda}\Big|_{\lambda=0}}
+\end{aligned}
+\end{equation}
+For $\mathrm{Term}_A$, we will use \cref{lem:matrix-rewritting} in order to compute compactly the derivative:
+\begin{align}
+\frac{\pd\visitMeas{\stateDist}{\policy_{\lambda}^{\this}}(\rstate)}{\pd \lambda}
+	&= \frac{\pd\parens*{\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}\policy_{\lambda}^{\this}(\pure'\vert\rstate')e_{\rstate',\pure'}}^\top\visitMatrix(\policy_{\lambda}^{\this})\sum_{\pure\in\pures} e_{\rstate,\pure}}}{\pd \lambda}
+	\notag\\
+	&= \parens*{\;\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}\frac{\pd\policy_{\lambda}^{\this}(\pure'\vert\rstate')}{\pd \lambda}e_{\rstate',\pure'}}^\top\visitMatrix(\policy_{\lambda}^{\this})\sum_{\pure\in\pures} e_{\rstate,\pure}}
+	\notag\\
+	&\qquad
+		+ \parens*{\;\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}\policy_{\lambda}^{\this}(\pure'\vert\rstate')e_{\rstate',\pure'}}^\top\frac{\pd\visitMatrix(\policy_{\lambda}^{\this})}{\pd \lambda}\sum_{\pure\in\pures} e_{\rstate,\pure}}
+	\notag\\
+	&= \parens*{\;\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}{\pertrubation(\pure'_\play\vert\rstate')\cdot\policy_{-\play}(\pure'_{-\play}\vert\rstate')}e_{\rstate',\pure'}}^\top\visitMatrix(\policy_{\lambda}^{\this})\sum_{\pure\in\pures} e_{\rstate,\pure}}
+	\notag\\
+	&\qquad
+		+ \parens*{\;\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}\policy_{\lambda}^{\this}(\pure'\vert\rstate')e_{\rstate',\pure'}}^\top\frac{\pd
+  (I-\transMatrix(\policy_{\lambda}^{\this}))^{-1}}{\pd \lambda}\sum_{\pure\in\pures} e_{\rstate,\pure}}
+  \notag\\
+	&=	\parens*{\;\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}{\pertrubation(\pure'_\play\vert\rstate')\cdot\policy_{-\play}(\pure'_{-\play}\vert\rstate')}e_{\rstate',\pure'}}^\top\visitMatrix(\policy_{\lambda}^{\this})\sum_{\pure\in\pures} e_{\rstate,\pure}}
+	\notag\\
+	&\qquad
+		+ \parens*{\;\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}\policy_{\lambda}^{\this}(\pure'\vert\rstate')e_{\rstate',\pure'}}^\top
+  \big( 
+  \visitMatrix(\policy_{\lambda}^{\this})
+  \frac{\pd
+  \transMatrix(\policy_{\lambda}^{\this})}{\pd \lambda}
+  \visitMatrix(\policy_{\lambda}^{\this})
+  \big)
+  \sum_{\pure\in\pures} e_{\rstate,\pure}}
+\end{align}
+Thus for $\lambda=0$, we get
+\begin{align}
+\frac{\pd\visitMeas{\stateDist}{\policy_{\lambda}^{\this}}(\rstate)}{\pd \lambda}\Big|_{\lambda=0}
+	&=	\parens*{\;\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}{\pertrubation(\pure'_\play\vert\rstate')\cdot\policy_{-\play}(\pure'_{-\play}\vert\rstate')}e_{\rstate',\pure'}}^\top\visitMatrix(\policy_{})\sum_{\pure\in\pures} e_{\rstate,\pure}}
+	\notag\\
+	&+ \parens*{\;\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}\policy_{}(\pure'\vert\rstate')e_{\rstate',\pure'}}^\top
+  \big( 
+  \visitMatrix(\policy_{})
+  \frac{\pd
+  \transMatrix(\policy_{\lambda}^{\this})}{\pd \lambda}\Big|_{\lambda=0}
+  \visitMatrix(\policy_{})
+  \big)
+  \sum_{\pure\in\pures} e_{\rstate,\pure}}
+\end{align}
+Notice that $ \bracks*{\frac{\pd
+  \transMatrix(\policy_{\lambda}^{\this})}{\pd \lambda}\Big|_{\lambda=0}}_{(\rstate^\circ,\pure^\circ)\to(\rstate^\star,\pure^\star)}=\pertrubation(\pure^\star_\play\vert\rstate^\star)\cdot\policy_{-\play}(\pure^\star_{-\play}\vert\rstate^\star)P(\rstate^\star|\rstate^\circ,\pure^\circ)$.
+\newmacro{\aux}{\mathrm{aux}}
+
+To simplify notation let us call $\aux_A\defeq \bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}{\pertrubation(\pure'_\play\vert\rstate')\cdot\policy_{-\play}(\pure'_{-\play}\vert\rstate')}e_{\rstate',\pure'}}$, $\aux_B\defeq
+\bracks*{\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}\policy_{}(\pure'\vert\rstate')e_{\rstate',\pure'}}
+$ and $\aux_C(\rstate)\defeq \sum_{\pure\in\pures} e_{\rstate,\pure}$.
+
+We thus get:
+\begin{align}
+\mathrm{Term}_A
+	&=\abs*{\sum_{\rstate,\pure}
+		\frac{\pd\visitMeas{\stateDist}{\policy_{\lambda}^{\this}}(\rstate)}{\pd \lambda}\Big|_{\lambda=0} (\policy_{'}-\policy_{}^{'})(\pure \vert \rstate)Q_{\play}^{\policy_{\rstate'}^{'}}(\rstate,\pure)}
+	\notag\\
+	&=\abs*{\sum_{\rstate,\pure}\parens*{
+		  \aux_A^\top\visitMatrix(\policy_{})\aux_C(\rstate)
+  +\aux_B^\top
+  \big( 
+  \visitMatrix(\policy_{})
+  \frac{\pd
+  \transMatrix(\policy_{\lambda}^{\this})}{\pd \lambda}\Big|_{\lambda=0}
+  \visitMatrix(\policy_{})
+  \big)\aux_C(\rstate)}
+	(\policy_{}-\policy_{}^{'})(\pure \vert \rstate)Q_{\play}^{\policy_{}^{'}}(\rstate,\pure)}
+	\notag\\
+	&=\abs*{\parens*{
+  \aux_A^\top\visitMatrix(\policy_{})
+  +\aux_B^\top
+  \big( 
+  \visitMatrix(\policy_{})
+  \frac{\pd
+  \transMatrix(\policy_{\lambda}^{\this})}{\pd \lambda}\Big|_{\lambda=0}
+  \visitMatrix(\policy_{})
+  \big)}
+  \underbrace{\sum_{\rstate,\pure}
+  (\policy_{}-\policy_{}^{'})(\pure \vert \rstate)Q_{\play}^{\policy_{}^{'}}(\rstate,\pure)\aux_C(\rstate)}_{\aux_D}}
+	\notag\\
+	&\leq\norm{\aux_A}_1 \norm{\visitMatrix(\policy_{})\aux_D}_\infty
+		+ \norm{\aux_B}_1\norm{
+  \big( 
+  \visitMatrix(\policy_{})
+  \frac{\pd
+  \transMatrix(\policy_{\lambda}^{\this})}{\pd \lambda}\Big|_{\lambda=0}
+  \visitMatrix(\policy_{})
+  \big)\aux_D}_{\infty}
+\label{eq:final-bound-term-a}
+\end{align}
+It is easy to see that $\norm{\aux_A}_1\leq \sqrt{\nPures_{\play}}$, $\norm{\aux_B}_1=1$. Indeed,
+\begin{align}
+\norm{\aux_A}_1
+	&=\sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}{|\pertrubation(\pure'_\play\vert\rstate')|\cdot\policy_{-\play}(\pure'_{-\play}\vert\rstate')}
+	= \sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure_{\play}'\in\pures_\play}|\pertrubation(\pure'_\play\vert\rstate')|
+	\notag\\
+	&= \sum_{\rstate'\in\states}\stateDist(\rstate')\norm{\pertrubation_{\play\vert\rstate'}}_1
+	\leq \sum_{\rstate'\in\states}\stateDist(\rstate')\sqrt{\nPures_{\play}}\norm{\pertrubation_{\play\vert\rstate'}}_2\leq \sqrt{\nPures_{\play}}
+	\notag\\
+	\norm{\aux_B}_1
+	&= \sum_{\rstate'\in\states}\stateDist(\rstate')\sum_{\pure'\in\pures}\policy_{}(\pure'\vert\rstate')=1
+\end{align}
+Additionally by Conversion Lemma in Matrix form (See \cref{lem:conversion-matrix}), we have that:
+\begin{equation}\label{eq:bound-on-T}
+\norm{\visitMatrix(\policy_{})x}_\infty=\max_{\rstate,\pure}
+|e_{\rstate,\pure}^\top\visitMatrix(\policy_{})x|=
+\max_{\rstate,\pure}
+|  \ex_{\traj \sim \MDP}\bracks*{\insum_{\time =\tstart}^{\stopTime\parens{\traj}}x(\rstate_\time, \pure_\time )\vert \pure_\tstart=\pure,\rstate_\tstart=\rstate}|\leq \frac{1}{\stopPr}\norm{x}_\infty
+\end{equation}
+Similarly, for the matrix $  \frac{\pd
+  \transMatrix(\policy_{\lambda}^{\this})}{\pd \lambda}\Big|_{\lambda=0}$, we have that
+\begin{align}
+\label{eq:bound-on-P}
+\norm{\frac{\pd \transMatrix(\policy_{\lambda}^{\this})}{\pd \lambda}\Big|_{\lambda=0}x}_\infty&=\max_{\rstate,\pure}
+	\abs*{e_{\rstate,\pure}^\top\frac{\pd\transMatrix(\policy_{\lambda}^{\this})}{\pd \lambda}\Big|_{\lambda=0}x}
+  \notag\\
+	&= \max_{\rstate,\pure} | \sum_{\rstate',\pure'}  \pertrubation(\pure'_\play\vert\rstate')\cdot\policy_{-\play}(\pure'_{-\play}\vert\rstate')P(\rstate'|\rstate,\pure) x_{\rstate',\pure'} |
+	\notag\\
+	&\leq \sum_{\rstate',\pure'}
+		\abs*{\pertrubation(\pure'_\play\vert\rstate')}
+			\cdot\policy_{-\play}(\pure'_{-\play}\vert\rstate')P(\rstate'|\rstate,\pure)
+	\notag\\
+	&\leq \sqrt{\nPures_{\play}}\norm{\pertrubation_{\play\vert\rstate'}}_2\norm{x}_\infty
+	\leq\sqrt{\nPures_{\play}}\norm{x}_\infty
+\end{align}
+since $\norm{\pertrubation}_2=1$. 
+Then, using \eqref{eq:bound-on-P} and \eqref{eq:bound-on-T} in \eqref{eq:final-bound-term-a} we get that :
+\begin{align}
+\mathrm{Term}_A
+	&\leq \frac{\sqrt{\nPures_{\play}}}{\stopPr}\norm{\aux_D}_\infty
+		+ \frac{\sqrt{\nPures_{\play}}}{\stopPr^2}\norm{\aux_D}_\infty
+	\notag\\
+	&\leq \frac{\sqrt{\nPures_{\play}}}{\stopPr}(1+\frac{1}{\stopPr})
+		\norm*{\sum_{\rstate,\pure}(\policy_{}-\policy_{}^{'})(\pure \vert \rstate)Q_{\play}^{\policy_{}^{'}}(\rstate,\pure)\aux_C(\rstate)}_\infty
+	\notag\\
+	&\leq \frac{\sqrt{\nPures_{\play}}}{\stopPr^2}(1+\frac{1}{\stopPr})\max_{\rstate}\abs*{\sum_{\pure}
+  		(\policy_{}-\policy_{}^{'})(\pure \vert \rstate)}\norm{\aux_C(\rstate)}_\infty
+	\notag\\
+	&\leq \frac{\sqrt{\nPures_{\play}}}{\stopPr^2}(1+\frac{1}{\stopPr})
+		\sum_{\playalt=1}^{\nPlayers}\sqrt{\nPures_{\play}}\norm{\policy_\playalt-\policy'_\playalt}
+	\notag\\
+	&\leq \frac{\sqrt{\nPures_{\play}}}{\stopPr^3}\sum_{\playalt=1}^{\nPlayers}
+		\sqrt{\nPures_{\play}} \cdot \norm{\policy_\playalt-\policy'_\playalt}
+\end{align} 
+where we used above the fact that $Q$ function is bounded by $1/\stopPr$, $\norm{\pertrubation}=1$ and \cref{prop:useful-dtv} to bound the difference of the policy profiles.
+
+Moving forward, for $\mathrm{Term}_B$, we have:
+\begin{align}
+\mathrm{Term}_B
+	&=\abs*{  \sum_{\rstate,\pure}
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\frac{\pd(\policy_{\lambda}^{\this}-\policy_{\lambda}^{\that})(\pure \vert \rstate)}{\pd \lambda}\Big|_{\lambda=0}Q_{\play}^{\policy_{}^{'}}(\rstate,\pure)}
+	\notag\\
+	&=\abs*{  \sum_{\rstate,\pure} \visitDistr{\stateDist}{\policy_{}}(\rstate)\pertrubation(\pure_\play\vert\rstate)(\policy_{-\play}-\policy_{-\play}^{'})(\pure \vert \rstate)Q_{\play}^{\policy_{}^{'}}(\rstate,\pure)}
+	\notag\\
+	&\leq\frac{1}{\stopPr}\abs*{  \sum_{\rstate}
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\sum_{\pure_\play}\pertrubation(\pure_\play\vert\rstate)\sum_{\pure_{-\play}}(\policy_{-\play}-\policy_{-\play}^{'})(\pure \vert \rstate)}
+	\notag\\
+	&\leq\frac{1}{\stopPr} \sum_{\rstate}\abs*{
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\max_{\rstate}\sum_{\pure_\play}|\pertrubation(\pure_\play\vert\rstate)|\sum_{\pure_{-\play}}(\policy_{-\play}-\policy_{-\play}^{'})(\pure \vert \rstate)}
+	\notag\\
+	&\leq\frac{1}{\stopPr} \max_{\rstate}\norm{\pertrubation_{\play\vert\rstate}}_1 \sum_{\rstate}
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\sum_{\pure_{-\play}}|(\policy_{-\play}-\policy_{-\play}^{'})(\pure \vert \rstate)|
+	\notag\\
+	&\leq\frac{\sqrt{\nPures_{\play}}}{\stopPr} \max_{\rstate}\norm{\pertrubation_{\play\vert\rstate}}_2 \big(\sum_{\rstate}
+\visitDistr{\stateDist}{\policy_{}}(\rstate)\sum_{\pure_{-\play}}|(\policy_{-\play}-\policy_{-\play}^{'})(\pure \vert \rstate)|\big)
+	\notag\\
+	&\leq \frac{\sqrt{\nPures_{\play}}}{\stopPr}\sum_{\playalt\in\players\setminus\{\play\}}\sqrt{\nPures_{\play}}\norm{\policy_\playalt-\policy'_\playalt}
+\leq\frac{\sqrt{\nPures_{\play}}}{\stopPr}\sum_{\playalt=1}^{\nPlayers}\sqrt{\nPures_{\play}}\norm{\policy_\playalt-\policy'_\playalt}
+\end{align}
+where we used again the fact that $Q$ function is bounded by $1/\stopPr$ and \cref{prop:useful-dtv} to bound the difference of the policy profiles.
+
+Finally, for $\mathrm{Term}_C$, we have:
+\begin{align}
+\mathrm{Term}_C
+	&=\abs*{\sum_{\rstate,\pure}
+  \visitDistr{\stateDist}{\policy_{}}(\rstate)(\policy_{}-\policy_{}^{'})(\pure \vert \rstate)\frac{\pd Q_{\play}^{\policy_{\lambda}^{\that}}(\rstate,\pure)
+	}{\pd \lambda}\Big|_{\lambda=0}}
+	\notag\\
+	&\leq \max_{\rstate,\pure}\abs*{\frac{\pd Q_{\play}^{\policy_{\lambda}^{\that}}(\rstate,\pure)}{\pd \lambda}\Big|_{\lambda=0}} \sum_{\rstate,\pure}
+	\visitDistr{\stateDist}{\policy_{}}(\rstate)\abs*{(\policy_{}-\policy_{}^{'})(\pure \vert \rstate)}
+	\notag\\
+	&\leq \max_{\rstate,\pure}\abs*{\frac{\pd Q_{\play}^{\policy_{\lambda}^{\that}}(\rstate,\pure)
+	}{\pd \lambda}\Big|_{\lambda=0}} \sum_{\playalt=1}^{\nPlayers}\sqrt{\nPures_{\playalt}}\norm{\policy_\playalt-\policy'_\playalt}
+	\notag\\
+ &\leq \max_{\rstate,\pure}\abs*{e_{\rstate,\pure}^\top
+ \frac{\pd \visitMatrix(\policy_{\lambda}^{\that})}{\pd \lambda}\Big|_{\lambda=0}\reward_\play}\sum_{\playalt=1}^{\nPlayers}\sqrt{\nPures_{\playalt}}\norm{\policy_\playalt-\policy'_\playalt}
+	\notag\\
+ &\leq \max_{\rstate,\pure}\abs*{e_{\rstate,\pure}^\top
+  \frac{\pd
+  (I-\transMatrix(\policy_{\lambda}^{\this}))^{-1}}{\pd \lambda}\Big|_{\lambda=0}\reward_\play}\sum_{\playalt=1}^{\nPlayers}\sqrt{\nPures_{\playalt}}\norm{\policy_\playalt-\policy'_\playalt}
+	\notag\\
+ &\leq \max_{\rstate,\pure}\abs*{e_{\rstate,\pure}^\top
+  \big( 
+  \visitMatrix(\policy_{})
+  \frac{\pd
+  \transMatrix(\policy_{\lambda}^{\this})}{\pd \lambda}\Big|_{\lambda=0}
+  \visitMatrix(\policy_{})
+  \big)
+  \reward_\play}\sum_{\playalt=1}^{\nPlayers}\sqrt{\nPures_{\playalt}}\norm{\policy_\playalt-\policy'_\playalt}
+	\notag\\
+	&\leq \frac{\sqrt{\nPures_{\playalt}}}{\stopPr^2}\sum_{\playalt=1}^{\nPlayers}\sqrt{\nPures_{\playalt}}\norm{\policy_\playalt-\policy'_\playalt}
+\end{align}
+using again \eqref{eq:bound-on-P} and \eqref{eq:bound-on-T} and \cref{prop:useful-dtv}.
+Thus, we are ready now to bound the gradient per player:
+\begin{equation}
+\left|\frac{\pd (\rvalue_{\play,\stateDist}(\policy_{\lambda}^{\this})-\rvalue_{\play,\stateDist}(\policy_{\lambda}^{\that}))}{\pd \lambda}\Big|_{\lambda=0}\right|
+\leq \mathrm{Term}_A+\normConst{\stateDist}{\policy_{}^{\this}}
+(\mathrm{Term}_B+ \mathrm{Term}_C)\leq \frac{3\sqrt{\nPures_{\play}}}{\stopPr^3}\sum_{\playalt=1}^{\nPlayers}\sqrt{\nPures_{\playalt}}\norm{\policy_\playalt-\policy'_\playalt}
+\end{equation}
+where we recall that $ \normConst{\stateDist}{\policy_{}^{\this}}\leq \frac{1}{\stopPr} $
+Since we prove it for an arbitrary perturbation vector $\pertrubation$ for the directional derivative, for the independent player's policy gradient it holds also that:
+\begin{equation}\norm{\gvalue_\play(\policy)-\gvalue_{\play}(\policy')}=
+\norm{\nabla_\play  (\rvalue_{\play,\stateDist}(\policy_{})- 
+\nabla_\play  (\rvalue_{\play,\stateDist}(\policy_{}^{'})} \leq \frac{3\sqrt{\nPures_{\play}}}{\stopPr^3}\sum_{\playalt=1}^{\nPlayers}\sqrt{\nPures_{\playalt}}\norm{\policy_\playalt-\policy'_\playalt}\quad \forall \play\in\players
+\end{equation}
+Finally for the concatenated gradient operator we get:
+\begin{align}
+\norm{\gvalue(\policy)-\gvalue(\policy')}
+&=\sqrt{\sum_{\play\in\players}\norm{\gvalue_\play(\policy)-\gvalue_{\play}(\policy')}^2}=\sqrt{\sum_{\play\in\players}
+\norm{\nabla_\play  (\rvalue_{\play,\stateDist}(\policy_{})- 
+\nabla_\play  (\rvalue_{\play,\stateDist}(\policy_{}^{'})}^2}
+	\notag\\
+&\leq \sqrt{\sum_{\play\in\players} \frac{9\nPures_{\play}}{\stopPr^6}\big(\sum_{\playalt\in \players}\sqrt{\nPures_{\playalt}}\norm{\policy_\playalt-\policy'_\playalt}\big)^2}
+\leq \sqrt{\sum_{\play\in\players} \frac{9\nPures_{\play}}{\stopPr^6}\sum_{\playalt\in \players}\nPures_{\playalt}\sum_{\playalt\in \players}\norm{\policy_\playalt-\policy'_\playalt}^2}
+	\notag\\
+&\leq \frac{3}{\stopPr^3}\sqrt{(\sum_{\play\in \players}\nPures_{\play})^2\norm{\policy-\policy'}^2}\leq \frac{3\nPures}{\stopPr^3}\norm{\policy-\policy'}
+\end{align}
+which completes our proof.
+\end{proof}
+
+\begin{remark}
+In the proof above, we considered perturbations that may formally lie outside the game's policy space.
+However, it is not difficult to see that for sufficiently small $\lambda$ both $V_i({\pi(\lambda)}),\nabla V_i({\pi(\lambda)}), Z_\rho^{\pi(\lambda)}$ are well-defined and bounded, for $ \policy_{\lambda}^{\this}(\pure\vert\rstate)=(\policy_\play+\lambda\pertrubation,\policy_{-\play},\policy_{-\play})$.
+In view of this, we may harmlessly assume that all functions considered above are defined in an open neighborhood of the players' policy space.
+\end{remark}

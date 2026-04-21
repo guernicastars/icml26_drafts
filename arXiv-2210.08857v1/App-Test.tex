@@ -1,0 +1,37 @@
+%----------------------------------------------------------------------
+%%% APP: TEST
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+
+\begin{example}
+\label{ex:test}
+This is a test example within a test appendix with a test equation:
+\begin{subequations}
+\begin{align}
+\label{eq:test}
+\new
+	= \proxof{\point}{\dvec}
+	&\iff
+\new[\dpoint]
+	= \dpoint + \dvec
+	\quad
+	\text{and}
+	\quad
+\new
+	= \mirror(\new[\dpoint])
+\shortintertext{where}
+\dpoint
+	\in \subd\hreg(\point)
+	&\iff
+\point
+	\gets \mirror(\dpoint).
+\end{align}
+\end{subequations}
+The first equation above can be referred as \eqref{eq:test}.
+This concludes our example.
+\endenv
+\end{example}
+
+The above example will be referred to as \cref{ex:test}.

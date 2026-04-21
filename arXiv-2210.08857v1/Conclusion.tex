@@ -1,0 +1,17 @@
+%----------------------------------------------------------------------
+%%% CONCLUSION
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+A key roadblock encountered by practical applications of multi-agent reinforcement learning is the lack of universal equilibrium convergence guarantees.
+While the impossibility results of \cite{HMC00,HMC03} imply that unconditional convergence is not a reasonable aspiration without further assumptions on the game, the existence of local convergence results mitigates this deficiency as it provides a range of theoretically grounded stability and runtime guarantees.
+In this regard, deterministic policies acquire particular importance, as the convergence of policy gradient methods is especially rapid and robust and this case.
+\beginrev
+Of course, this leaves open the question of non-tabular settings and parametrically encoded policies, e.g., as in the case of deep reinforcement learning;
+we defer these investigations to future work.
+
+Another open issue of high practical relevance concerns policy gradient methods that do not rely on Euclidean projections to $\policies$.
+In the single-state case (\ie learning in finite normal form games), the use of methods relying on softmax choice / exponential weights is very widely used because of its regret guarantees.
+Whether the use of similar softmax techniques can lead to finer convergence guarantees in the context of general stochastic games is an important and intriguing question for future research.
+\endedit

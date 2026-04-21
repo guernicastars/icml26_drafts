@@ -1,0 +1,406 @@
+%----------------------------------------------------------------------
+%%% APP: SOS
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+We now proceed with the proof of \cref{thm:SOS}, which we again restate below for convenience:
+
+\SOS*
+
+\begin{proof}
+We will follow an approach similar to \cref{thm:stable} for the first part of the theorem.
+More precisely, let $\basin = \setdef{\policy\in\policies}{\norm{\policy - \eq} \leq \radius}$ be a ball of radius $\radius$ centered at $\eq$ in $\policies$ such that \eqref{eq:SOS} holds for all $\policy\in\basin$.
+Then, for all $\policy\in\basin\exclude{\eq}$, we have $\braket{\gvalue(\policy)}{\policy - \eq} \leq - \strong \norm{\policy - \eq} < 0$ by \cref{prop:var}.
+Hence, defining the events $\curr[\event]$ and $\curr[\eventalt]$ as in \cref{eq:events}, and assuming that $\init$ is initialized in a ball of radius $\sqrt{2\thres}$ centered at $\eq$, viz.
+\begin{equation}
+\label{eq:nhd-init-1}
+\nhd
+	= \setdef{\policy\in\policies}{\energy(\policy) \leq \thres}
+	= \setdef{\policy\in\policies}{\norm{\policy-\eq}^{2}/2 \leq \thres}.
+\end{equation}
+then, by \cref{lem:events} and \cref{prop:contain}, we readily obtain that
+\begin{equation}
+\label{eq:contain}
+\probof{\curr[\eventalt] \given \init\in\nhd}
+	\geq 1-\conf
+	\quad
+	\text{for all $\run=\running$}
+\end{equation}
+which implies that 
+\begin{equation}
+	\probof{\event \given \init\in\nhd} \geq 1-\conf
+\end{equation}
+if $\runoff$ is large enough relative to $\conf$.
+
+For the second part, constraining \cref{eq:template} on the event $\event_{\run}$, we get:
+\begin{align}\label{eq:basic energy}
+	\next[\energy]\one_{\event_{\run}} &\leq \curr[\energy]\one_{\event_{\run}} + \step_{\run}\inner{\gvalue(\policy_{
+	\run})}{\curr - \np}\one_{\event_{\run}} + \one_{\event_{\run}}\parens*{\step_{\run}\snoise_{\run} + \step_{\run}\sbias_{\run} + \step_{\run}^{2} \curr[\second]^{2}}
+	\notag\\
+	&\leq (1-2\mu\step_{\run})\curr[\energy]\one_{\event_{\run}} + \one_{\event_{\run}}\parens*{\step_{\run}\snoise_{\run} + \step_{\run}\sbias_{\run} + \step_{\run}^{2} \curr[\second]^{2}}
+\end{align}
+where the last inequality comes from \eqref{eq:SOS}.
+Therefore, taking expectations, we obtain:
+\begin{align}
+\exof*{\next[\energy]\one_{\event_{\run}}}
+	&\leq (1-2\mu\step_{\run}) \exof*{\curr[\energy]\one_{\event_{\run}}}
+		+ \exof*{\one_{\event_{\run}}\parens*{\step_{\run}\snoise_{\run} + \step_{\run}\sbias_{\run} + \step_{\run}^{2} \curr[\second]^{2}}}
+	\notag\\
+	&\leq (1-2\mu\step_{\run}) \exof*{\curr[\energy]\one_{\event_{\run}}}
+		+ \step_{\run} \exof*{\one_{\event_{\run}}\snoise_{\run}}
+		+ \step_{\run} \exof{\one_{\event_{\run}}\sbias_{\run}}
+		+ \step_{\run}^{2} \exof{\one_{\event_{\run}}\curr[\second]^{2}}
+	\notag\\
+	&= (1-2\mu\step_{\run}) \exof*{\curr[\energy]\one_{\event_{\run}}}
+		+ \step_{\run}\exof{\one_{\event_{\run}}\sbias_{\run}}
+		+ \step_{\run}^{2}\exof{\one_{\event_{\run}}\curr[\second]^{2}}
+	\notag\\
+	% &= (1-\mu\step_{\run})\exof*{\curr[\energy]\one_{\event_{\run}}} + \step_{\run}\exof{\one_{\event_{\run}}\sbias_{\run}} + \step_{\run}^{2}\exof{\one_{\event_{\run}}\curr[\second]^{2}} \notag\\
+	&\leq (1-2\mu\step_{\run}) \exof*{\curr[\energy]\one_{\event_{\run}}}
+		+ \poldiam \probof{\event_{\run}} \step_{\run} \bbound_{\run}
+		+ \probof{\event_{\run}}
+			\parens*{\vbound\step_{\run}^{2} + 3\step_{\run}^{2} \sdev_{\run}^{2} + 3\step_{\run}^{2} \bbound_{\run}^{2}}
+\end{align}
+where the equality in the third line comes from the fact that
+\begin{align}
+\exof{\one_{\event_{\run}}\snoise_{\run}}
+	= \exof*{\exof{\snoise_{\run} \one_{\event_{\run}} \given \filter_{\run}}}
+	= \exof*{\one_{\event_{\run}} \exof{\snoise_{\run} \given \filter_{\run}}} = 0.
+\end{align}
+Now, since $\one_{\event_{\run+1}} \leq \one_{\event_{\run}}$, we further have
+\begin{equation}
+\exof*{\next[\energy]\one_{\event_{\run+1}}}
+	\leq \exof*{\next[\energy]\one_{\event_{\run}}}
+\end{equation}
+and hence, setting $\bD_{\run} \defeq \exof*{\curr[\energy]\one_{\event_{\run}}}$, we get
+\begin{align}
+\next[\bD]
+	&\leq (1-2\mu\step_{\run}) \curr[\bD]
+		+ \poldiam \probof{\event_{\run}} \step_{\run} \bbound_{\run}
+		+ \probof{\event_{\run}}
+			\parens*{\vbound \step_{\run}^{2} + 3\step_{\run}^{2} \sdev_{\run}^{2} + 3 \step_{\run}^{2}\bbound_{\run}^{2}}
+	\notag\\
+	&\leq (1-2\mu\step_{\run}) \curr[\bD]
+		+ \poldiam\step_{\run}\bbound_{\run}
+		+ \vbound \step_{\run}^{2}
+		+ 3\step_{\run}^{2} \sdev_{\run}^{2}
+		+ 3 \step_{\run}^{2}\bbound_{\run}^{2}.
+\end{align}
+Therefore, taking $\step_{\run}, \bbound_{\run},\sdev_{\run}$ as per the statement of the theorem and noting that the terms $\step_{\run}^{2}$ and $\step_{\run}^{2} \bbound_{\run}^{2}$ are respectively dominated by the terms $\step_{\run}^{2}\sdev_{\run}^{2}$ and $\step_{\run} \bbound_{\run}$, we obtain
+\begin{align}
+	\next[\bD]
+	&\leq \parens*{1-\frac{2\mu\step}{(\run + \runoff)^\pexp}} \curr[\bD]
+		+ \frac{\Const_{1}}{(\run+\runoff)^{\pexp+\bexp}}
+		+ \frac{\Const_{2}}{(\run+\runoff)^{2\pexp-2\sexp}}
+	\notag\\
+	&\leq \parens*{1-\frac{2\mu\step}{(\run + \runoff)^\pexp}}\curr[\bD] + \frac{\Const_{1} + \Const_{2}}{(\run+\runoff)^{\pexp+\qexp}}
+\end{align}
+for some $\Const_{1}, \Const_{2} >0$, where $\qexp = \min\{\bexp,\pexp - 2\sexp\}$, as per the theorem's statement.
+Therefore, by a straightforward modification of Chung's lemma \cite[Lemmas 2\&3]{Chu54}, \cite[p.~45]{Pol87}, we get
+\begin{equation}
+	\bD_{\run}
+	=
+	\begin{cases}
+	\bigoh(1/\run^{2\strong\step})
+		&\quad
+		\text{if $\pexp=1$ \, and \, $2\strong\step<\qexp$},
+		\\
+	\bigoh(1/\run^{\qexp})
+		&\quad
+		\text{otherwise}.
+%		\\
+%	\bigoh(1/\run^{\qexp})
+%		&\quad
+%		\text{if $\pexp<1$},
+	\end{cases}
+\end{equation}
+Accordingly, letting $\run \to \infty$ and recalling that $\exof{\curr[\energy]\one_{\event}} \leq \exof{\curr[\energy]\one_{\event_{\run}}} = \curr[\bD]$ 
+\begin{align}
+	\lim_{\run \to \infty} \exof{\curr[\energy]\one_{\event}}
+	= 0.
+\end{align}
+Then, by Fatou's lemma \citep{Fol99}, we obtain
+\begin{align}
+0
+	\leq \exof{\liminf_{\run \to \infty} \curr[\energy]\one_{\event}}
+	\leq \liminf_{\run \to \infty} \exof{\curr[\energy]\one_{\event}}
+	= 0,
+\end{align}
+which readily shows that $\exof{\liminf_{\run \to \infty}\curr[\energy]\one_{\event}} = 0$.
+Finally, since $\liminf_{\run \to \infty}\curr[\energy]\one_{\event} \geq 0$ \as and $\exof{\liminf_{\run \to \infty}\curr[\energy]\one_{\event}} = 0$, we get that
+\begin{equation}
+\liminf_{\run \to \infty} \curr[\energy]\one_{\event}
+	= 0
+	\quad
+	\text{\acl{wp1}}.
+\end{equation}
+Therefore, there exists a subsequence $\energy_{\run_{\runalt}}$ that converges to $0$ \acl{wp1} on the event $\event$, \ie $\policy_{\run_{\runalt}}$ converges to $\eq$. 
+Hence, invoking \cref{prop:energy}, we further deduce that $\energy_{\run}$ converges to some $\energy_\infty$ \acl{wp1} on $\event$, and thus, we obtain that $\lim_{\run \to \infty}\energy_{\run} = 0$ on $\event$.
+We thus get
+\begin{align}
+\probof{ \curr\to\eq \given \init \in \nhd}
+	&\geq \probof{ \event \cap \{ \curr\to\eq \} \given \init \in \nhd}
+	\notag\\
+	&= \probof{ \curr\to\eq \given \init \in \nhd, \event}
+		\times \probof{\event \given \init \in \nhd}
+	\geq 1 - \conf,
+\end{align}
+as claimed.
+
+For the last part of the theorem, note that
+\begin{align}
+\curr[\bD]
+	= \ex[D_{\run} \one_{\event_{\run}}]
+	\geq \exof*{D_{\run} \one_{\event}}
+	&= \exof*{\exof{D_{\run} \given \sigma(\event)} \one_{\event}}
+	\notag\\
+	&= \exof*{\exof{D_{\run} \given \event} \one_{\event}} 
+	\notag\\
+	&= \exof{D_{\run} \given \event} \exof*{\one_{\event}} 
+	\notag\\
+	&= \exof{D_{\run} \given \event} \prob\parens{\event} 
+\end{align}
+where we used the fact that $\exof{D_{\run} \given \sigma(\event)} \one_{\event} = \exof{D_{\run} \given \event} \one_{\event}$.
+We thus conclude that
+\begin{align}
+\exof*{\norm{\policy_{\run} - \np}^{2} \given \event}
+	= 2\exof{D_{\run} \given \event} \leq \frac{2}{\prob(\event)}\curr[\bD]
+	\leq \frac{2}{1-\conf}\curr[\bD]
+	\notag\\
+\end{align}
+and hence
+\begin{equation*}
+\begin{aligned}
+\exof*{\norm{\policy_{\run} - \np}^{2} \given \event} =
+	\begin{cases}
+	\bigoh(1/\run^{2\strong\step})
+		&\quad
+		\text{if $\pexp=1$ \, and \, $2\strong\step<\qexp$},
+		\\
+	\bigoh(1/\run^{\qexp})
+		&\quad
+		\text{otherwise}.
+%		\\
+%	\bigoh(1/\run^{\qexp})
+%		&\quad
+%		\text{if $\pexp<1$},
+	\end{cases}
+\end{aligned}
+\qedhere
+\end{equation*}
+\end{proof}
+%\end{enumerate}
+% First of all, by Proposition \ref{prop:var}, there exist $\mu, \rad > 0$ such that
+% \begin{equation}
+%	 \braket{\gvalue(\policy)}{\policy - \eq}
+% 	\leq - \strong \norm{\policy - \eq}^{2} \quad\text{ for all }\policy \in \ball_{\rad}(\eq)\cap\policies
+% \end{equation}
+% Let $\nhd\defeq\ball_{\rad}(\eq)\cap\policies$ and fix a confidence level $\conf>0$. \AG{Give feedback on the design}
+% %\begin{enumerate}
+%  We will first show that if $\policy_\start\in \nhd_1 \defeq \ball_{\rad/3}(\eq)\cap\policies$ then %, and define $\nhd_1 \defeq \ball_{\rad/3}(\eq)\cap\policies$.
+% with probability at lest $1-\conf$, $\policy_{\run}\in\nhd$ for all $\run=\running$. We will analyze the distance $D_n := \frac{1}{2}\norm{\curr - \np}^{2}$ at the $\run$-th stage of the algorithm. \textcolor{blue}{We will focus on player $\play$ and drop the index $\play$ altogether}.
+%  We will prove by induction that if $\policy_1\in\nhd_1\subseteq\nhd$ then our statement holds. Assuming that $\iter \in \nhd$ for $k = \start,\dots, \run$ it is sufficient to show that $\policy_{\run+1}\in\nhd$. For this, we have
+% \begin{align}
+% \label{eq:potential_eq}
+% \next[\energy]
+%	 = \frac{1}{2}\norm{\policy_{\run+1} - \np}^{2} &
+%	 = \frac{1}{2} \norm{\proj(\curr + \step_{\run}\signal_{\run}) - \proj(\np)}^{2}
+%	 \notag\\
+%	 &\leq \frac{1}{2}\norm{\curr + \step_{\run}\signal_{\run} - \np}^{2}
+%	 \notag\\
+%	 &= \frac{1}{2}\norm{\curr - \np}^{2} + \step_{\run}\inner{\signal_{
+% \run}}{\curr - \np} + \frac{\step_{\run}^{2}}{2}\norm{\signal_{\run}}^{2}
+%	 \notag\\
+%	 &= \curr[\energy] + \step_{\run}\inner{\gvalue(\curr) + \noise_{\run} + \bias_{\run}}{\curr - \np} + \frac{\step_{\run}^{2}}{2}\norm{\signal_{\run}}^{2}
+%	 \notag\\
+%	 &= \curr[\energy] + \step_{\run}\inner{\gvalue(\policy_{\run})}{\curr - \np} + \step_{\run}\snoise_{\run} + \step_{\run}\inner{\bias_{\run}}{\curr - \np} + \step_{\run}^{2} \curr[\second]^{2}
+%	 \notag\\
+%	 &\leq \curr[\energy] + \step_{\run}\inner{\gvalue(\policy_{\run})}{\curr - \np} + \step_{\run}\snoise_{\run} + \step_{\run}\sbias_{\run} + \step_{\run}^{2} \curr[\second]^{2}
+% \end{align}
+% for $\snoise_{\run} = \inner{\noise_{\run}}{\curr - \np}$, $ \sbias_{\run} = \dnorm{\bias_{\run}}\norm{\curr - \np}$ and $\curr[\second]^{2} = \frac{1}{2}\norm{\signal_{\run}}^{2}$. Hence, since $\iter \in \nhd$ it holds that $\inner{\gvalue(\policy_{
+% \runalt})}{\iter - \np} \leq -2\mu D_{\runalt}$ for all $\runalt = 1,\dots,\run$, and the above relation becomes:
+% \begin{align}\label{eq: expression for distance}
+%	 \next[\energy] &\leq (1-2\mu\step_{\run})\curr[\energy] + \step_{\run}\snoise_{\run} + \step_{\run}\sbias_{\run} + \step_{\run}^{2} \curr[\second]^{2} \notag\\
+%	 &\leq \curr[\energy] + \step_{\run}\snoise_{\run} + \step_{\run}\sbias_{\run} + \step_{\run}^{2} \curr[\second]^{2} \notag\\
+%	 &\leq \init[\energy] + \sum_{\runalt = 1}^{\run}\step_{\runalt}\snoise_{\runalt} + \sum_{\runalt = 1}^{\run}\parens*{\step_{\runalt}\sbias_{\runalt} + \step_{\runalt}^{2} \second_{\runalt}^{2}} \notag\\
+%	 &= \init[\energy] + M_{\run} + S_{\run},
+% \end{align}
+% where $M_{\run} \defeq \sum_{\runalt = 1}^{\run} \step_{\runalt}\snoise_{\runalt}$ and $S_{\run} \defeq \sum_{\runalt = 1}^{\run} \parens*{\step_{\runalt}\sbias_{\runalt} + \step_{\runalt}^{2}\second_{\runalt}^{2}}$ for all $\run \in \N$.
+
+% We will now control the error terms $M_{\run}$ and $S_{\run}$. For this, we will provide some bounds on the moments of the quantities $\snoise_{\run}, \sbias_{\run}, \second_{\run}$. Specifically, we have:
+% \begin{enumerate}[I.]
+%	 \item \label{eq:I}
+%	 $\exof{\snoise_{\run}^{2}} = \exof{\inner{\noise_{\run}}{\curr - \np}^{2}}\leq\exof{\dnorm{\noise_{\run}}^{2}\norm{\curr - \np}^{2}} \leq \poldiam^{2}\exof{\exof{\dnorm{\noise_{\run}}^{2} \given \filter_{\run}}} \leq \poldiam^{2}\sdev_{\run}^{2}$\vspace{3pt}
+%	 \item \label{eq:II}
+%	 $\exof{\sbias_{\run}} = \exof*{\dnorm{\bias_{\run}}\norm{\curr - \np}}\leq \poldiam\exof{\exof{\dnorm{\bias_{\run}} \given \filter_{\run}}} \leq \poldiam\bbound_{\run}$\vspace{3pt}
+%	 \item \label{eq:III}
+%	 $\exof{\second_{\run}^{2}} = \exof{\dnorm{\gvalue(\policy_{\run})+\noise_{\run} + \bias_{\run}}^{2}} \leq \exof{3\dnorm{\gvalue(\policy_{\run})}^{2} + 3\dnorm{\noise_{\run}}^{2} + 3\dnorm{\bias_{\run}}^{2}} \leq c + 3 \sdev_{\run}^{2} + 3 \bbound_{\run}^{2}$, for some $c>0$.
+% \end{enumerate}
+% Now, it is easy to see that $\{M_{\run}\}_{\run \in \N}$ is a martingale, as $\exof{\abs{M_{\run}} \given \curr[\filter]} < \infty$ and $\exof{M_{\run+1} \given \curr[\filter]} = M_{\run}$, for all $\run$.
+
+% Moreover, for $\eta_{1} = \frac{\rad^{2}}{6} > 0$, we get by Doob's Maximal Inequality:
+
+% \begin{align}
+%	 \prob\parens*{\sup_{1 \leq \runalt \leq \run}M_{\runalt} \geq \eta_{1}} \leq \frac{\exof{M_{\run}^{2}}}{\eta_1^{2}} \stackrel{(a)}{=} \frac{\sum_{\runalt = 1}^{\run} \step_{\runalt}^{2}\exof{\snoise_{\runalt}^{2}}}{\eta_1^{2}} &\stackrel{(\ref{eq:I})}{\leq}
+%	 %\frac{\sum_{\runalt = 1}^{\run} \step_{\runalt}^{2}\exof{\inner{\noise_{\runalt}}{\curr - \np}^{2}}}{\eta_1^{2}} \notag\\
+%	 % &\leq \frac{\sum_{\runalt = 1}^{\run} \step_{\runalt}^{2}\exof{\dnorm{\noise_{\runalt}}^{2}\norm{\iter - \np}^{2}}}{\eta_1^{2}} \notag\\
+%	 % &\leq \frac{\poldiam^{2}\sum_{\runalt = 1}^{\run} \step_{\runalt}^{2}\exof{\exof{\dnorm{\noise_{\runalt}}^{2} \given \filter_{\runalt}}}}{\eta_1^{2}} \notag\\ 
+%	  \frac{\poldiam^{2}\sum_{\runalt = 1}^{\run} \step_{\runalt}^{2}\sdev^{2}_{\runalt}}{\eta_1^{2}}   
+% \end{align}
+% where $(a)$ comes from the fact that $\exof{\snoise_i\snoise_j} = 0$ for $i \neq j$.  Since $\step_{\run} =\gamma/(\run+m)^\pexp$, $\sdev_{\run} = \bigoh(\run^{\sexp})$ and  $\pexp-\sexp >1/2$, 
+% there exists $m_1$ such that if $m \geq m_1$ then
+% \begin{align}\label{eq: condition 1}
+%	 \sum_{\runalt = 1}^{\infty}\step_{\runalt}^{2}\sdev^{2}_{\runalt} < \frac{\delta \eta_1^{2}}{2\poldiam^{2}}
+% \end{align}
+% and so we automatically get that 
+% \begin{equation}
+%	 \prob\parens*{\sup_{1 \leq \runalt \leq \run}M_{\runalt} \geq \eta_{1}} \leq \frac{\conf}{2}
+% \end{equation}
+% %Hence, for $\step_{\run} = \frac{\step}{(\run + \runoff)^\pexp}$ and $\sdev_{\run} = \bigoh(\run^\sexp)$ with $\pexp - \sexp > 1/2$, and for $\runoff$ large enough we get the result.
+
+% Furthermore, notice that  the term $\{S_{\run}\}_{\run \in \N}$ is a sub-martingale, since $\exof{\abs{S_{\run}} \given \curr[\filter]} < \infty$ and $\exof{S_{\run+1} \given \curr[\filter]} > S_{\run}$, for all $\run$. As before, using Doob's Maximal Inequality, we get for $\eta_2 =\frac{\rad^{2}}{6} >0$:
+% \begin{align}
+%	 \prob\parens*{\sup_{1 \leq \runalt \leq \run}S_{\runalt} \geq \eta_{2}} \leq \frac{\exof{S_{\run}}}{\eta_{2}} 
+%	 &= \frac{\sum_{\runalt = 1}^{\run} \parens*{\step_{\runalt}\exof{\sbias_{\runalt}} + \step_{\runalt}^{2}\exof{\second_{\runalt}^{2}}}}{\eta_2} \notag\\
+%	 % &= \frac{\sum_{\runalt = 1}^{\run} \parens*{\step_{\runalt}\exof*{\dnorm{\bias_{\runalt}}\norm{\iter - \np}} + \frac{1}{2}\step_{\runalt}^{2}\exof{\norm{\signal_{\runalt}}^{2}}}}{\eta_2} \notag\\
+%	 % &\leq \frac{\poldiam\sum_{\runalt = 1}^{\run} \step_{\runalt}\exof{\exof{\dnorm{\bias_{\runalt}} \given \filter_{\runalt}}}+ \frac{1}{2}\sum_{\runalt = 1}^{\run} \step_{\runalt}^{2}\sdev^{2}_{\runalt}}{\eta_2} \notag\\
+%	 &\stackrel{(\ref{eq:II}-\ref{eq:III})}{\leq}\frac{\poldiam\sum_{\runalt = 1}^{\run} \step_{\runalt}\bbound_{\runalt} + c\sum_{\runalt = 1}^{\run} \step_{\runalt}^{2} + 3\sum_{\runalt = 1}^{\run} \step_{\runalt}^{2}\sdev^{2}_{\runalt} + 3\sum_{\runalt = 1}^{\run} \step_{\runalt}^{2}\bbound^{2}_{\runalt}}{\eta_2} \notag\\
+% \end{align}
+% Again, since $\step_{\run} = \gamma/(n+m)^\pexp$, $\bbound_{\run} = \bigoh(1/\run^{\bexp})$, $\sdev_{\run} =\bigoh( \run^{\sexp})$ with $\pexp -\sexp >1/2 $ and $\pexp + \bexp >1$, there exists $m_2$ such that if $m\geq m_2$ we have
+% \begin{equation}
+%	 \poldiam\sum_{\runalt = 1}^{\infty} \step_{\runalt}\bbound_{\runalt} + c\sum_{\runalt = 1}^{\infty} \step_{\runalt}^{2} + 3\sum_{\runalt = 1}^{\infty} \step_{\runalt}^{2}\sdev^{2}_{\runalt} + 3\sum_{\runalt = 1}^{\infty} \step_{\runalt}^{2}\bbound^{2}_{\runalt} \leq \dfrac{\conf\eta_2}{2}
+%	 %\poldiam\sum_{\runalt = 1}^{\infty} \step_{\runalt}\bbound_{\runalt} + \frac{1}{2}\sum_{\runalt = 1}^{\infty} \step_{\runalt}^{2}\sdev^{2}_{\runalt} 
+% \end{equation}
+% %\begin{align}
+% %	\sum_{\runalt = 1}^{\infty}\step_{\runalt}\expar_{\runalt} + \sum_{\runalt = 1}^{\infty}\step_{\runalt}^{2}/\expar_{\runalt} < \frac{\delta \eta_2}{2}
+% %\end{align}
+% and thus, we readily obtain:
+% \begin{equation}
+%	 \prob\parens*{\sup_{1 \leq \runalt \leq \run}S_{\runalt} \geq \eta_{2}} \leq \frac{\conf}{2}
+% \end{equation}
+% By choosing $m \geq \max\braces{m_1,m_2}$ we have that   
+% %Picking $\{\step_{\run}\}_{\run \in \N}, \{\expar_{\run}\}_{\run \in \N}$ such that $(\dots)$ and setting $\eta = \eta_1 + \eta_2$ we get that
+% \begin{equation}
+%	 \prob\parens*{\sup_{1 \leq \runalt \leq \run} M_{\run} + S_{\run} < \frac{\rad^{2}}{3}} \geq 1-\conf.
+% \end{equation}
+% From \cref{eq: expression for distance}, 
+% Defining the sequences of "good" events $\{\event_{\run}\}_{\run \in \N}$ and $\{\event'_{\run}\}_{\run \in \N}$ as $\event_{\run} \defeq \braces*{\policy_{\run}alt \in \nhd, \forall k = 1,\dots,\run}$ and $\event'_{\run} \defeq \braces*{\sup_{1 \leq \runalt \leq \run} M_{\runalt}+S_{\runalt} \leq \rad^{2}/3}$, accordingly, we get that $\event'_{\run} \subseteq \event_{\run}$ for all $\run$, since on $\event'_{\run}$ we have:
+% \begin{align}
+%	 \frac{1}{2}\norm{\policy_{\run+1} - \np}^{2} &\leq \init[\energy] + M_{\run} + S_{\run}\notag\\
+%	 &< \frac{\rad^{2}}{6} + \frac{\rad^{2}}{3} \notag\\
+%	 &= \frac{\rad^{2}}{2}
+% \end{align}
+% which, subsequently, implies that $\policy_{\run+1} \in \nhd$.
+% Now, since $\prob\parens*{\event'_{\run}} \geq 1-\conf$, we get that
+% \begin{equation}
+%	 \prob\parens*{\event_{\run}} \geq 1-\conf
+% \end{equation}
+% and since $\{\event_{\run}\}_{\run \in \N}$ is a decreasing sequence converging to $\event \defeq \braces*{\policy_{\run} \in \nhd, \forall \run \in \N}$, by letting $\run \to \infty$, we obtain
+% \begin{equation}
+%	 \prob\parens*{\event} \geq 1-\conf.
+% \end{equation}
+% i.e.,
+% \begin{equation}
+%	 \prob\parens*{\curr \in \nhd, \; \forall \run \mid \policy_{1} \in \nhd_{1}} \geq 1-\conf
+% \end{equation}
+
+%\corSOS* 
+
+\begin{proof}[Proof of \cref{cor:SOS}]
+For \cref{mod:full,mod:stoch}, taking $\bexp = \infty, \sexp = 0$ we readily get that $\qexp = \pexp$ and $\pexp > 1/2$. Since we require that $\sum_{\run=1}^{\infty}\step_{\run} = \infty$, we obtain that $\pexp \in (1/2,1]$. Hence, for $\pexp = 1$ and $2\strong\step > 1$ we obtain $\bigoh(1/\run)$ rate of convergence.
+
+For \cref{mod:value}, we have that $\curr[\bbound] = \bigoh(\curr[\expar])$ and $\curr[\sdev] = \bigoh(1/\sqrt{\curr[\expar]})$, \ie $\bexp = \pexp/2$ and $\sexp = \pexp/4$, and, hence, we readily get that $\qexp = \pexp/2$. Now, since $\pexp \leq 1$, $\pexp + \bexp >1$ and $\pexp - \sexp > 1/2$, we obtain that $\pexp \in (2/3,1]$. Hence, for $\pexp = 1$ and $\strong\step > 1$, we obtain $\bigoh(1/\sqrt{\run})$ rate of convergence.
+\end{proof}
+
+We conclude this appendix with a detailed statement and proof of the fact that, when run with perfect policy gradients (\ie as per \cref{mod:full}), the sequence of play generated by \eqref{eq:PG} achieves a geometric convergence rate to Nash policies satisfying \eqref{eq:SOS}.
+The precise result is as follows:
+
+\begin{proposition}
+\label{prop:geometric}
+Let $\eq$ be a \acl{SOS} policy,
+let $\basin$ be a neighborhood of $\eq$ such that \eqref{eq:strong} holds on $\basin$,
+and
+let $\curr$ be the sequence of play generated by \eqref{eq:PG} with a sufficiently small constant step-size $\step > 0$ and perfect policy gradients as per \cref{mod:full}.
+Then, there exists a neighborhood $\nhd$ of $\eq$ in $\policies$ and some $\rho>0$ such that
+\begin{equation}
+\label{eq:geometric}
+\norm{\curr - \eq}
+	= \bigoh(\exp(-\rho\run))
+	\quad
+	\text{whenever $\init\in\nhd$}.
+\end{equation}
+\end{proposition}
+
+\begin{proof} 
+The crucial part of the proof is the observation that, in the case of \cref{mod:full}, the energy inequality \eqref{eq:energy} of \cref{lem:energy} may be written in the sharper form:
+\begin{align}
+\label{eq:energy-strong}
+\next[\energy]
+	&\leq \curr[\energy]
+		+ \step \braket{\gvalue(\curr) - \gvalue(\eq)}{\curr - \eq}
+		+ \tfrac{1}{2} \step^{2} \norm{\gvalue(\curr) - \gvalue(\eq)}^{2}.
+%	\notag\\
+%	&\leq \curr[\energy]
+%		- \strong \step \norm{\curr - \eq}^{2}
+%		+ \tfrac{1}{2} \step^{2} \norm{\gvalue(\curr)}^{2}
+%	\explain{by \cref{prop:var}}
+\end{align}
+To see this, consider the development
+\begin{align}
+\label{eq:energy-dev1}
+\norm{\next - \eq}^{2}
+	&= \norm{\next - \curr + \curr - \eq}^{2}
+	\notag\\
+	&= \norm{\curr - \eq}^{2}
+		+ 2 \braket{\next - \curr}{\curr - \eq}
+		+ \norm{\next - \curr}^{2}
+	\notag\\
+	&= \norm{\curr - \eq}^{2}
+		+ 2 \braket{\next - \curr}{\next - \eq}
+		- \norm{\next - \curr}^{2}
+	\notag\\
+	&\leq \norm{\curr - \eq}^{2}
+		+ 2\step\braket{\gvalue(\curr)}{\next - \eq}
+		- \norm{\next - \curr}^{2},
+	\notag\\
+	&\leq \norm{\curr - \eq}^{2}
+		+ 2\step\braket{\gvalue(\curr) - \gvalue(\eq)}{\next - \eq}
+		- \norm{\next - \curr}^{2},
+\end{align}
+where the last line follows from \eqref{eq:FOS} and, in the penultimate step, we used the fact that $\eq\in\policies$ so $\braket{\next - (\curr + \step\gvalue(\curr))}{\next - \eq} \leq 0$.
+In addition, by Young's inequality, we have
+\begin{align}
+\label{eq:energy-dev2}
+\braket{\gvalue(\curr) - \gvalue(\eq)}{\next - \eq}
+	&= \braket{\gvalue(\curr) - \gvalue(\eq)}{\curr - \eq}
+		+ \braket{\gvalue(\curr) - \gvalue(\eq)}{\next - \curr}
+	\notag\\
+	&\leq \braket{\gvalue(\curr) - \gvalue(\eq)}{\curr - \eq}
+		+ \frac{\step}{2} \norm{\gvalue(\curr) - \gvalue(\eq)}^{2}	
+		+ \frac{1}{2\step} \norm{\next - \curr}^{2}
+\end{align}
+so \eqref{eq:energy-strong} follows by substituting \eqref{eq:energy-dev2} in \eqref{eq:energy-dev1} and simplifying.
+
+Now, since $\gvalue$ is $G$-Lipschitz (\cf \cref{lem:smoothness} in \cref{app:marl}), we have $\norm{\gvalue(\curr) - \gvalue(\eq)} \leq G \norm{\curr - \eq}$, so the energy inequality \eqref{eq:energy-strong} becomes
+\begin{equation}
+\next[\energy]
+	\leq \curr[\energy]
+		+ \step \braket{\gvalue(\curr) - \gvalue(\eq)}{\curr - \eq}
+		+ \step^{2} G^{2} \curr[\energy].
+\end{equation}
+However, if $\curr \in \basin$, \cref{prop:var} further yields
+\begin{equation}
+\braket{\gvalue(\curr) - \gvalue(\eq)}{\curr - \eq}
+	\leq - \strong \norm{\curr - \eq}^{2}
+\end{equation}
+so
+\begin{equation}
+\next[\energy]
+	\leq \curr[\energy]
+		- \strong\step \norm{\curr - \eq}^{2}
+		+ \step^{2} G^{2} \curr[\energy]
+	= (1 - 2\strong\step + \step^{2}G^{2}) \curr[\energy].
+\end{equation}
+Thus, if $\step < 2\strong/G^{2}$ and $\init$ is initialized in a ball centered at $\eq$ and contained within $\basin$, our assertion follows from a straightforward induction argument.
+\end{proof}

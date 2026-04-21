@@ -1,0 +1,9 @@
+torch>=2.0.0
+ray[rllib]>=2.5.0
+gymnasium
+mujoco
+mujoco-python-viewer
+numpy<2.0.0
+pandas
+matplotlib
+pettingzoo

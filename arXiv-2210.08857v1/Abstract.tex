@@ -1,0 +1,14 @@
+%----------------------------------------------------------------------
+%%% ABSTRACT
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+%
+%
+Learning in stochastic games is a notoriously difficult problem because, in addition to each other's strategic decisions, the players must also contend with the fact that the game itself evolves over time, possibly in a very complicated manner.
+Because of this, the convergence properties of popular learning algorithms \textendash\ like policy gradient and its variants \textendash\ are poorly understood, except in specific classes of games (such as potential or two-player, zero-sum games).
+In view of this, we examine the long-run behavior of policy gradient methods with respect to Nash equilibrium policies that are \acf{SOS} in a sense similar to the type of sufficiency conditions used in optimization.
+Our first result is that \ac{SOS} policies are locally attracting with high probability, and we show that policy gradient trajectories with gradient estimates provided by the \reinforce algorithm achieve an $\mathcal{O}(1/\sqrt{\run})$ distance-squared convergence rate if the method's step-size is chosen appropriately.
+Subsequently, specializing to the class of \emph{deterministic} Nash policies, we show that this rate can be improved dramatically and, in fact, policy gradient methods converge within a \emph{finite} number of iterations in that case.
+%Firstly, when the equilibrium in question is \emph{deterministic}, we show that this rate can be improved dramatically and, in fact, policy gradient methods converge within a \emph{finite} number of iterations in that case.
+%On the other hand, our analysis shows that if a stochastic game admits \ac{SOS} policies then they are locally attracting with high probability, and we show that policy gradient trajectories with gradient estimates provided by the \reinforce algorithm achieve an $\mathcal{O}(1/\sqrt{\run})$  convergence rate in squared $\ell_2$ norm metric to such equilibria if the method's step-size is chosen appropriately.
+%\vspace{-1ex}

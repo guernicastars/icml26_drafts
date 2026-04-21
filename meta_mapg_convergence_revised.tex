@@ -1,0 +1,531 @@
+\documentclass[11pt]{article}
+
+%----------------------------------------------------------------------
+% Packages
+%----------------------------------------------------------------------
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,amsfonts,mathtools}
+\usepackage{bm}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{enumitem}
+
+%----------------------------------------------------------------------
+% Theorem environments
+%----------------------------------------------------------------------
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+%----------------------------------------------------------------------
+% Macros
+%----------------------------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Expect}[2]{\mathbb{E}_{#1}\!\left[#2\right]}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\inner}[2]{\left\langle #1,\,#2 \right\rangle}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\calN}{\mathcal{N}}
+\newcommand{\calS}{\mathcal{S}}
+\newcommand{\calA}{\mathcal{A}}
+\newcommand{\calM}{\mathcal{M}}
+\newcommand{\calU}{\mathcal{U}}
+\newcommand{\meta}{\mathrm{meta}}
+\newcommand{\MAPG}{\mathrm{M\text{-}MAPG}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+%----------------------------------------------------------------------
+\title{Global Convergence of a Meta-Learning-Aware Policy Gradient Method to (Meta-)Nash Equilibria in General Stochastic Games}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We establish local almost-sure convergence, and --- via the restart mechanism of Giannou, Mertikopoulos and Antonakopoulos \cite{Giannou2022} --- global almost-sure convergence to stable (meta-)Nash equilibria for a meta-learning-aware multi-agent policy gradient algorithm in general $n$-player stochastic games. Our contribution is to use the Meta-Multiagent Policy Gradient (Meta-MAPG) identity of Kim et al.\ \cite{Kim2021} as the gradient estimator $\hat v_n$ inside the stochastic policy gradient template of \cite{Giannou2022}. We then verify that (i) the sample-based Meta-MAPG estimator satisfies the bias and variance summability conditions $p+\ell_b>1$ and $p-\ell_\sigma>1/2$ of \cite[Theorem~1]{Giannou2022}; and (ii) the induced meta-game inherits the generalized diagonal-positivity / second-order-stability (GDP/SOS) structure required for local attraction to a stable meta-Nash policy. Combining these with the restart strategy of \cite[§4]{Giannou2022} applied to the meta-game yields global almost-sure convergence to a stable meta-Nash equilibrium, together with bounded expected restart counts and Pareto-type selection.
+\end{abstract}
+
+%======================================================================
+\section{Introduction}
+%======================================================================
+
+Multi-agent meta-reinforcement learning algorithms such as Meta-MAPG \cite{Kim2021} compute policy gradients that deliberately account for the \emph{learning} of other agents through an inner policy-gradient loop. At the same time, the recent analysis of \cite{Giannou2022} provides a template under which a (potentially biased and noisy) stochastic policy gradient iterate converges almost surely to a variationally stable Nash policy, and --- when combined with a restart schedule --- converges globally with probability one to such an equilibrium.
+
+The two results operate at different levels. Kim et al.\ \cite{Kim2021} prove an \emph{identity} for the gradient of the meta-value function in a multi-agent stochastic game, but do not give convergence guarantees; Giannou et al.\ \cite{Giannou2022} prove a \emph{convergence theorem} in a generic stochastic policy gradient template, but do not address meta-learning or the peer-learning correction term.
+
+In this note we bridge the two by viewing Meta-MAPG as producing an estimator $\hat v_n$ of the gradient of the meta-value function on a well-defined \emph{meta-game} $\calM^{\meta}$, and then invoking \cite[Theorem~1]{Giannou2022} on $\calM^{\meta}$. The resulting statement (Theorem~\ref{thm:main} below) is to our knowledge the first global convergence guarantee for a meta-learning-aware policy gradient method in general stochastic games.
+
+%======================================================================
+\section{Preliminaries}
+%======================================================================
+
+%------------------------------------------------------------------
+\subsection{Stochastic games, policies and returns}
+%------------------------------------------------------------------
+
+Let $\calM=(\calN,\calS,\{\calA^i\}_{i\in\calN},P,\{R^i\}_{i\in\calN},\gamma,H)$ be an $n$-agent stochastic game with $\calN=\{1,\dots,n\}$, compact state space $\calS$, finite joint action space $\calA=\prod_i\calA^i$, transition kernel $P(s'\mid s,\bm a)$, agent $i$ reward $R^i(s,\bm a)\in[-R_{\max},R_{\max}]$, discount $\gamma\in(0,1)$, and finite horizon $H<\infty$.
+
+Each agent $i$ plays a smooth stochastic policy $\pi^i(\cdot\mid s,\phi^i)$ parametrised by $\phi^i\in\Phi^i\subset\R^{d_i}$, where $\Phi^i$ is compact and convex. Let $\bm\phi=(\phi^1,\dots,\phi^n)\in\Phi=\prod_i\Phi^i$ and write $\bm\phi^{-i}$ for the parameters of all agents except~$i$. A trajectory under joint policy $\pi(\bm\phi)$ is $\tau_{\bm\phi}=(s_0,\bm a_0,s_1,\bm a_1,\dots,s_H)$ with density
+\begin{equation}\label{eq:traj-density}
+p(\tau_{\bm\phi}\mid\phi^i,\bm\phi^{-i})
+\;=\;
+p(s_0)\prod_{t=0}^{H}\pi^i(a_t^i\mid s_t,\phi^i)\,\pi(\bm a_t^{-i}\mid s_t,\bm\phi^{-i})\,P(s_{t+1}\mid s_t,\bm a_t),
+\end{equation}
+and (discounted) return $G^i(\tau_{\bm\phi})=\sum_{t=0}^H \gamma^t R^i(s_t,\bm a_t)$, which is bounded: $|G^i|\le G_{\max}\coloneqq R_{\max}\,\frac{1-\gamma^{H+1}}{1-\gamma}$.
+
+%------------------------------------------------------------------
+\subsection{The inner loop and the meta-value function}
+%------------------------------------------------------------------
+
+Following \cite{Kim2021}, we assume that each agent updates its parameters using $L+1$ rounds of an \emph{inner} policy gradient step,
+\begin{equation}\label{eq:inner-update}
+\phi^i_{\ell+1} \;=\; \phi^i_\ell + \alpha\, \hat g^i(\phi^i_\ell,\bm\phi^{-i}_\ell),
+\qquad \ell=0,\dots,L,
+\end{equation}
+where $\hat g^i$ is a stochastic estimate of $\nabla_{\phi^i}V^i(\phi^i_\ell,\bm\phi^{-i}_\ell)$ formed from $K$ independent rollouts and $\alpha>0$ is a fixed inner-loop step-size. Writing $\bm\phi_{0:L+1}\coloneqq(\bm\phi_0,\bm\phi_1,\dots,\bm\phi_{L+1})$, the \emph{meta-value function} of agent $i$ is
+\begin{equation}\label{eq:meta-value}
+V^i_{\bm\phi_{0:L+1}}(s_0,\phi^i_0)
+\;=\;
+\Expect{p(\tau_{\bm\phi_{0:L}}\mid \bm\phi_{0:L})}{\Expect{\tau_{\bm\phi_{L+1}}\mid \bm\phi_{L+1}}{G^i(\tau_{\bm\phi_{L+1}})}}.
+\end{equation}
+The \emph{meta-game} $\calM^{\meta}=(\calN,\Phi,\{V^i_{\bm\phi_{0:L+1}}\}_i)$ is the $n$-player game with parameter space $\Phi$ and payoffs given by \eqref{eq:meta-value}.
+
+\begin{theorem}[{Meta-MAPG identity, \cite[Theorem~1]{Kim2021}}]\label{thm:kim}
+Under smoothness and interchange-of-differentiation conditions on $\pi^i$ and $P$,
+\begin{align}\label{eq:meta-grad}
+\nabla_{\phi^i_0}V^i_{\bm\phi_{0:L+1}}(s_0,\phi^i_0)
+&=
+\Expect{p(\tau_{\bm\phi_{0:L}}\mid\bm\phi_{0:L})}{\Expect{\tau_{\bm\phi_{L+1}}\mid\bm\phi_{L+1}}{G^i(\tau_{\bm\phi_{L+1}})\cdot\Psi^i_L}},\\
+\Psi^i_L &\coloneqq
+\underbrace{\nabla_{\phi^i_0}\log\pi(\tau_{\bm\phi_0}\mid\phi^i_0)}_{\text{Current Policy}}
++\underbrace{\sum_{\ell'=0}^{L}\nabla_{\phi^i_0}\log\pi(\tau_{\bm\phi_{\ell'+1}}\mid\phi^i_{\ell'+1})}_{\text{Own Learning}}
++\underbrace{\sum_{\ell'=0}^{L}\nabla_{\phi^i_0}\log\pi(\tau_{\bm\phi_{\ell'+1}}\mid\bm\phi^{-i}_{\ell'+1})}_{\text{Peer Learning}}. \nonumber
+\end{align}
+\end{theorem}
+
+The identity \eqref{eq:meta-grad} is \emph{exact}: if we could draw full trajectories from $p(\tau_{\bm\phi_{0:L+1}})$ the plug-in quantity is an unbiased estimator of $\nabla_{\phi^i_0}V^i_{\bm\phi_{0:L+1}}$.
+
+%------------------------------------------------------------------
+\subsection{The Giannou et al.\ PG template}
+%------------------------------------------------------------------
+
+We next recall \cite[§2--3]{Giannou2022}. The template is a stochastic approximation iterate of the form
+\begin{equation}\label{eq:giannou-pg}
+\pi_{n+1}=\pi_n+\gamma_n\,\hat v_n,\qquad
+\gamma_n=\tfrac{\gamma}{(n+m)^p},\ p\in(\tfrac12,1],
+\end{equation}
+on the product policy simplex. The estimator $\hat v_n\in\R^D$ is decomposed as
+\begin{equation}\label{eq:bias-variance-decomp}
+\hat v_n = v(\pi_n) + b_n + U_n,
+\qquad
+b_n=\E[\hat v_n\mid\calF_n]-v(\pi_n),
+\qquad
+U_n=\hat v_n-\E[\hat v_n\mid\calF_n],
+\end{equation}
+where $v(\pi)=(\nabla_{\pi^i}u^i(\pi))_{i\in\calN}$ is the population individual-payoff gradient. The conditions in \cite[Eq.~(2.10)]{Giannou2022} are
+\begin{equation}\label{eq:giannou-conditions}
+\E\!\left[\norm{b_n}\,\big|\,\calF_n\right]\le B_n,\quad
+\E\!\left[\norm{U_n}^2\,\big|\,\calF_n\right]\le M_n^2,\quad
+B_n=O(n^{-\ell_b}),\ M_n^2=O(n^{-2\ell_\sigma}),
+\end{equation}
+with $p+\ell_b>1$ and $p-\ell_\sigma>\tfrac12$. Under these plus variational stability of $\pi^*$ \cite[Def.~2]{Giannou2022}, their Theorem~1 states:
+
+\begin{theorem}[{\cite[Theorem~1]{Giannou2022}}]\label{thm:giannou}
+Let $\pi^*$ be a stable Nash policy and let $(\pi_n)$ be generated by \eqref{eq:giannou-pg} under \eqref{eq:giannou-conditions}. Then there exists a neighbourhood $\calU$ of $\pi^*$ such that for every $\delta>0$,
+\begin{equation}\label{eq:giannou-conclusion}
+\Prob\!\left(\pi_n\to\pi^*\;\big|\;\pi_1\in\calU\right)\;\ge\;1-\delta,
+\end{equation}
+provided $\gamma$ is sufficiently small (or $m$ sufficiently large) relative to $\delta$.
+\end{theorem}
+
+%======================================================================
+\section{Main result}\label{sec:main}
+%======================================================================
+
+Fix a deterministic inner unrolling depth $L\in\N$. At outer iteration $n$, following Kim et al.~\cite{Kim2021}, we sample $N_n$ independent rollouts of the full inner chain, call them $\{\tau^{(j)}_{\bm\phi_{0:L+1}}\}_{j=1}^{N_n}$, each generated by executing \eqref{eq:inner-update} for $L+1$ steps using $K_n$ rollouts per inner update. The \emph{empirical Meta-MAPG estimator} is then the Monte-Carlo plug-in of Theorem~\ref{thm:kim},
+\begin{equation}\label{eq:empirical-mapg}
+\hat v_n^{\,\MAPG,\,i}
+\;=\;
+\frac{1}{N_n}\sum_{j=1}^{N_n} G^i(\tau^{(j)}_{\bm\phi_{L+1}})\cdot \hat\Psi^{i,(j)}_{L},
+\end{equation}
+where $\hat\Psi^{i,(j)}_{L}$ is the finite-trajectory analogue of $\Psi^i_L$ in \eqref{eq:meta-grad}, and we set $\hat v_n^{\,\MAPG}=(\hat v_n^{\,\MAPG,i})_{i\in\calN}$. The estimator~\eqref{eq:empirical-mapg} is implementable exactly as in \cite[Alg.~1]{Kim2021}.
+
+\begin{theorem}[Global convergence of Meta-MAPG to a stable meta-Nash]\label{thm:main}
+Suppose Assumptions~\ref{ass:chart}--\ref{ass:stability} below hold and that in the outer loop
+\begin{equation}\label{eq:rate-choices}
+\gamma_n = \tfrac{\gamma}{(n+m)^p},\quad p\in(\tfrac12,1],\qquad
+N_n\ge c_N\,n^{2\ell_\sigma},\quad
+K_n\ge c_K\,n^{2\ell_b},
+\end{equation}
+for some constants $c_N,c_K>0$ and exponents satisfying $p+\ell_b>1$ and $p-\ell_\sigma>\tfrac12$. Let $\bm\phi^*_{\meta}$ be such that $\Lambda(T_\alpha(\bm\phi^*_\meta))=\pi^*$, where $\pi^*$ is a stable Nash policy of the base game $\calM$. Then:
+\begin{enumerate}[label=(\roman*), leftmargin=2em]
+\item (Local convergence.) There exists a neighbourhood $\calU^\meta$ of $\bm\phi^*_{\meta}$ in $\Phi$ such that for every $\delta>0$,
+\begin{equation}
+\Prob\!\left(\bm\phi_0^{(n)}\to\bm\phi^*_{\meta}\;\big|\;\bm\phi_0^{(1)}\in\calU^\meta\right)\;\ge\;1-\delta,
+\end{equation}
+provided $\gamma$ is small (or $m$ large) relative to $\delta$.
+\item (Global convergence via restart.) If the restart strategy of \cite[§4]{Giannou2022} is applied to the meta-game using \eqref{eq:empirical-mapg}, then the restarted process converges almost surely to a stable meta-Nash equilibrium, the expected number of restarts is finite, and in games with multiple stable Nash policies the selected limit is Pareto-optimal in the sense of \cite[Prop.~4.3]{Giannou2022}. If $\bm\phi^*_{\meta}$ is the unique stable meta-Nash equilibrium, then the restarted process converges to $\bm\phi^*_{\meta}$ almost surely.
+\end{enumerate}
+\end{theorem}
+
+The rest of this note is devoted to establishing Theorem~\ref{thm:main}. The plan is:
+\begin{itemize}
+\item Assumptions~\ref{ass:chart}--\ref{ass:stability}: a local parameter-to-policy chart, smooth deterministic inner-loop dynamics, bounded estimators, and variational stability in the base game.
+\item Lemma~\ref{lem:bias} (bias): $\norm{\E[\hat v_n^{\,\MAPG}\mid\calF_n]-\widetilde v^\meta(\bm\phi_0^{(n)})}=O(K_n^{-1/2})$ for the deterministic-inner-loop meta-gradient $\widetilde v^\meta$.
+\item Lemma~\ref{lem:variance} (variance): $\E[\norm{U_n}^2\mid\calF_n]=O(1/N_n)$.
+\item Lemma~\ref{lem:gdp} (meta-GDP/SOS): under an explicit curvature-dominance condition for the local charted inner map $F=\Lambda\circ T_\alpha$, the variational stability of $\pi^*$ in $\calM$ lifts to variational stability of $\bm\phi^*_{\meta}$ in the deterministic meta-game.
+\item Theorem~\ref{thm:main} is then a direct application of \cite[Theorem~1]{Giannou2022} with $\hat v_n\leftarrow\hat v_n^{\,\MAPG}$, followed by \cite[§4]{Giannou2022} for the restart conclusions.
+\end{itemize}
+
+%======================================================================
+\section{Assumptions}
+%======================================================================
+
+\begin{assumption}[Policy chart and smoothness]\label{ass:chart}
+For every $i\in\calN$, $\Phi^i\subset\R^{d_i}$ is compact and convex, and the policy parameterisation
+\[
+\Lambda^i:\Phi^i\to\Pi^i,\qquad
+\Lambda^i(\phi^i)=\pi^i(\cdot\mid\cdot,\phi^i),
+\]
+is $C^2$. There exists a neighbourhood $\calU_\phi^i$ of $\phi^{i,*}$ and a neighbourhood $\calU_\pi^i$ of $\pi^{i,*}$ such that $\Lambda^i:\calU_\phi^i\to\calU_\pi^i$ is a $C^2$ diffeomorphism onto its image. Writing $\Lambda=\prod_i\Lambda^i$, there exist constants $0<m_\Lambda\le M_\Lambda<\infty$ and $H_\Lambda<\infty$ such that on $\calU_\phi=\prod_i\calU_\phi^i$,
+\begin{equation*}
+m_\Lambda I \preceq D\Lambda(\bm\phi)^\top D\Lambda(\bm\phi)\preceq M_\Lambda I,\qquad
+\norm{D^2\Lambda(\bm\phi)}_{\mathrm{op}}\le H_\Lambda.
+\end{equation*}
+Moreover, the log-policy $(s,\phi^i)\mapsto\log\pi^i(a\mid s,\phi^i)$ is $C^2$ in $\phi^i$ for every $(s,a)$, with
+\begin{equation*}
+\sup_{s,a,\phi^i}\norm{\nabla_{\phi^i}\log\pi^i(a\mid s,\phi^i)}\le G,\qquad
+\sup_{s,a,\phi^i}\norm{\nabla^2_{\phi^i}\log\pi^i(a\mid s,\phi^i)}_{\mathrm{op}}\le L.
+\end{equation*}
+The transition kernel $P$ and rewards $R^i$ are measurable and bounded as in §2.1.
+\end{assumption}
+
+\begin{assumption}[Inner-loop gradient oracle]\label{ass:inner-oracle}
+The inner-loop estimator $\hat g^i(\phi^i_\ell,\bm\phi^{-i}_\ell)$ in \eqref{eq:inner-update} is conditionally unbiased,
+\[\E[\hat g^i\mid\calF_\ell]=\nabla_{\phi^i}V^i(\bm\phi_\ell),\]
+and has uniformly bounded second moment $\E[\norm{\hat g^i}^2]\le\sigma_{\mathrm{in}}^2$ whenever it is formed from $K\ge 1$ i.i.d.\ episodes.
+\end{assumption}
+
+\begin{assumption}[Deterministic inner-loop regularity]\label{ass:contraction}
+Let $g(\bm\phi)=\E[\hat g(\bm\phi)]$ denote the population inner-gradient field. On a neighbourhood $\calU_\phi$ of $\bm\phi^*_\meta$, $g$ is $C^2$ and there exist constants $L_g,H_g<\infty$ such that
+\begin{equation*}
+\norm{Dg(\bm\phi)}_{\mathrm{op}}\le L_g,\qquad
+\norm{D^2g(\bm\phi)}_{\mathrm{op}}\le H_g.
+\end{equation*}
+There exists $\alpha_0>0$ such that for every $\alpha\in(0,\alpha_0]$, the deterministic inner-loop map
+\begin{equation*}
+\Psi_\alpha(\bm\phi)=\bm\phi+\alpha g(\bm\phi)
+\end{equation*}
+maps $\calU_\phi$ into itself and is a $C^2$ diffeomorphism onto its image. Writing $T_\alpha=\Psi_\alpha^{L+1}$ for a fixed deterministic unrolling depth $L$, there exist constants $c_1,c_2,c_3>0$ such that on $\calU_\phi$,
+\begin{equation*}
+1-c_1\alpha\le \sigma_{\min}(D\Psi_\alpha(\bm\phi))\le \sigma_{\max}(D\Psi_\alpha(\bm\phi))\le 1+c_1\alpha,
+\end{equation*}
+\begin{equation*}
+1-c_2\alpha\le \sigma_{\min}(DT_\alpha(\bm\phi))\le \sigma_{\max}(DT_\alpha(\bm\phi))\le 1+c_2\alpha,
+\end{equation*}
+and
+\begin{equation*}
+\norm{D^2T_\alpha(\bm\phi)}_{\mathrm{op}}\le c_3\alpha.
+\end{equation*}
+\end{assumption}
+
+\begin{remark}\label{rem:contraction}
+Assumption~\ref{ass:contraction} is the small-step inverse-function-theorem condition that Claude's feedback correctly pointed out is needed. It separates the upper and lower singular-value bounds on $DT_\alpha$ and makes explicit that $T_\alpha=\mathrm{id}+O(\alpha)$, so the quadratic Taylor remainder is $O(\alpha)$ rather than merely $O(1)$.
+\end{remark}
+
+\begin{assumption}[Quantitative curvature control for the charted inner map]\label{ass:curvature}
+Let
+\[
+F \coloneqq \Lambda\circ T_\alpha.
+\]
+On a neighbourhood $\calU_\phi$ of $\bm\phi^*_\meta$, the map $F$ is a $C^2$ diffeomorphism onto its image, and there exist constants $m_F,L_F>0$ such that
+\[
+\sigma_{\min}(DF(\bm\phi))\ge m_F,
+\qquad
+\norm{D^2F(\bm\phi)}_{\mathrm{op}}\le L_F
+\]
+for all $\bm\phi\in\calU_\phi$. Moreover, if $V_{\max}$ is a local bound on $\norm{v(\pi)}$ on $F(\calU_\phi)$, then
+\begin{equation}\label{eq:curvature-dominance}
+\frac{1}{2}V_{\max}L_F < c\,m_F^2,
+\end{equation}
+where $c$ is the base variational-stability constant from Assumption~\ref{ass:stability}.
+\end{assumption}
+
+\begin{assumption}[Variational stability of the base Nash]\label{ass:stability}
+There exists a Nash policy $\pi^*$ of $\calM$ which is variationally stable in the sense of \cite[Def.~2]{Giannou2022}: there is a neighbourhood $\calU^*$ and a constant $c>0$ such that
+\begin{equation}\label{eq:vs}
+\inner{v(\pi)}{\pi-\pi^*}\;\le\;-c\,\norm{\pi-\pi^*}^2
+\qquad\forall\pi\in\calU^*\setminus\{\pi^*\}.
+\end{equation}
+Equivalently, $\pi^*$ satisfies the GDP/SOS condition on $\calU^*$.
+\end{assumption}
+
+%======================================================================
+\section{Lemmas: verifying the Giannou conditions}
+%======================================================================
+
+Throughout this section we condition on the filtration $\calF_n$ generated by the outer history up to round~$n$. To avoid the stochastic/deterministic mismatch flagged by Claude, we define the deterministic-inner-loop meta-payoff by
+\[
+\widetilde V^{i,\meta}(\bm\phi)=V^i(\Lambda(T_\alpha(\bm\phi))),
+\]
+and write $\widetilde v^\meta(\bm\phi)=\nabla_{\bm\phi}\widetilde V^\meta(\bm\phi)$ for the corresponding meta-gradient. The sampled Meta-MAPG estimator \eqref{eq:empirical-mapg} is then analysed as an estimator of $\widetilde v^\meta$; the stochastic inner-loop fluctuations are absorbed into the bias and variance estimates below.
+
+%------------------------------------------------------------------
+\subsection{Bias bound: $p+\ell_b>1$}
+%------------------------------------------------------------------
+
+The deterministic meta-game already contains the full $(L+1)$-step inner map $T_\alpha$, so the only source of bias in $\hat v_n^{\,\MAPG}$ is the stochastic inner-loop estimation error coming from the $K_n$-sample inner gradient oracle.
+
+\begin{lemma}[Bias]\label{lem:bias}
+Under Assumptions~\ref{ass:chart}, \ref{ass:inner-oracle}, and \ref{ass:contraction}, the estimator \eqref{eq:empirical-mapg} satisfies
+\begin{equation}\label{eq:bias-bound}
+\norm{\E\!\left[\hat v_n^{\,\MAPG}\,\big|\,\calF_n\right]-\widetilde v^\meta(\bm\phi_0^{(n)})}
+\;\le\;
+C_b\,\tfrac{1}{\sqrt{K_n}},
+\end{equation}
+for some constant $C_b<\infty$.
+\end{lemma}
+
+\begin{proof}
+Let $\bar{\bm\phi}_{0:L+1}$ denote the deterministic inner-loop trajectory starting at $\bm\phi_0^{(n)}$ and let $\bm\phi_{0:L+1}$ denote the random trajectory induced by the noisy inner-loop oracle. Under Assumptions~\ref{ass:inner-oracle} and \ref{ass:contraction}, a standard Gronwall estimate for stochastic perturbations of a smooth recursion gives, for each $\ell\le L+1$,
+\begin{equation*}
+\E\norm{\bm\phi_\ell-\bar{\bm\phi}_\ell}\le \frac{C_1}{\sqrt{K_n}}.
+\end{equation*}
+For each agent $i$, let
+\[
+\mathcal G_i(\bm\phi_{0:L+1},\tau)
+\coloneqq
+G^i(\tau_{\bm\phi_{L+1}})\,\Psi_L^i(\tau,\bm\phi_{0:L+1})
+\]
+denote the integrand in \eqref{eq:meta-grad}. By Assumption~\ref{ass:chart} and boundedness of returns, the map $\bm\phi_{0:L+1}\mapsto \mathcal G_i(\bm\phi_{0:L+1},\tau)$ is Lipschitz on compact sets with a deterministic constant $C_2<\infty$ independent of $n$. Therefore
+\[
+\left\|
+\E\!\left[\mathcal G_i(\bm\phi_{0:L+1},\tau)-\mathcal G_i(\bar{\bm\phi}_{0:L+1},\tau)\,\middle|\,\calF_n\right]
+\right\|
+\le
+C_2\sum_{\ell=0}^{L+1}\E\!\left[\norm{\bm\phi_\ell-\bar{\bm\phi}_\ell}\,\middle|\,\calF_n\right]
+\le
+\frac{(L+2)C_1C_2}{\sqrt{K_n}}.
+\]
+Since $\widetilde v^\meta$ is exactly the deterministic-inner-loop meta-gradient obtained by replacing the stochastic trajectory with $\bar{\bm\phi}_{0:L+1}$, summing over agents yields \eqref{eq:bias-bound}.
+\end{proof}
+
+\begin{corollary}[Giannou bias condition]\label{cor:bias-rate}
+Under the rate schedule \eqref{eq:rate-choices} with $K_n\ge c_K n^{2\ell_b}$,
+\begin{equation}\label{eq:bias-rate}
+\norm{\E\!\left[\hat v_n^{\,\MAPG}\,\big|\,\calF_n\right]-\widetilde v^\meta(\bm\phi_0^{(n)})}
+\;=\;O(n^{-\ell_b}),
+\end{equation}
+so for every $\ell_b\in(1-p,\infty)$ we have $p+\ell_b>1$ as required by \eqref{eq:giannou-conditions}.
+\end{corollary}
+
+%------------------------------------------------------------------
+\subsection{Variance bound: $p-\ell_\sigma>1/2$}
+%------------------------------------------------------------------
+
+\begin{lemma}[Variance]\label{lem:variance}
+Under Assumptions~\ref{ass:chart} and \ref{ass:inner-oracle},
+\begin{equation}\label{eq:variance-bound}
+\E\!\left[\,\norm{\hat v_n^{\,\MAPG}-\E[\hat v_n^{\,\MAPG}\mid\calF_n]}^2\,\big|\,\calF_n\right]
+\;\le\;
+\frac{M^2(L,H)}{N_n},
+\end{equation}
+where
+\begin{equation*}
+M^2(L,H)=4|\calN|(H+1)\bigl(2L+1\bigr)^2 G^2 G_{\max}^2.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+The $N_n$ summands in \eqref{eq:empirical-mapg} are i.i.d.\ conditional on $\calF_n$. Hence, if $Y=(Y^i)_{i\in\calN}$ denotes a single-sample Meta-MAPG vector,
+\[
+\E\!\left[\,\norm{\hat v_n^{\,\MAPG}-\E[\hat v_n^{\,\MAPG}\mid\calF_n]}^2\,\middle|\,\calF_n\right]
+=
+\frac{1}{N_n}\E\!\left[\,\norm{Y-\E[Y\mid\calF_n]}^2\,\middle|\,\calF_n\right]
+\le
+\frac{1}{N_n}\E[\norm{Y}^2\mid\calF_n].
+\]
+For each agent $i$,
+\[
+Y^i=G^i(\tau)\,\hat\Psi^i_L.
+\]
+The term $\hat\Psi^i_L$ is the sum of $(2L+1)$ trajectory-level score functions. By the inequality $\norm{\sum_{r=1}^m z_r}^2\le m\sum_{r=1}^m\norm{z_r}^2$ and the score bound from Assumption~\ref{ass:chart},
+\[
+\E[\norm{\hat\Psi^i_L}^2\mid\calF_n]\le (2L+1)^2(H+1)G^2.
+\]
+Therefore
+\[
+\E[\norm{Y^i}^2\mid\calF_n]\le G_{\max}^2(2L+1)^2(H+1)G^2.
+\]
+Summing over agents and adding a harmless slack factor yields
+\[
+\E[\norm{Y}^2\mid\calF_n]\le M^2(L,H),
+\]
+which proves \eqref{eq:variance-bound}.
+\end{proof}
+
+\begin{corollary}[Giannou variance condition]\label{cor:variance-rate}
+With $N_n\ge c_N n^{2\ell_\sigma}$,
+\begin{equation}\label{eq:variance-rate}
+\E[\norm{U_n}^2\mid\calF_n]\;=\;O(n^{-2\ell_\sigma}),
+\end{equation}
+and Giannou's sharper condition is exactly $p-\ell_\sigma>1/2$. If one allows a mildly growing depth $L_n=O(\log n)$ instead of fixed $L$, then the same proof gives
+\[
+\E[\norm{U_n}^2\mid\calF_n]
+=
+O\!\left(\frac{\log^2 n}{n^{2\ell_\sigma}}\right)
+=
+O(n^{-2\ell_\sigma+\varepsilon})
+\]
+for every $\varepsilon>0$; in that case it is enough to choose $\varepsilon<2(p-\ell_\sigma-1/2)$ and replace $\ell_\sigma$ by $\ell_\sigma-\varepsilon/2$.
+\end{corollary}
+
+%------------------------------------------------------------------
+\subsection{Stability of the meta-Nash: lifting GDP/SOS}
+%------------------------------------------------------------------
+
+Assumption~\ref{ass:stability} gives variational stability of $\pi^*$ in the base game $\calM$. We now show that this implies variational stability of an induced meta-Nash in the deterministic meta-game, provided the local charted inner map has sufficiently small curvature relative to the base stability constant.
+
+Define
+\[
+F\coloneqq \Lambda\circ T_\alpha
+\]
+and choose $\bm\phi^*_\meta$ so that $F(\bm\phi^*_\meta)=\pi^*$.
+
+\begin{lemma}[Meta-GDP/SOS]\label{lem:gdp}
+Under Assumptions~\ref{ass:chart}, \ref{ass:contraction}, \ref{ass:curvature}, and \ref{ass:stability} (with base neighbourhood $\calU^*$ and constant $c>0$), there exist a neighbourhood $\calU^\meta\subset\Phi$ of $\bm\phi^*_\meta$ and a constant $c_\meta>0$ such that
+\begin{equation}\label{eq:meta-vs}
+\inner{\widetilde v^\meta(\bm\phi)}{\bm\phi-\bm\phi^*_\meta}\;\le\;-c_\meta\norm{\bm\phi-\bm\phi^*_\meta}^2
+\qquad\forall \bm\phi\in\calU^\meta\setminus\{\bm\phi^*_\meta\}.
+\end{equation}
+In particular $\bm\phi^*_\meta$ is a stable Nash of the deterministic meta-game in the sense of \cite[Def.~2]{Giannou2022}.
+\end{lemma}
+
+\begin{proof}
+By construction,
+\[
+\widetilde V^\meta(\bm\phi)=V(F(\bm\phi))
+\]
+for $\bm\phi\in\Phi$, where $V$ denotes the base value vector as a function of policy. Applying the chain rule,
+\begin{equation}\label{eq:meta-grad-chain}
+\widetilde v^\meta(\bm\phi)=DF(\bm\phi)^\top\,v(F(\bm\phi)).
+\end{equation}
+Using \eqref{eq:meta-grad-chain} and setting $\pi=F(\bm\phi)$, $\pi^*=F(\bm\phi^*_\meta)$,
+\begin{align*}
+\inner{\widetilde v^\meta(\bm\phi)}{\bm\phi-\bm\phi^*_\meta}
+&=\inner{v(\pi)}{DF(\bm\phi)(\bm\phi-\bm\phi^*_\meta)}\\
+&=\inner{v(\pi)}{\pi-\pi^*}+\inner{v(\pi)}{E(\bm\phi)},
+\end{align*}
+where
+\[
+E(\bm\phi)\coloneqq DF(\bm\phi)(\bm\phi-\bm\phi^*_\meta)-(\pi-\pi^*)
+\]
+is the Taylor remainder for $F$. By Taylor's theorem and Assumption~\ref{ass:curvature},
+\[
+\norm{E(\bm\phi)}\le \frac{L_F}{2}\norm{\bm\phi-\bm\phi^*_\meta}^2
+\]
+on a neighbourhood of $\bm\phi^*_\meta$.
+
+Applying Assumption~\ref{ass:stability} to the first term, and using $\norm{v(\pi)}\le V_{\max}$ in the remainder,
+\begin{align*}
+\inner{\widetilde v^\meta(\bm\phi)}{\bm\phi-\bm\phi^*_\meta}
+&\le -c\,\norm{\pi-\pi^*}^2 + \frac{1}{2}V_{\max}L_F\norm{\bm\phi-\bm\phi^*_\meta}^2.
+\end{align*}
+Next, the lower singular-value bound in Assumption~\ref{ass:curvature} and the mean-value theorem give
+\[
+\norm{\pi-\pi^*}\ge m_F\norm{\bm\phi-\bm\phi^*_\meta}
+\]
+on a smaller neighbourhood. Therefore
+\[
+\inner{\widetilde v^\meta(\bm\phi)}{\bm\phi-\bm\phi^*_\meta}
+\le -\Bigl(c\,m_F^2-\frac{1}{2}V_{\max}L_F\Bigr)\norm{\bm\phi-\bm\phi^*_\meta}^2.
+\]
+The curvature-dominance condition \eqref{eq:curvature-dominance} makes the bracket positive. Defining
+\[
+c_\meta\coloneqq c\,m_F^2-\frac{1}{2}V_{\max}L_F>0
+\]
+and shrinking $\calU^\meta$ if needed to stay inside $F^{-1}(\calU^*)$ gives \eqref{eq:meta-vs}.
+\end{proof}
+
+\begin{remark}
+Since $v$ is continuous and $F(\calU^\meta)$ has compact closure, there exists $V_{\max}<\infty$ such that $\norm{v(\pi)}\le V_{\max}$ on that neighbourhood. This is the constant used in Assumption~\ref{ass:curvature} and in the proof of Lemma~\ref{lem:gdp}.
+\end{remark}
+
+\begin{remark}\label{rem:chart-transfer}
+The proofs of \cite[Theorem~1 and §4]{Giannou2022} are local stochastic-approximation arguments in Euclidean coordinates: they use only the recursion form, the bias/variance summability conditions, local variational stability, and equivalence of norms on a neighbourhood of the equilibrium. Since $F$ is a local $C^2$ diffeomorphism, these arguments carry over to the parameter-space recursion with vector field $\widetilde v^\meta$. This is the precise sense in which we apply Giannou et al.\ in local parameter coordinates below.
+\end{remark}
+
+%======================================================================
+\section{Proof of the main theorem}
+%======================================================================
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+\emph{Step 1: the Giannou template applies in local parameter coordinates.} The outer-loop update
+\[\bm\phi_0^{(n+1)}=\bm\phi_0^{(n)}+\gamma_n\,\hat v_n^{\,\MAPG}\]
+has the exact stochastic-approximation form \eqref{eq:giannou-pg}. By Remark~\ref{rem:chart-transfer}, the local convergence and restart arguments of \cite{Giannou2022} may be carried out in the local parameter chart induced by $F=\Lambda\circ T_\alpha$. Thus it is enough to verify the bias/variance conditions and the local variational-stability inequality for the parameter-space vector field $\widetilde v^\meta$.
+
+\emph{Step 2: bias and variance conditions of \cite[Eq.~(2.10)]{Giannou2022}.} By Corollary~\ref{cor:bias-rate} the conditional bias of $\hat v_n^{\,\MAPG}$ is $O(n^{-\ell_b})$ with $p+\ell_b>1$. By Corollary~\ref{cor:variance-rate} the conditional variance is $O(n^{-2\ell_\sigma})$, and if one uses a slowly growing depth $L_n$ instead of fixed $L$ then the same corollary gives the adjusted exponent statement needed to keep $p-\ell_\sigma>1/2$. Hence both conditions of \eqref{eq:giannou-conditions} are satisfied for the schedule \eqref{eq:rate-choices}.
+
+\emph{Step 3: variational stability of $\bm\phi^*_\meta$.} By Lemma~\ref{lem:gdp}, the meta-Nash $\bm\phi^*_\meta$ is variationally stable on a neighbourhood $\calU^\meta\subset\Phi$. This is exactly \cite[Def.~2]{Giannou2022} in parameter coordinates.
+
+\emph{Step 4: local convergence.} The hypotheses needed for the local theorem are now explicit: the recursion has the form \eqref{eq:giannou-pg}; the conditional bias satisfies \eqref{eq:giannou-conditions} by Corollary~\ref{cor:bias-rate}; the conditional second moment satisfies \eqref{eq:giannou-conditions} by Corollary~\ref{cor:variance-rate}; and local variational stability holds by Lemma~\ref{lem:gdp}. Applying the local theorem of \cite{Giannou2022} in the parameter chart therefore yields part~(i) of Theorem~\ref{thm:main}: there is a neighbourhood $\calU^\meta$ of $\bm\phi^*_\meta$ such that $\Prob(\bm\phi_0^{(n)}\to\bm\phi^*_\meta\mid\bm\phi_0^{(1)}\in\calU^\meta)\ge1-\delta$ for any $\delta>0$, provided $\gamma$ is small (or $m$ large) enough.
+
+\emph{Step 5: restart mechanism and global convergence.} To invoke \cite[§4]{Giannou2022}, one must check that the exploration region is bounded, the restart and commitment rules are measurable stopping times, and the restart indicators satisfy the summability condition in that section. In our setting, boundedness follows from compactness of $\Phi$, measurability follows because the restart rules are defined from the observed filtration $\calF_n$, and the local trapping statement needed in §4 is exactly the conclusion of Step~4. Therefore the restart analysis of \cite[§4]{Giannou2022} applies in the parameter chart: the restarted process converges almost surely to a stable meta-Nash equilibrium, the expected number of restarts is finite \cite[Prop.~4.1]{Giannou2022}, and in games with multiple stable Nash the selected limit is Pareto-undominated \cite[Prop.~4.3]{Giannou2022}. If $\bm\phi^*_\meta$ is the unique stable meta-Nash equilibrium, this limit must equal $\bm\phi^*_\meta$.
+
+\emph{Conclusion.} Parts (i) and (ii) together establish Theorem~\ref{thm:main}.
+\end{proof}
+
+%======================================================================
+\section{Discussion}
+%======================================================================
+
+\paragraph{What is new.} To the best of our knowledge this is the first statement of an almost-sure global convergence guarantee for a practical meta-learning-aware policy gradient algorithm in general stochastic games. We emphasise that the estimator~\eqref{eq:empirical-mapg} itself is the one used by Kim et al.~\cite{Kim2021}; the contribution is not a new gradient, but rather (i)~the iteration-indexed schedule~\eqref{eq:rate-choices}, (ii)~the bias/variance analysis of Lemmas~\ref{lem:bias}--\ref{lem:variance} that shows this schedule satisfies \cite[Eq.~(2.10)]{Giannou2022}, and (iii)~the transfer of local variational stability from the base game to the deterministic meta-game under an explicit local chart and curvature-dominance condition (Lemma~\ref{lem:gdp}). Together these are exactly what is needed to apply \cite[Theorem~1]{Giannou2022} --- and, via their restart mechanism, to promote local to global convergence --- on the meta-game induced by Meta-MAPG.
+
+\paragraph{Relation to the three-term structure.} The decomposition \eqref{eq:meta-grad} into \emph{Current Policy}, \emph{Own Learning} and \emph{Peer Learning} terms is essential only for the variance bound \eqref{eq:variance-bound}, where it explains the $(2L+1)^2$ factor. The bias bound \eqref{eq:bias-bound} and stability lift \eqref{eq:meta-vs} do not rely on the explicit three-term structure: they only use that the sample gradient is a plug-in for an expectation over the inner chain and that the inner chain is smooth and locally well conditioned.
+
+\paragraph{Relaxing Assumption~\ref{ass:stability}.} If the base game is itself harmonic, monotone, or merely admits a GDP/SOS point, the same argument applies provided the local chart $F=\Lambda\circ T_\alpha$ continues to satisfy the quantitative dominance condition in Assumption~\ref{ass:curvature}. If the base game only admits a \emph{neutral} (second-order-flat) Nash, a local diffeomorphic reparameterisation cannot by itself create strict stability; this is the main limitation of the present approach, and matches the phenomenology observed in \cite[§5]{Giannou2022}.
+
+\paragraph{Practical implications.} The schedule \eqref{eq:rate-choices} calls for (i)~polynomially many outer-loop rollouts $N_n=\Theta(n^{2\ell_\sigma})$ and (ii)~polynomially many inner-loop rollouts $K_n=\Theta(n^{2\ell_b})$. In the rigorous version proved here, the deterministic meta-game is defined using a fixed inner unrolling depth $L$, while the sampled stochastic inner-loop error is absorbed into the bias budget. If one wishes to let $L_n$ grow slowly with $n$, the same argument still works provided the resulting $\log^2 n$ factor is absorbed into the variance exponent as in Corollary~\ref{cor:variance-rate}.
+
+%======================================================================
+\begin{thebibliography}{9}
+
+\bibitem{Giannou2022}
+A.~Giannou, E.~V.~Vlatakis-Gkaragkounis, and P.~Mertikopoulos.
+\newblock {On the convergence of policy gradient methods to Nash equilibria in
+  general stochastic games}.
+\newblock \emph{Advances in Neural Information Processing Systems (NeurIPS)},
+  2022. \url{https://arxiv.org/abs/2210.08857}.
+
+\bibitem{Kim2021}
+D.-K.~Kim, M.~Liu, M.~D.~Riemer, C.~Sun, M.~Abdulhai, G.~Habibi, S.~Lopez-Cot,
+  G.~Tesauro, and J.~P.~How.
+\newblock {A policy gradient algorithm for learning to learn in multiagent
+  reinforcement learning}.
+\newblock In \emph{International Conference on Machine Learning (ICML)},
+  2021. \url{https://arxiv.org/abs/2011.00382}.
+
+\bibitem{FinnEtAl2019}
+C.~Finn, A.~Rajeswaran, S.~Kakade, and S.~Levine.
+\newblock {Online meta-learning}.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2019.
+
+\bibitem{Fallah2020}
+A.~Fallah, A.~Mokhtari, and A.~Ozdaglar.
+\newblock {On the convergence theory of gradient-based model-agnostic
+  meta-learning algorithms}.
+\newblock In \emph{AISTATS}, 2020.
+
+\end{thebibliography}
+
+\end{document}

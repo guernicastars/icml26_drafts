@@ -56,8 +56,10 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--posterior-samples", type=int, default=16)
     p.add_argument("--gold-rm", default="Skywork/Skywork-Reward-Llama-3.1-8B-v0.2")
     p.add_argument("--proxy-rm", default="internlm/internlm2-1_8b-reward")
-    p.add_argument("--best-of-n", nargs="+", type=int, default=[1, 4, 16])
-    p.add_argument("--num-eval-prompts", type=int, default=1000)
+    p.add_argument("--best-of-n", nargs="+", type=int, default=[1, 4, 16, 64])
+    p.add_argument("--num-eval-prompts", type=int, default=50)
+    p.add_argument("--gen-batch-size", type=int, default=8,
+                   help="Candidates per generate() call. Tune down if OOM on V100.")
     p.add_argument("--eval-max-new-tokens", type=int, default=256)
     p.add_argument("--eval-temperature", type=float, default=1.0)
     p.add_argument("--seed-count", type=int, default=3)
@@ -135,9 +137,31 @@ def score_with_reward_model(rm_model, rm_tokenizer, prompts, responses, device, 
     return scores
 
 
+def _generate_candidates(model, tokenizer, prompt, n, device, max_new_tokens, temperature, gen_batch_size):
+    encoded = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True)
+    prompt_len = encoded["input_ids"].shape[1]
+    candidates = []
+    for start in range(0, n, gen_batch_size):
+        chunk = min(gen_batch_size, n - start)
+        input_ids = encoded["input_ids"].repeat(chunk, 1).to(device)
+        attn_mask = encoded["attention_mask"].repeat(chunk, 1).to(device)
+        with torch.no_grad():
+            gen = model.generate(
+                input_ids=input_ids,
+                attention_mask=attn_mask,
+                max_new_tokens=max_new_tokens,
+                do_sample=temperature > 0,
+                temperature=max(temperature, 1e-6),
+                pad_token_id=tokenizer.pad_token_id,
+            )
+        for i in range(chunk):
+            candidates.append(tokenizer.decode(gen[i][prompt_len:], skip_special_tokens=True))
+    return candidates
+
+
 def best_of_n_eval(
     model, tokenizer, prompts, gold_rm, gold_tokenizer, proxy_rm, proxy_tokenizer,
-    n_values, device, max_new_tokens, temperature, posterior_pred,
+    n_values, device, max_new_tokens, temperature, posterior_pred, gen_batch_size=8,
 ):
     results = []
     tokenizer.padding_side = "left"
@@ -146,28 +170,17 @@ def best_of_n_eval(
         all_gold_scores = []
         all_proxy_scores = []
 
-        for prompt_idx, prompt in enumerate(prompts):
-            encoded = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True).to(device)
-            candidates = []
-            for sample_idx in range(n):
-                if n == 1:
-                    for _sidx, _vec in posterior_pred.deploy_iter(model):
-                        with torch.no_grad():
-                            gen = model.generate(
-                                **encoded, max_new_tokens=max_new_tokens,
-                                do_sample=temperature > 0, temperature=max(temperature, 1e-6),
-                            )
-                        gen_text = tokenizer.decode(gen[0][encoded["input_ids"].shape[1]:], skip_special_tokens=True)
-                        candidates.append(gen_text)
-                        break
-                else:
-                    with torch.no_grad():
-                        gen = model.generate(
-                            **encoded, max_new_tokens=max_new_tokens,
-                            do_sample=True, temperature=temperature,
-                        )
-                    gen_text = tokenizer.decode(gen[0][encoded["input_ids"].shape[1]:], skip_special_tokens=True)
-                    candidates.append(gen_text)
+        for prompt in prompts:
+            if n == 1:
+                for _sidx, _vec in posterior_pred.deploy_iter(model):
+                    candidates = _generate_candidates(
+                        model, tokenizer, prompt, 1, device, max_new_tokens, temperature, 1,
+                    )
+                    break
+            else:
+                candidates = _generate_candidates(
+                    model, tokenizer, prompt, n, device, max_new_tokens, temperature, gen_batch_size,
+                )
 
             proxy_scores = score_with_reward_model(
                 proxy_rm, proxy_tokenizer, [prompt] * len(candidates), candidates, device,
@@ -376,6 +389,7 @@ def main():
                 max_new_tokens=args.eval_max_new_tokens,
                 temperature=args.eval_temperature,
                 posterior_pred=posterior_pred,
+                gen_batch_size=args.gen_batch_size,
             )
 
             for row in bon_results:

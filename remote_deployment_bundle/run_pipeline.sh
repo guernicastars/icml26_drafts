@@ -32,7 +32,8 @@ declare -A STAGE_SCRIPTS=(
     [04]="./04_run_axbench.sh"
     [05]="./05_collect_results.sh"
 )
-STAGE_ORDER=(00 01 02 03 04 05)
+# 04 (axbench) excluded from default run — not needed for workshop paper
+STAGE_ORDER=(00 01 02 03 05)
 
 STAGES_TO_RUN=("${STAGE_ORDER[@]}")
 DRY_RUN=0

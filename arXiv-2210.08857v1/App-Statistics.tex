@@ -1,0 +1,114 @@
+%----------------------------------------------------------------------
+%%% APP: STATISTICS
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+%\begin{tcolorbox}[enhanced,width=5.5in, drop fuzzy shadow southwest,    boxrule=0.4pt,sharp corners,colframe=black!80!black,colback=white!10]\small
+In this appendix, we prove the two fundamental properties of the \reinforce Policy Gradient estimator that we stated in \cref{lem:reinforce}, namely:
+\begin{enumerate}
+[\itshape a\upshape)]
+%[topsep=0pt,leftmargin=2ex]
+%\setlength{\itemsep}{0pt}
+%\setlength{\parskip}{.2ex}
+\item
+\reinforce is an unbiased estimator of $\gvalue(\policy)$.
+\item
+The variance of \reinforce is bounded from above by $\bigoh\parens{1/\min_{\rstate\in\states,\pure_{\play}\in\pures_{\play}} \policy_\play(\pure_\play \vert \rstate)}$ for each $\play\in\players$.
+\end{enumerate}
+
+%\begin{remark*}
+We recall here that $\nabla_{\play}$ denotes the gradient of the quantity in question with respect to $\policy_{\play}$, \ie when $\policy_{-\play}$ is kept fixed and only $\policy_{\play}$ is varied. 
+For concision, we will write $\gvalue_{\play}(\policy) = \nabla_{\play} \rvalue_{\play,\stateDist}(\policy)$ for the individual gradient of player $\play$'s value function, and $\gvalue(\policy) = (\gvalue_{\play}(\policy))_{\play\in\players}$ for the ensemble thereof.
+%\end{remark*}
+%\end{tcolorbox}
+
+With all this said and done, we begin by restating \cref{lem:reinforce} for convenience:
+
+\ReinforceLemma*
+\begin{proof}
+%In order to prove $\ex_{\traj \sim \MDP}\bracks*{\reinforce(\policy)}= \gvalue(\policy)$, it is equivalent to prove that
+%\begin{equation}
+%    \ex_{\traj \sim \MDP} \bracks*{\reinforce_\play(\policy)}=\gvalue_\play(\policy)\text{ for each }\play\in\players.
+%\end{equation}
+%\logvalue_\play
+Without loss of generality let's assume that $\MDP\equiv\MDP\parens{\policy\ |\ \stateDist}$ for some initial state distribution $\stateDist$.
+Additionally, we denote $\prob^\policy\parens{\traj}$ the induced probability of a random trajectory $\traj = (\rstate_{\time}, \pure_{\time}, \realReward_{\time})_{\time \leq\stopTime(\traj)}$.
+\begin{align}
+\ex_{\traj \sim \MDP}\bracks{\logvalue_\play}	&= \ex_{\traj \sim \MDP}\bracks{\rewards_\play\parens{\traj}\cdot\logtrick_\play\parens{\traj}}=\sum_{\traj\in\mathcal{T}}\prob^\policy\parens{\traj}\rewards_\play\parens{\traj}\cdot\logtrick_\play\parens{\traj}
+	\notag\\
+	&= \sum_{\traj\in\mathcal{T}}\prob^\policy\parens{\traj}\rewards_\play\parens{\traj}\cdot\bracks{\sum_{\time =\tstart}^{\stopTime\parens{\traj}} \nabla_{\play}\parens{\log\policy_\play\parens{\action_{\play,\time}|\rstate_\time}}}
+	\notag\\
+	&=\sum_{\traj\in\mathcal{T}} \prob^\policy\parens{\traj} \rewards_\play\parens{\traj}
+		\cdot \nabla_{\play}\bracks*{\sum_{\time =\tstart}^{\stopTime\parens{\traj}} {\log\policy_\play\parens{\action_{\play,\time}|\rstate_\time}}}
+	\notag\\
+	&=\sum_{\traj\in\mathcal{T}}
+		\prob^\policy\parens{\traj} \rewards_\play\parens{\traj} \nabla_{\play}
+		\sum_{\time=\tstart}^{\stopTime\parens{\traj}} {\log\policy_\play\parens{\action_{\play,\time}|\rstate_\time}}
+	\notag\\
+	&\qquad
+		+ \sum_{\traj\in\mathcal{T}} \prob^\policy\parens{\traj}
+  \rewards_\play\parens{\traj} \parens*{ \nabla_{\play} \sum_{\playalt\neq\play} \sum_{\time=\tstart}^{\stopTime\parens{\traj}}
+  \log\policy_{\playalt}\parens{\pure_{\playalt,\time}|\rstate_\time}
+    +   \nabla_{\play}\sum_{\time =\tstart}^{\stopTime\parens{\traj}} \log\probof{\rstate_\time\given\rstate_{\time -1 }, \action_{\time -1}}}
+	\notag\\
+	&\qquad
+		+ \sum_{\traj\in\mathcal{T}} \prob^\policy\parens{\traj} \rewards_\play\parens{\traj} \nabla_{\play} \log \stateDist(\rstate_\tstart)
+	\notag\\
+	&= \sum_{\traj\in\mathcal{T}}\prob^{\policy}\parens{\traj} \rewards_\play\parens{\traj}\nabla_{\play}\parens{\log \prob^{\policy}\parens{\traj}}
+	\notag\\
+	&=  \sum_{\traj\in\mathcal{T}} \parens{\nabla_{\play} \prob^{\policy}\parens{\traj}}\rewards_\play\parens{\traj}= \nabla_{\play}\parens{\sum_{\traj\in\mathcal{T}}\prob^{\policy}\parens{\traj}\rewards_\play\parens{\traj}}
+	=\nabla_{\play}\rvalue_{\play,\stateDist}\parens{\policy}
+\end{align}
+where in the penultimate inequality we used the definition for the derivative of the logarithm. We also note here that
+\begin{equation}
+  \ex_{\traj\sim \MDP }\bracks{ \logvalue_\play} = \ex_{\traj\sim \MDP}\bracks{\rewards_\play\parens{\traj} \nabla_{\play}\parens{\log\prob^{\policy}\parens{\traj}}}
+\end{equation}
+
+
+For the variance of \reinforce estimator we have that
+\begin{equation}
+\begin{aligned}
+    \ex_{\traj \sim \MDP} \bracks*{\norm{\reinforce_\play(\policy)-\gvalue_\play(\policy)}^2}=&
+\ex_{\traj \sim \MDP} \bracks*{\norm{\reinforce_\play(\policy)}^2}
+	\notag\\
+&-2\ex_{\traj \sim \MDP} \bracks*{\braket{\reinforce_\play(\policy)}{\gvalue_\play(\policy)}}
+	\notag\\
+&+\ex_{\traj \sim \MDP} \bracks*{\norm{\gvalue_\play(\policy)}^2}
+\end{aligned}
+\end{equation}
+or equivalently
+$    \ex_{\traj \sim \MDP} \bracks*{\norm{\reinforce_\play(\policy)-\gvalue_\play(\policy)}^2}=
+\ex_{\traj \sim \MDP} \bracks*{\norm{\reinforce_\play(\policy)}^2}-\ex_{\traj \sim \MDP} \bracks*{\norm{\gvalue_\play(\policy)}^2}
+$.
+Therefore, we have that
+\begin{align}
+\ex_{\traj \sim \MDP} \bracks*{\norm{\reinforce_\play(\policy)-\gvalue_\play(\policy)}^2}\le\ex_{\traj \sim \MDP} \bracks*{\norm{\reinforce_\play(\policy)}^2}=\exof{\dnorm{\logvalue_\play}^2}
+\end{align}
+and, after a series of \textendash\ tedious but otherwise straightforward \textendash\ calculations, we get:
+\begin{align}
+% 		\leq \dfrac{24\abs{\pures_\play}}{\kappa_\play \stopPr^4}
+    \exof{\dnorm{\logvalue_\play}^2} &= \ex_{\traj \sim\MDP }\bracks{\dnorm{\rewards_\play\parens{\traj}\logtrick_\play\parens{\traj}}^2}\leq \ex_{\traj \sim\MDP }\bracks{\dnorm{\rewards_\play\parens{\traj}}^2\dnorm{\logtrick_\play\parens{\traj}}^2}
+	\notag\\
+  	&\leq \ex_{\traj \sim\MDP}\bracks{\parens{\stopTime\parens{\traj}+1}^2\dnorm{\sum_{\time = \tstart}^{\stopTime\parens{\traj}}\nabla_{\play}\log \policy_\play\parens{\action_{\play,\time},\rstate_{\time}}}^2}
+	\notag\\ %we can get reward at most 1
+  	&\leq \ex_{\traj \sim\MDP }\bracks{\parens{\stopTime\parens{\traj}+1}^3\sum_{\time =\tstart}^{\infty} \sum_{\rstate,\action\in\states\times\actions_\play}\mathds{1}\braces{\time\leq \stopTime}\mathds{1}\braces{\rstate_\time = \rstate,\action_{\play,\time} =\action}\dnorm{\nabla_{\play}\log \policy_\play\parens{\action,\rstate}}^2}
+	\notag\\
+  	&= \sum_{\time =\tstart}^{\infty} \sum_{\rstate,\action\in\states\times\actions_\play}\ex_{\traj \sim\MDP }\bracks{\parens{\stopTime\parens{\traj}+1}^3\mathds{1}\braces{\time\leq \stopTime}\mathds{1}\braces{\rstate_\time = \rstate,\action_{\play,\time} =\action}\dfrac{1}{\parens{\policy_\play\parens{\action,\rstate}}^2}}
+	\notag\\
+  	&\leq \sum_{\time =\tstart}^{\infty} \sum_{\rstate,\action\in\states\times\actions_\play} \dfrac{1}{\parens{\policy_\play\parens{\action,\rstate}}^2}\ex_{\traj \sim\MDP }\bracks{\parens{\stopTime\parens{\traj}+1}^3\mathds{1}\braces{\time\leq \stopTime}\mathds{1}\braces{\rstate_\time = \rstate,\action_{\play,\time} =\action}}
+	\notag\\
+  	&\leq \sum_{\time =\tstart}^{\infty} \sum_{\rstate,\action\in\states\times\actions_\play} \dfrac{1}{\policy_\play\parens{\action,\rstate}}\ex_{\traj \sim\MDP }\bracks{\parens{\stopTime\parens{\traj}+1}^3\mathds{1}\braces{\time\leq \stopTime}\mathds{1}\braces{\rstate_\time = \rstate}}
+	\notag\\
+  	&\leq \sum_{\time =\tstart}^{\infty} \sum_{\rstate,\action\in\states\times\actions_\play} \dfrac{1}{\kappa_\play}\braces{\parens{\stopTime\parens{\traj}+1}^3\mathds{1}\braces{\time\leq \stopTime}\mathds{1}\braces{\rstate_\time = \rstate}}
+	\notag\\
+  	&= \sum_{\time =\tstart}^{\infty} \sum_{\rstate\in\states} \dfrac{\abs{\nPures_\play}}{\kappa_\play}\ex_{\traj \sim\MDP }\bracks{\parens{\stopTime\parens{\traj}+1}^3\mathds{1}\braces{\time\leq \stopTime}\mathds{1}\braces{\rstate_\time = \rstate}}
+	\notag\\
+  	&= \dfrac{\abs{\nPures_\play}}{\kappa_\play}\ex_{\traj \sim\MDP }\bracks{\parens{\stopTime\parens{\traj}+1}^3\sum_{\time =\tstart}^{\stopTime}\mathds{1}\braces{\time\leq \stopTime}}
+	\notag\\
+  	&\leq \dfrac{\abs{\nPures_\play}}{\kappa_\play}\ex_{\traj \sim\MDP }\bracks{\parens{\stopTime\parens{\traj}+1}^4}
+	\notag\\
+  	&\leq \dfrac{\abs{\nPures_\play}}{\kappa_\play}\sum_{\time =\tstart}^\infty\parens{1-\stopPr}^\time\stopPr\parens{\time+1}^4\leq \dfrac{24}{\stopPr^4}\dfrac{\abs{\nPures_\play}}{\kappa_\play}
+\end{align}
+where, to go from the first to the second inequality we used the boundeness by one of the rewards, while from the second to the third, we used Jensen's inequality.
+\end{proof}

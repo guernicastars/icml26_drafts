@@ -1,0 +1,193 @@
+%----------------------------------------------------------------------
+%%% APP: SOLUTIONS
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+%\begin{tcolorbox}[enhanced,width=5.5in, drop fuzzy shadow southwest,    boxrule=0.4pt,sharp corners,colframe=black!80!black,colback=white!10]\small
+
+In this last appendix, we proceed to establish three important facts regarding the gradient characterization of stationary Nash policies.
+More precisely, we prove the following:
+\begin{itemize}
+%[topsep=0pt,leftmargin=2ex]
+%\setlength{\itemsep}{0pt}
+%\setlength{\parskip}{.2ex}
+\item
+In \cref{lem:GDP}, we prove the crucial property of Gradient Dominance for the multi-agent random stopping setting.
+\item
+In \cref{lem:fos2ne}, we establish that any stationary point corresponds to Nash Equilibria.
+\item
+In \cref{prop:var}, we prove the ``drift'' inequalities for all the different types of stationary points. 
+\end{itemize}
+%\cref{prop:var} will be crucial to prove the corresponding rate of convergence at the following sections of the supplement
+%\end{tcolorbox}
+
+We begin with the gradient dominance property of the game, which we restate below for convenience:
+
+\GradientDominance*
+
+\begin{proof}
+We start by rewriting the LHS of \eqref{eq:GDP} using \cref{lem:performance-lemma,lem:conversion} for $\policy^{\this}=(\policy_{\play}';\policy_{-\play})$ and 
+$\policy^{\that}=(\policy_{\play};\policy_{-\play})$:
+ \begin{align}
+ \rvalue_{\play,\stateDist}\parens{\policy^{\this}} - \rvalue_{\play,\stateDist}\parens{\policy^{\that}}    
+ &= \sum_{\rstate \in \states}\visitMeas{\stateDist}{\policy^{\this}}(\rstate) \ex_{\pure \sim \policy^{\this}(\cdot \mid \rstate)}\left[A_{\play}^{\policy_\play^{\that}}(\rstate,\pure)\right]
+	\notag\\
+ &= \sum_{\rstate \in \states}\visitMeas{\stateDist}{\policy^{\this}}(\rstate) \sum_{\action_\play\in\actions_\play} \policy'_\play(\action_\play|\rstate) \sum_{\action_{-\play}\in\actions_{-\play}} \policy_{-\play}(\action_{-\play}|\rstate) A_{\play}^{\policy^{\that}}(\rstate,\pure)
+	\notag\\
+ &= \sum_{\rstate \in \states}\visitMeas{\stateDist}{\policy^{\this}}(\rstate) \sum_{\action_\play\in\actions_\play} \policy'_\play(\action_\play|\rstate) \overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play)
+	\notag\\
+% % \end{align}
+% % Notice that in the last equation, if we substitute $\policy_\play$ with $\policy'_\play$ we have that
+% % \begin{equation}\label{eq: eq2}
+% %   \sum_{\action_\play\in\actions_\play} \policy'_\play(\action_\play|\rstate) \overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play) = 0
+% % \end{equation}
+% % Since $\onenorm{\policy'_\play(\cdot|\rstate)} = 1$ and $\policy'_\play(\cdot | \rstate)\geq 0$, \cref{eq: eq2} implies that \AG{Not sure why we need to make this observation}
+% % \begin{equation} 
+% %     \max_{\action_\play\in\actions_\play} \ \overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play) \geq 0 \text{ for all } \rstate\in\states
+% % \end{equation}
+% % Thus,
+% % \begin{align}
+% \rvalue_{\play,\stateDist}\parens{\policy_\play,\policy_{-\play}} - \rvalue_{\play,\stateDist}\parens{\policy'_\play,\policy_{-\play}} 
+&\leq \sum_{\rstate \in \states}\visitMeas{\stateDist}{\policy^{\this}}(\rstate) \sum_{\action_\play\in\actions_\play}\policy'_\play(\action_\play |\rstate ) \max_{\action_\play\in\actions_\play}  \overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play)
+% \\
+% &\leq \sum_{\rstate \in \states}\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}} {\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}} \max_{\action_\play\in\actions_\play}  \overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play)\\
+%  &\leq \norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty \sum_{\rstate \in \states} {\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}} \max_{\action_\play\in\actions_\play}  \overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play)
+\end{align}
+%We now move forward for the case that we also need to encounter the exploitation-exploration parameter.
+Thus, by a series of direct calculations, we obtain:
+\begin{align}
+ \rvalue_{\play,\stateDist}\parens{\policy^{\this}} - \rvalue_{\play,\stateDist}\parens{\policy^{\that}}    
+%  \rvalue_{\play,\stateDist}\parens{\estpolicy_\play,\estpolicy_{-\play}} &- \rvalue_{\play,\stateDist}\parens{\policy^{\this}}\leq \\
+%  &\leq \norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty \sum_{\rstate \in \states} {\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}} \max_{\action_\play\in\actions_\play}  \overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play)\\
+&\leq 
+%\norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty  
+\max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}}\sum_{\rstate \in \states} {\visitMeas{\stateDist}{\policy^{\this}}\parens{\rstate}} \sum_{\action_\play\in\actions_\play}\tilde{\policy}_\play(\action_\play|\rstate)\overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play)
+	\notag\\
+&\leq 
+%\norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty  
+\max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}}\sum_{\rstate \in \states} {\visitMeas{\stateDist}{\policy^{\this}}\parens{\rstate}} \sum_{\action_\play\in\actions_\play}\parens{\tilde{\policy}_\play(\action_\play|\rstate)-{\policy}_\play(\action_\play|\rstate)}\overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play)
+	\notag\\
+&\leq 
+%\norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty  
+\max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}}\sum_{\rstate \in \states} {\frac{\visitMeas{\stateDist}{\policy^{\this}}\parens{\rstate}}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}} \sum_{\action_\play\in\actions_\play}\parens{\tilde{\policy}_\play(\action_\play|\rstate)-{\policy}_\play(\action_\play|\rstate)}\overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play)
+	\notag\\
+% &= 
+% %\norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty 
+% \sum_{\rstate \in \states} {\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}} \max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}} \sum_{\action_\play\in\actions_\play}(\tilde{\policy}_\play(\action_\play|\rstate) - \policy_\play(\action_\play|\rstate))\overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play)\\
+% &\leq \norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty \max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}}\sum_{\rstate \in \states} \sum_{\action_\play\in\actions_\play} {\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}  (\tilde{\policy}_\play(\action_\play|\rstate) - \policy_\play(\action_\play|\rstate))\overline{A}_\play^{\policy^{\that}} (\rstate,\action_\play)\\
+&\leq \norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty \max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}}\sum_{\rstate \in \states} \sum_{\action_\play\in\actions_\play} {\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}  (\tilde{\policy}_\play(\action_\play|\rstate) - \policy_\play(\action_\play|\rstate))\overline{Q}_\play^{\policy^{\that}} (\rstate,\action_\play)
+	\notag\\
+&\leq \norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty \max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}}\sum_{\rstate \in \states,\action_\play\in\actions_\play} { (\tilde{\policy}_\play(\action_\play|\rstate) - \policy_\play(\action_\play|\rstate))\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}} \overline{Q}_\play^{\policy^{\that}} (\rstate,\action_\play)
+	\notag\\
+&\leq \norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty \max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}}\sum_{\rstate \in \states,\action_\play\in\actions_\play}  (\tilde{\policy}_\play(\action_\play|\rstate) - \policy_\play(\action_\play|\rstate))\frac{\partial \rvalue_{\play,\stateDist}(\policy)}{\partial \policy_\play(\pure_\play \mid \rstate)}
+\end{align}
+% &= \norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty \max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}}\sum_{\rstate \in \states} \sum_{\action_\play\in\actions_\play} {\visitMeas{\stateDist}{\policy^{\this}}\parens{\rstate}}  (\tilde{\policy}_\play(\action_\play|\rstate) - \policy_\play(\action_\play|\rstate))\bar{Q}_\play^{\policy^{\this}} (\rstate,\action_\play)\\
+% &??\norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty \max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}}\sum_{\rstate \in \states} \sum_{\action_\play\in\actions_\play} {\visitMeas{\stateDist}{\policy^{\this}}\parens{\rstate}}\\
+%  &\quad\quad\quad\quad\quad\quad\bracks{(\tilde{\policy}_\play(\action_\play|\rstate) - \policy_\play(\action_\play|\rstate))(1-\expar_\play) + (\tilde{\policy}_\play(\action_\play|\rstate) - \frac{1}{\expar_\play})\expar_\play }\bar{Q}_\play^{\policy^{\this}} (\rstate,\action_\play)\\ %please no comments for my latex.
+%  &\leq \norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty (1-\expar_\play) \max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}}\sum_{\rstate \in \states} \sum_{\action_\play\in\actions_\play} {\visitMeas{\stateDist}{\policy^{\this}}\parens{\rstate}}(\tilde{\policy}_\play(\action_\play|\rstate) - \policy_\play(\action_\play|\rstate))\bar{Q}_\play^{\policy^{\this}} (\rstate,\action_\play)\\
+%  &\quad\quad\quad + \norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty 2\expar_\play\sum_{\rstate \in \states} \sum_{\action_\play\in\actions_\play} {\visitMeas{\stateDist}{\policy^{\this}}\parens{\rstate}}\abs{\bar{Q}_\play^{\policy^{\this}} (\rstate,\action_\play)}\\
+%  &\leq \norm*{\dfrac{\visitMeas{\stateDist}{\policy^{\this}}(\rstate)}{\visitMeas{\stateDist}{\policy^{\that}}\parens{\rstate}}}_\infty \max_{\tilde{\policy}_\play\in\simplex(\actions)^{\states}}\sum_{\rstate \in \states} \inner{\tilde{\policy}_\play - \policy'_\play}{\nabla_{\policy_\play}\rvalue_{\play,\stateDist}^{(\policy_\play,\estpolicy_\play)}}\\
+%  &\quad\quad\quad+ 2\expar_\play Z_{\stateDist}^{(\policy_\play,\estpolicy_\play)}\sum_{\action_\play\in\actions_\play} {d^{(\policy^{\this})}_{\stateDist}\parens{\rstate}}\abs{\bar{Q}_\play^{\policy^{\this}} (\rstate,\action_\play)}
+so
+\begin{align}
+\rvalue_{\play,\stateDist}(\policyalt_{\play};\policy_{-\play}) -
+	\rvalue_{\play,\stateDist}(\policy_{\play};\policy_{-\play})
+	&\leq \mismatch \max_{\bar\policy_{\play}\in\policies_{\play}}
+		\braket{\nabla_{\play}\rvalue_{\play,\stateDist}(\policy)}{\bar{\policy}_{\play}-{\policy_{\play}}}
+\end{align}
+and our proof is complete.
+% Notice that $\rvalue_{\play,\rstate}(\estpolicy)$ doesn't depend on the actions, it is just a value; thus $\sum_{\action_\play\in\actions_\play}(\tilde{\policy}_\play(\action_\play|\rstate) - \policy_\play(\action_\play|\rstate))\ex_{\action_{-\play}\sim\estpolicy_{-\play}}\rvalue_{\play,\rstate}(\estpolicy) = 0$.
+\end{proof}
+
+\begin{remark*}
+Notice that we have assumed that $\visitMeas{\stateDist}{\policy^{\that}}>0$. If this wasn't the case we could take a trivial bound of $\infty$.
+\end{remark*}
+
+We now proceed to establish the link between \eqref{eq:FOS} and \eqref{eq:NP}:
+
+\FOSNE*
+
+\begin{proof}
+By the definition of first-order stationarity applied to the policies $\policy^{\ast}$ and $\policy$, it is straightforward to check that
+$\braket{\gvalue(\policy^*)}{\policy^*-\policy} \geq 0$
+if and only if
+$\max_{\bar\policy_{\play}\in\policies_{\play}}\braket{\nabla_{\play}\rvalue_{\play,\stateDist}(\policy^*)}{\policy_\play-\bar\policy_\play^*} \leq 0$.
+%\begin{align}
+%\braket{\gvalue(\policy^*)}{\policy^*-\policy}&\ge 0&\Leftrightarrow\\
+%    \braket{\gvalue(\policy^*)}{(\policy_\play^*,\policy_{-\play}^*)-(\policy_\play,\policy_{-\play}^*)}&\ge 0&\Leftrightarrow\\
+%    \braket{\gvalue(\policy^*)}{(\policy_\play^*-\policy_\play,0)}&\ge 0&\Leftrightarrow\\
+%    \braket{\gvalue_{\play}(\policy^*)}{\policy_\play^*-\policy_\play}&\ge 0&\Leftrightarrow\\
+%    \braket{\nabla_{\play}\rvalue_{\play,\stateDist}(\policy^*)}{\policy_\play^*-\policy_\play}&\ge 0&\Leftrightarrow\\
+%    \min_{\bar\policy_{\play}\in\policies_{\play}}\braket{\nabla_{\play}\rvalue_{\play,\stateDist}(\policy^*)}{\policy_\play^*-\bar\policy_\play}&\ge 0&\Leftrightarrow\\
+%    \max_{\bar\policy_{\play}\in\policies_{\play}}\braket{\nabla_{\play}\rvalue_{\play,\stateDist}(\policy^*)}{\policy_\play-\bar\policy_\play^*}&\le 0&\Leftrightarrow\\
+%\end{align}
+However, by the gradient dominance property established in \cref{lem:GDP}, we readily get
+\begin{align}
+\rvalue_{\play,\stateDist}(\policy_{\play};\policy_{-\play}^*) -
+	\rvalue_{\play,\stateDist}(\policy_{\play}^*;\policy_{-\play}^*)
+	&\leq  \mismatch \max_{\bar\policy_{\play}\in\policies_{\play}}
+		\braket{\nabla_{\play}\rvalue_{\play,\stateDist}(\policy^*)}{\bar{\policy}_{\play}-{\policy_{\play}^*}}\leq 0
+	\\
+\shortintertext{and hence}
+\rvalue_{\play,\stateDist}(\policy_{\play};\policy_{-\play}^*)
+	&\leq \rvalue_{\play,\stateDist}(\policy_{\play}^*;\policy_{-\play}^*)
+		\quad
+		\text{for all $\policy_{\play}\in \policies_\play$}
+\end{align}
+and our claim follows.
+\end{proof}
+
+
+
+With all this in place, we are finally in a position to prove the characterization of \acl{SOS} and strict Nash policies that of \cref{prop:var}.
+For ease of reference, we restate the relevant claims below.
+
+\StationaryProperties*
+
+\begin{proof}
+We begin with the characterization of \acl{SOS} policies.
+To that end, let $\vdim = \abs{\states} \sum_{\play} \abs{\pures_{\play}}$ denote the ambient dimension of $\dspace$ and consider the mapping $\varphi\from\R^{\vdim\times\vdim} \to \R$ mapping $\hmat \mapsto \max\setdef{\tvec^{\top}\hmat\tvec}{\tvec \in \tcone(\eq), \norm{\tvec} = 1}$.
+Clearly, $\varphi$ is convex as the pointwise maximum of a set of linear \textendash\ and hence convex \textendash\ functions.
+This in turn implies the continuity of $\varphi$ as every convex function is continuous on the interior of its effective domain.
+Since $\eq$ satisfies \eqref{eq:SOS} by assumption, we have $\varphi(\Jac_{\gvalue}(\eq)) < 0$, so, by continuity and the convexity of $\policies$, there exists some $\strong > 0$ and a convex neighborhood $\nhd$ of $\eq$ in $\policies$ such that $\varphi(\Jac_{\gvalue}(\policy)) \leq -\strong$ for all $\policy \in \nhd$.
+
+With this in mind, letting $\tvec = \policy-\eq \in \tcone(\eq)$ for some $\policy\in\nhd$, a straightforward Taylor expansion with integral remainder yields
+\begin{equation}
+\gvalue(\policy) - \gvalue(\eq)
+	= \int_{0}^{1} \Jac_{\gvalue}(\eq + \tau\tvec) \tvec \dd\tau
+\end{equation}
+and hence, setting $\policy_{\tau} = \eq + \tau\tvec$, we get
+\begin{align}
+\braket{\gvalue(\policy) - \gvalue(\eq)}{\policy - \eq}
+	&= \int_{0}^{1} \tvec^{\top} \Jac_{\gvalue}(\policy_{\tau}) \tvec \dd\tau
+	\notag\\
+	&\leq \norm{\tvec}^{2}
+		\int_{0}^{1} \varphi(\Jac_{\gvalue}(\policy_{\tau})) \dd\tau
+%	\notag\\
+	\leq -\strong \norm{\tvec}^{2}
+	= -\strong \norm{\policy - \eq}^{2}
+\end{align}
+However, by \eqref{eq:FOS}, we have $\braket{\gvalue(\eq)}{\policy - \eq} \leq 0$ which, combined with the above, yields $\braket{\gvalue(\policy)}{\policy - \eq} \leq -\strong \norm{\policy - \eq}^{2}$, as claimed.
+
+For the second part of our lemma, pick some $\policy\neq\eq$ and let $\tvec = (\policy-\eq) / \norm{\policy-\eq}$, so $\tvec \in \tcone(\eq)$ and $\norm{\tvec} = 1$.
+Then, given that \eqref{eq:FOS} is satisfied as a strict inequality for all $\policy\neq\eq$, we readily get $\braket{\gvalue(\eq)}{\tvec} < 0$ for all $\tvec\in\tcone(\eq)$ with $\norm{\tvec} = 1$.
+Thus, by the joint continuity of the function $\braket{\gvalue(\policy)}{\tvec}$ in $\policy$ and $\tvec$, there exists a compact convex neighborhood $\cpt$ of $\eq$ in $\policies$ such that $\strong \defeq \min\setdef{\braket{\gvalue(\policy)}{\tvec}}{\policy\in\cpt,\tvec\in\tcone(\eq),\norm{\tvec}=1} < 0$.
+Thus, letting $\tvec = (\policy-\eq) / \norm{\policy-\eq}$ as above, we conclude that $\braket{\gvalue(\policy)}{\policy - \eq} \leq -\strong \norm{\policy - \eq}$, as claimed.
+\end{proof}
+
+
+% \begin{lemma}
+% If $\np$ is a strict Nash policy, then there exists $\mu > 0$ such that for all players $\play \in \players$, $\rstate \in \states$ and  $\policy_{\play} \in \simplex(\pures_{\play})^{\states}$:
+% \begin{equation}
+%     \inner{\gvalue_{\play}(\np)}{\policy_{\play} - \np_{\play}} \leq -\mu \norm{\policy_{\play} - \np_{\play}}
+% \end{equation} 
+% where $\gvalue_{\play}(\policy) = \nabla_{\policy_{\play}} \rvalue_{\play,\rstate}(\policy)$ for any $\policy \in \policies$.
+% \end{lemma}
+% \begin{proof}
+% Since $\np_{\play}$ is a strict-Nash policy, we have that for all $\policy_{\play} \neq \np_{\play}$, and $\rstate \in \states$, it holds: $\rvalue_{\rstate}^{\play}(\np_{\play};\np_{-\play}) > \rvalue_{\rstate}^{\play}(\policy_{\play};\np_{-\play})$. So, we readily obtain that $\inner{\gvalue_{\play}(\np_{\play})}{\policy_{\play} - \np_{\play}} < 0$ for all $\policy_{\play} \neq \np_{\play}$. Hence, if we denote by $\mathcal{C}$ the set $\left\{\policy_{\play} \in \simplex(\pures_{\play})^{\states} : \norm{\policy_{\play} - \np_{\play}} = 1 \right\}$, we get by compactness of $\mathcal{C}$ that $\sup_{z \in \mathcal{C}} \inner{\gvalue_{\play}(\np)}{z - \np_{\play}} = -\mu_{\play}$  for some $\mu_{\play} >0$. Therefore, for any $\policy_{\play} \neq \np_{\play}$, we get:
+% \begin{equation}
+%     \inner{\gvalue_{\play}(\np)}{\frac{\policy_{\play} - \np_{\play}}{\norm{\policy_{\play} - \np_{\play}}}} \leq -\mu_{\play}
+% \end{equation}
+% and, by setting $\mu = \min_{\play \in \players} \mu_{\play}$, the result follows.
+% \end{proof}

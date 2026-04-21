@@ -1,0 +1,262 @@
+%----------------------------------------------------------------------
+%% APP: STRICT
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+%We will fix an \emph{arbitrary} state and thus we will boil down to difference of scores for each player of any other strategy and the Nash policy for the specific state.
+%We need to prove the following:
+
+%\begin{itemize}
+%    \item Difference in scores implies neighborhood in the primal space
+%    \item Define $W_{init}$.
+%    \item Write score differences and control the different terms (as before).
+%    \item Select $M_{init}$ and the proof is complete.
+%    \item Show difference of scores $\to -\infty$ convergence.
+%\end{itemize}
+
+%%%%%%Start here erase everything%%%
+%In this section we will prove faster local convergence rates for deterministic Nash policies, when agents employ \cref{eq:LPG}.
+%In the results that follow, we will fix an \emph{arbitrary} state $\rstate$ and we will focus on the update of the policies in this arbitrary state. Furthermore, we will drop the index $\rstate$ for convenience of notation.
+%\begin{remark}
+%In what follows when we write $\dstate_{\pure(\rstate),\run}$, we mean the  aggregated gradient that corresponds to the pure strategy profile of all agents, in the state $\rstate$ for the round $\run$. When we fix a state $\rstate$,  we instantly omit it and it is implied everywhere.
+%\end{remark}
+
+
+%----------------------------------------------------------------------
+%% Preliminaries
+%----------------------------------------------------------------------
+\subsection{Structural preliminaries}
+
+To prove \cref{thm:strict}, we will first require some notions describing the geometry of $\policies$ near $\eq$.
+Referring to \cite{RW98} for a full treatment, we have:
+
+\begin{definition}
+Let $\cvx$ be a convex set and let $x\in \cvx$.
+Then the tangent cone $\tcone_{\cvx}(x)$ is defined as the set of all rays emanating from $x$ and intersecting $\cvx$ to at least one other point different from $x$. The \textit{polar cone} $\pcone_{\cvx}(x)$ to $\cvx$ at $\point$ is then defined $\pcone_{\cvx}(x) = \braces{y: \braket{\dpoint}{\tvec} \leq 0 \text{ for all } \tvec\in \tcone_{\cvx}(x)}$, where $\dpoint$ belong in the dual space of the vector space in which $\cvx$ is defined.
+\end{definition}
+
+With these general definitions in hand, we proceed to characterize some further projections of Euclidean projections on $\policies$ that will play an important role in the sequel.
+For notational simplicity, we suppress the player and state indices in the statement and proof of the next lemma.
+
+\begin{lemma}
+\label{lem:KKT}
+$\point=\proj(\dpoint)$ if and only if there exist $\mu\in \R$ and $\nu_\pure\in\R_{+}$ such that, for all $\pure\in \pures$, we have
+$\dpoint_\pure= \point_\pure+\mu-\nu_\pure$
+with $\nu_\pure \geq 0$ and $\point_\pure \nu_\pure=0$.
+\end{lemma}
+
+\begin{proof}
+Recall that 
+\(
+\proj(\dpoint)
+    = \argmin_{\point\in\simplex(\pures)} \norm{\dpoint-\point}^{2}.
+\)
+Our result then follows by applying the KKT conditions to this optimization problem and noting that, since the constraints are affine, the KKT conditions are sufficient for optimality.
+Our Langragian is
+\begin{equation}
+\mathcal{L}(\point,\mu,\nu)= \sum_{\pure\in\pures}\frac{1}{2}(\dpoint_\pure - \point_\pure )^2-{\mu(\sum_{\pure\in\pures} \point_\pure-1)} + {\sum_{\pure\in\pures} \nu_\pure \point_\pure}
+\end{equation}
+where the set of constraints (i) of the statement of the lemma  are the stationarity constraints, 
+which in our case are $\nabla\mathcal{L}(\point,\mu,\nu)=0\Leftrightarrow
+\nabla( \sum_{\pure\in\pures}\frac{1}{2}(\dpoint_\pure - \point_\pure )^2 )=\mu\nabla(\sum_{\pure\in\pures} \point_\pure-1) - \sum_{\pure\in\pures} \nu_\pure\nabla \point_\pure$
+, while the set of constraints (ii) of the statement of the lemmas are the complementary slackness constraints.
+Note that complementary slackness implies $\nu_\pure>0$ whenever $\pure\notin \supp(\point)$, so our proof is complete.
+\end{proof}
+
+Our next result is a concrete consequence of \cref{prop:var} which will be very useful in establishing the stability estimates required for the proof of \cref{thm:strict}.
+
+\begin{lemma}\label{lem:basin of drift}
+Let $\np = (\pure^*_{\play,\rstate})_{\play\in\players, \rstate\in\states}$ be a strict Nash policy.
+Then there exists a neighborhood $\nhd$ of $\np$ and constants $c_{\play,\rstate}$ such that for each player $\play\in\players$ and state $\rstate\in\states$, we have:
+\begin{equation}\label{eq:variational-inequality}
+\text{$\payv_{\play\pure_{\play,\rstate}^*}\parens{\policy} - \payv_{\play\pure_{\play,\rstate}}\parens{\policy} \geq c_{\play,\rstate}\;$ for all $\policy\in\nhd$ and $\pure_\play\neq\pure_\play^*$, $\pure_\play\in\pures_\play$.}
+\end{equation} 
+\end{lemma}
+
+
+\begin{proof}
+Our claim  is a consequence of the definition of strict Nash policies. Specifically, from \cref{prop:var} we have
+% \eqref{eq:sharp} we have that $\gvalue(\np)\in ri(PC(\np))$\footnote{with $ri$ we denote the relative interior.}, which means that 
+\begin{equation}
+    \inner{\gvalue(\np)}{z} <0 \quad\text{ for all }\quad z\in \tcone(\np), z\neq 0
+\end{equation}
+Let $z = e_{\play,\pure_{\play,\rstate}} -e_{\play,\pure^*_{\play,\rstate}}$, then we get that 
+\begin{equation}
+    \payv_{\play\pure_{\play,\rstate}^*}\parens{\np} - \payv_{\play\pure_{\play,\rstate}}\parens{\np} >0
+\end{equation}
+where $e_{\play,\pure_{\play,\rstate}}$ is the vector that has one only in the index and zero anywhere else.
+By continuity there exists a neighborhood $\nhd\subseteq\pspace$ and $c_{\play,\rstate} > 0$ for each player $\play\in\players$ such that 
+\begin{equation*}
+ \payv_{\play\pure_{\play,\rstate}^*}\parens{\policy} - \payv_{\play\pure_{\play,\rstate}}\parens{\policy} \geq c_{\play,\rstate} \quad\text{ for all }\quad\policy\in\nhd
+ \qedhere
+\end{equation*}
+\end{proof}
+
+Our final result is intimately tied to the lazy projection step in \eqref{eq:LPG}, and quantifies the relation between initializations in $\dspace$ and $\policies$. 
+
+\begin{lemma}\label{lem:equivalence} Let $\np = (\pure^*_{\play,\rstate})_{\play\in\players, \rstate\in\states}$, be a  deterministic policy. For each agent $\play\in\players$ and each state $\rstate\in\states$, let $\dstate_{\play,\pure_{\play,\rstate}} -\dstate_{\play,\pure^*_{\play,\rstate}}$ be the difference of the aggregated gradients between the strategy of the equilibrium and any other strategy $\pure_\play^*\neq \pure_{\play}\in\pures_\play$. Then for any $\eps >0 $ such that $\nhd_{\eps} = \braces{\policy: \policy_{\play,\pure_{\play,\rstate}^*}\geq 1-\eps \text{ for all } \play\in\players \text{ and } \rstate\in\states}$, there exist $M_{\play,\eps,\rstate}$ such that if $\dbasin_{\play,\rstate} = \braces{\dstate\in\R^{\pures_\play}: \dstate_{\play,\pure_{\play,\rstate}} -\dstate_{\play,\pure^*_{\play,\rstate}} < - M_{\play,\eps,\rstate}}$  then $\prod_{\play\in\players,\rstate\in\states}\proj_{\policies_{\play}}\parens{\dbasin_{\play,\rstate}}\subseteq \nhd_{\eps}$.
+\end{lemma}
+\begin{proof}
+
+Consider an arbitrary player $\play\in\players$, a state $\rstate\in\states$, and let $\dbasin_\play\parens{M_{\play,\eps,\rstate}}$ be an open set as defined in the statement of the lemma. For notational simplicity, we will drop the index $\rstate$.
+We will show that any $M_{\play,\eps}> 1-\frac{\eps}{|\pures_\play|}>0 $ satisfies our claim.
+By  using \cref{lem:KKT} for a $\dstate_\play\in \dbasin_\play\parens{M_{\play,\eps}}$ with $\policy_\play=\proj\parens{\dstate_\play}$ we have that 
+\begin{equation}
+\begin{aligned}
+    &\dstate_{\play\pure_\play^*}-\dstate_{\play\pure_\play}>M_{\play,\eps}\\
+    &  {\policy_{\play\pure_\play^*}}-{\policy_{\play\pure_\play}} - (\nu_{\pure^*_\play}-\nu_{\pure_\play}) > M_{\play,\eps}\label{eq:contradiction}
+\end{aligned}
+\end{equation}
+with $\nu_{\pure_\play} \geq 0$ and $\policy_{\play\pure_\play} =0$ whenever $\nu_{\pure_\play} >0$.
+Notice that since $M_{\play,\eps} >1-\frac{\eps}{\nPures_{\play}}$  we  have that ${\policy_{\play\pure_\play^*}}>{\policy_{\play\pure_\play}} + 1 - \frac{\eps}{\nPures_{\play}} 
++ (\nu_{\pure^*_\play}-\nu_{\pure_\play})$ or 
+\begin{equation}
+  {\policy_{\play\pure_\play}}<   {\policy_{\play\pure_\play^*}} - 1 + \frac{\eps}{\nPures_{\play}} 
+- (\nu_{\pure^*_\play}-\nu_{\pure_\play}) <\frac{\eps}{\nPures_{\play}} 
+\end{equation}
+Hence, by summing over all strategies of player $\play$ we get the desired result.
+\end{proof}
+
+
+%----------------------------------------------------------------------
+%% Preliminaries
+%----------------------------------------------------------------------
+\subsection{Proof of the main theorem}
+
+We are now in a position to prove our main result on the rate of convergence towards strict Nash policies.
+For ease of reference, we restate \cref{thm:strict} below.
+
+\strict*
+
+\begin{proof}[Proof of \cref{thm:strict}]
+
+We start by fixing a confidence level $\conf>0$ and all the parameters of the algorithm, such that all the assumptions stated in the theorem are satisfied and. We will prove that for each agent $\play\in\players$, $\rstate\in\states$ there exist $M_{1,\play,\rstate}>0$, $\dbasin_{1,\play,\rstate} = \braces{\dstate\in \R^{\pures_\play}: \dstate_{\play,\pure_\play} -\dstate_{\play,\pure^{*}_{\play}}<-M_{1,\play,\rstate} \text{ for all } \pure_\play\in\pures_\play, \pure_\play\neq\pure_{\play}^*}$,  such that if $\dstate_{\start}\in\dbasin_1 \defeq \prod_{\play\in\players,\rstate\in\states}\dbasin_{1,\play,\rstate}$  then the agents' sequence of play, converge to the deterministic Nash policy, in finite number of iterations. 
+
+To simplify the notation, we will drop the indices $\rstate$ and $\play$ referring to the states and agents, accordingly, and we will focus on a specific agent and a specific state.
+From \cref{lem:equivalence}, \cref{lem:basin of drift} we have that there exist constants $c,M$, neighborhood $\nhd_c =\braces{\policy\in\policies: \norm{\policy-\np}\leq \rad}$ and open set $\dbasin_{M}$ such that \begin{equation}
+\begin{alignedat}{3}
+      \payv_{\pure^*}\parens{\policy} -\payv_{\pure}\parens{\policy} &\geq c &\hspace{0.5em}&\text{ for all } \pure\neq\pure^*, \pure\in\pures \text{ and }\policy\in\nhd_c\\
+      \dstate_{\pure^*}-\dstate_\pure &> M_c&\hspace{0.5em} &\text{ for all } \pure\neq\pure^*, \pure\in\pures  \text{ and } \policy = \proj\parens{\dstate}\in\nhd_c
+\end{alignedat}
+\end{equation}
+The first step is to prove that for an appropriate initialization for $\dstate_\start$, we have $\dstate_\run\in \dbasin(M_c)$ for all $\run = \running$, with probability at least $1-\conf$. Assume that $\dstate_\runalt\in\dbasin(M_c)$ for all $\runalt=1,\hdots,n$; then 
+for   the differences of the scores at a round $\run+1$ between any $\pure\in\pures$ and the equilibrium strategy $\pure^*$, we have
+\begin{align}\label{eq: basic equality}
+\dstate_{\pure,\run +1} -\dstate_{\pure^*,\run+1}
+    &= \dstate_{\pure,\run} -\dstate_{\pure^*,\run} + (\signal_{\pure,\run} -\signal_{\pure^*,\run})
+    \notag\\
+    &=\dstate_{\pure,\start} -\dstate_{\pure^*,\start} + \sum_{\runalt = \start}^\run \step_\runalt [(\gvalue_{\pure,\runalt} -\gvalue_{\pure^*,\runalt})  + (\noise_{\pure,\runalt} -\noise_{\pure^*,\runalt}) +( \bias_{\pure,\runalt} -\bias_{\pure^*,\runalt})]
+    \notag\\
+    &\leq -M_1 + \sum_{\runalt = \start}^\run \step_\runalt [(\gvalue_{\pure,\runalt} -\gvalue_{\pure^*,\runalt})  + (\noise_{\pure,\runalt} -\noise_{\pure^*,\runalt}) +( \bias_{\pure,\runalt} -\bias_{\pure^*,\runalt})]
+    \notag\\
+    &\leq -M_1 -c\sum_{\runalt=1}^{\run}\step_{\runalt} + \sum_{\runalt=1}^{\run}\step_{\runalt}[ (\noise_{\pure,\runalt} -\noise_{\pure^*,\runalt}) +( \bias_{\pure,\runalt} -\bias_{\pure^*,\runalt})]
+    \notag\\
+    &\leq -M_1 -c\sum_{\runalt=1}^{\run}\step_{\runalt} + \sum_{\runalt=1}^{\run}\step_{\runalt}[ \snoise_{\runalt} + \sbias_{\runalt}]
+\end{align}
+where $\snoise_{\runalt} =  (\noise_{\pure,\runalt} -\noise_{\pure^*,\runalt})$ and $\sbias_{\runalt} =  2\norm{\bias_{\runalt}}$. 
+Now, similarly to the proofs of \cref{thm:stable,thm:SOS} we will proceed to control the aggregate error terms 
+\begin{equation}
+\label{eq:err-agg}
+\curr[R]
+	= \sum_{\runalt=\start}^{\run} \iter[\step] \iter[\snoise]
+	\quad
+	\text{and}
+	\quad
+\curr[\submart]
+	= \sum_{\runalt=\start}^{\run} {\iter[\step] \iter[\sbias]}.
+\end{equation}
+Since $\exof{\curr[\snoise] \given \curr[\filter]} = 0$, we have $\exof{\curr[R] \given \curr[\filter]} = \prev[R]$, so $\curr[R]$ is a martingale;
+likewise, $\exof{\curr[\submart] \given \curr[\filter]} \geq \prev[\submart]$, so $\curr[\submart]$ is a sub-martingale. Furthermore from \eqref{eq:errorbounds}  we have:
+\begin{enumerate}[I.]
+     \item \label{eq:I}     $\exof{\snoise^{2}_\run} \leq  \exof{\norm{\noise_{\run}}^{2}} \leq \exof{\exof{\dnorm{\noise_{\run}}^{2} \given \filter_{\run}}} \leq \sdev^{2}_\run$\vspace{3pt}
+     \item \label{eq:II}
+     $\exof{\sbias_\run} = 2 \ex\bracks*{\dnorm{\bias_{\run}}}\leq \exof{\exof{\dnorm{\bias_{\run}} \given \filter_{\run}}} \leq \bbound_\run$
+ \end{enumerate}
+
+ Moreover, for any $\eta_{1} > 0$, we get by Doob's Maximal Inequality:
+
+ \begin{align}
+     \prob\parens*{\sup_{1 \leq \runalt \leq \run}R_{\runalt} \geq \eta_{1}} \leq \frac{\exof{R_{\run}^{2}}}{\eta_1^{2}} \stackrel{(a)}{=} \frac{\sum_{\runalt = 1}^{\run} \step_{\runalt}^{2}\exof{\snoise_{\runalt}^{2}}}{\eta_1^{2}} & \stackrel{(\ref{eq:I})}{\leq}
+      \frac{\sum_{\runalt = 1}^{\run} \step_{\runalt}^{2}\sdev^{2}_{\runalt}}{\eta_1^{2}}   
+ \end{align}
+ where $(a)$ comes from the fact that $\exof{\snoise_i\snoise_j} = 0$ for $i \neq j$.  Since $\step_\run =\gamma/\run^{\pexp}$, $\sdev_\run = \bigoh(\run^{\sexp})$ and  $\pexp-\sexp >1/2$, 
+ there exists $\gamma_1$ sufficiently small such that if $\gamma \leq \gamma_1$ then
+ \begin{align}\label{eq: condition 1}
+    \sum_{\runalt = 1}^{\infty}\step_{\runalt}^{2}\sdev^{2}_{\runalt} < \frac{\delta \eta_1^{2}}{2}
+ \end{align}
+ and so we automatically get that 
+ \begin{equation}\label{eq:mart-prob}
+     \prob\parens*{\sup_{1 \leq \runalt \leq \run}R_{\runalt} \geq \eta_{1}} \leq \frac{\conf}{2}
+ \end{equation}
+% %Hence, for $\step_{\run} = \frac{\step}{(\run + \runoff)^\pexp}$ and $\sdev_{\run} = \bigoh(\run^\sexp)$ with $\pexp - \sexp > 1/2$, and for $\runoff$ large enough we get the result.
+
+Furthermore, notice that  the term $\{S_{\run}\}_{\run \in \N}$ is a sub-martingale, since $\exof{\abs{S_{\run}} \given \curr[\filter]} < \infty$ and $\exof{S_{\run+1} \given \curr[\filter]} > S_{\run}$, for all $\run$. As before, using Doob's Maximal Inequality, we get for any $\eta_2 > 0$:
+ \begin{align}
+     \prob\parens*{\sup_{1 \leq \runalt \leq \run}S_{\runalt} \geq \eta_{2}} \leq \frac{\exof{S_{\run}}}{\eta_{2}} 
+     & = \frac{\sum_{\runalt = 1}^{\run} \step_{\runalt}\exof{\sbias_{\runalt}} }{\eta_2}
+     {\leq}\frac{2\sum_{\runalt = 1}^{\run} \step_{\runalt}\bbound_{\runalt} }{\eta_2}
+ \end{align}
+So, since $\pexp+\bexp > 1$  there exists $\gamma_2$ sufficiently small such that if $\gamma \leq \gamma_2$ then
+%\begin{equation}
+\(
+\sum_{\runalt = 1}^{\run} \step_{\runalt}\bbound_{\runalt} \leq \frac{\eta_2\conf}{4}
+\)
+%\end{equation}
+which immediately implies that 
+\begin{equation}\label{eq:prob-bias}
+    \prob\parens*{\sup_{1 \leq \runalt \leq \run}S_{\runalt} \geq \eta_{2}} \leq\dfrac{\conf}{2}
+\end{equation}
+By choosing $\gamma \leq \min\braces{\gamma_1,\gamma_2}$ we get that 
+ \begin{equation}
+     \prob\parens*{\sup_{1 \leq \runalt \leq \run} R_\run + S_\run \leq M_c} \geq 1-\conf.
+ \end{equation}
+ Notice now that by choosing $M_1 > M_c + \eta_1 +\eta_2$, from \eqref{eq: basic equality} we have that with probability at least $1-\conf$, $\dstate_{\pure,\run+1} -\dstate_{\pure^*,\run+1} < -M_c$, which implies that $\policy_{\run+1}\in \nhd_c$.
+ 
+ Defining the sequences of ``good'' events $\{\event_\run\}_{\run \in \N}$ and $\{\event'_\run\}_{\run \in \N}$ as $\event_\run \defeq \braces{\policy_\runalt \in \nhd_c \text{ for all }  \runalt=\running,\run}$ and $\event'_\run \defeq \braces*{\sup_{1 \leq \runalt \leq \run} R_{\runalt}+S_{\runalt} \leq \eta_1 + \eta_2}$, accordingly, we get that $\event'_\run \subseteq \event_\run$ for all $\run$. Because $\prob\parens*{\event'_\run} \geq 1-\conf$, we get that
+% \begin{equation}
+\(
+\prob\parens*{\event_{\run}} \geq 1-\conf
+\)
+%\end{equation}
+and since $\{\event_\run\}_{\run \in \N}$ is a decreasing sequence converging to $\event \defeq \braces*{\policy_\run \in \nhd_c, \forall \run \in \N}$, we obtain
+%\begin{equation}
+\(
+\prob\parens*{\event} \geq 1-\conf.
+\)
+%\end{equation}
+\ie
+\begin{equation}
+\prob\parens*{\curr \in \nhd_c, \; \forall \run \mid \dstate_{1} \in \dbasin_{1}} \geq 1-\conf
+\end{equation}
+Notice that the above conclusions immediately imply convergence in finite time. More specifically, constrained to the event $\event$ with probability at least $1-\conf$, from \cref{eq: basic equality} we have 
+\begin{align}
+    \dstate_{\pure,\run +1} -\dstate_{\pure^*,\run+1} \leq 
+-M_c -c\sum_{\runalt=1}^{\run}\step_{\runalt} 
+\end{align}
+for all $\run=\running$.  Assume ad absurdum  that there exists at least one strategy $\pure\neq\pure^*,\pure\in\pures$ such that $\limsup_{\run\to\infty}\policy_{\pure,\run} \geq \eps >0$.
+for all sufficiently large $\run$. Recall also that for $\policy\in \nhd_c$, it holds that $\policy_{\pure^*}>0$ by construction.
+Using \cref{lem:KKT} we get
+\begin{align}
+   \dstate_{\pure,\run +1} -\dstate_{\pure^*,\run+1}=  \policy_{\pure,\run+1} - \policy_{\pure^*,\run+1}  &\leq -M_c -c\sum_{\runalt=1}^{\run}\step_{\runalt}
+\end{align}
+Notice that the \acs{LHS} of this inequality is bounded, while the \acs{RHS} goes to $-\infty$, which is a contradiction. Thus, with probability at least $1-\conf$, $\policy_{\run}\to\policy^*$ as $\run\to\infty$.
+
+We can rewrite the previous inequality as
+\begin{equation}
+    \policy_{\pure,\run+1} \leq 1 -M_c -c\sum_{\runalt=1}^{\run}\step_{\runalt} \quad\text{ for all }\quad\pure^*\neq\pure\in\pures
+\end{equation}
+Now aggregating over all strategies, on the previous inequality,  we get that 
+\begin{align}
+    \onenorm{\policy_{\run+1} -\np} = 2(1-\policy_{\pure^*,\run+1}) \leq2 \sum_{\pure^*\neq\pure\in\pures}(1- M_c -c\sum_{\runalt=1}^{\run}\step_{\runalt} )
+\end{align}
+Thus, once $\sum_{\runalt=1}^{\run}\step_{\runalt}$  becomes at least $(1-M_c)/c$, which occurs in finite time, the convergence is implied.
+\end{proof}
+
+
+\begin{proof}[Proof of \cref{cor:strict}]
+For \cref{mod:full,mod:stoch}, taking $\bexp = \infty, \sexp = 0$ we readily get that $\pexp > 1/2$. Since we require that $\sum_{\run=1}^{\infty}\step_\run = \infty$, we obtain that $\pexp \in (1/2,1]$. 
+%Of course the larger, the step-size the faster the convergence in this case.
+
+For \cref{mod:value}, we have that $\curr[\bbound] = \bigoh(\curr[\expar])$ and $\curr[\sdev] = \bigoh(1/\sqrt{\curr[\expar]})$, \ie $\bexp = r$ and $\sexp = r/2$. Now, since $\pexp \leq 1$, $\pexp + \bexp >1$ and $\pexp - \sexp > 1/2$, we obtain that $\pexp \in (2/3,1]$. 
+\end{proof}

@@ -1,0 +1,30 @@
+\section{Introduction}\label{sec:introduction}
+
+Learning in multiagent settings is inherently more difficult than single-agent learning because an agent interacts both with the environment and other agents~\citep{Busoniu2010}.
+Specifically, the fundamental challenge in multiagent reinforcement learning (MARL) is the difficulty of learning optimal policies 
+in the presence of other simultaneously learning agents because their changing behaviors jointly affect the environment's transition and reward function. 
+This dependence on non-stationary policies renders the Markov property invalid from the perspective of each agent, requiring agents to adapt their behaviors with respect to potentially large, unpredictable, and endless changes in the policies of fellow agents~\citep{papoudakis19nonstationarity}.
+In such environments, it is also critical that agents adapt to the changing behaviors of others in a sample-efficient manner as it is likely that their policies could update again after a small number of interactions.
+Therefore, effective agents should consider the learning of other agents and adapt quickly to their non-stationary behaviors. 
+Otherwise, undesirable outcomes may arise when an agent is constantly lagging in its ability to deal with the current policies of other agents. %in its environment. 
+
+Our paper proposes a new framework based on meta-learning to address the inherent non-stationarity of MARL.
+Meta-learning (also referred to as learning to learn) was recently shown to be a promising methodology for fast adaptation in multiagent settings. 
+The framework by~\citet{alshedivat2018continuous}, for example, introduces a meta-optimization scheme in which a meta-agent can adapt more efficiently to changes in a new opponent's policy after collecting only a handful of interactions.
+The key idea is to model the meta-agent's own learning process so that its updated policy performs better than an evolving opponent.
+However, prior work does not directly consider the learning processes of other agents during the meta-optimization process, instead treating the other agents as external factors and assuming the meta-agent cannot influence their future policies.
+As a result, prior work on multiagent meta-learning fails to consider an important property of MARL: other agents in the environment are also learning and adapting their own policies based on interactions with the meta-agent. 
+Thus, the meta-agent is missing an opportunity to influence the others' future policies through these interactions, which could be used to improve its own performance.
+  
+\noindent\header{Our contributions.} With this insight, we make the following primary contributions in this paper:
+\begin{enumerate}[leftmargin=*, wide, labelindent=0pt, topsep=0pt, label=\arabic*)]
+    \itemsep0em 
+    \item \textbf{New theorem:} We derive a new \textit{meta-multiagent policy gradient theorem (Meta-MAPG)} that, for the first time, directly models the learning processes of all agents in the environment within a single objective function. We achieve this by extending past work that developed the meta-policy gradient theorem (Meta-PG) in the context of a single agent multi-task RL setting~\citep{alshedivat2018continuous} to the full generality of a multiagent game where every agent learns with a Markovian update function.
+    \item \textbf{Theoretical analysis and comparisons:} Our analysis of Meta-MAPG reveals an inherently added term, not present in~\citet{alshedivat2018continuous}, closely related to the process of shaping the other agents' learning dynamics in the framework of~\citet{foerster17lola}. 
+    As such, our work 
+    contributes a theoretically grounded framework that unifies the collective benefits of previous work by~\citet{alshedivat2018continuous} and~\citet{foerster17lola}. 
+    Moreover, we formally demonstrate that Meta-PG can be considered a special case of Meta-MAPG if we assume the learning of the other agents in the environment is constrained to be independent of the meta-agent behavior. 
+    However, this limiting assumption does not typically hold in practice, and we demonstrate with a motivating example that it can lead to a total divergence of learning that is directly addressed by the correction we derive for the meta-gradient. 
+    \item \textbf{Empirical evaluation:} We evaluate Meta-MAPG on a diverse suite of multiagent domains, including the full spectrum of mixed incentive, competitive, and cooperative environments. 
+    Our experiments demonstrate that, in contrast with previous state-of-the-art approaches on this topic, Meta-MAPG consistently results in a superior ability to adapt in the presence of novel agents as they learn.
+\end{enumerate}

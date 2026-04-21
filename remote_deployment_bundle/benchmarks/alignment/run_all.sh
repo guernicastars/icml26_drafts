@@ -23,15 +23,15 @@ POSTERIOR_SAMPLES="${POSTERIOR_SAMPLES:-16}"
 KEEP_LAST="${KEEP_LAST:-50}"
 N_EPOCHS="${N_EPOCHS:-3}"
 NUM_EVAL_PROMPTS="${NUM_EVAL_PROMPTS:-50}"
-BON_N="${BON_N:-1 4 16}"          # default capped at 16; add 64/256 only on A100+
+BON_N="${BON_N:-1 4 16 64}"
 MAX_TRAIN_SAMPLES="${MAX_TRAIN_SAMPLES:-}"
 DTYPE="${DTYPE:-auto}"
 REWARD_INT8="${REWARD_INT8:-1}"
 EXTRA_ARGS="${EXTRA_ARGS:-}"
 
+# Gemma excluded for workshop scope; add back with BON_N="1 4 16 64" Gemma=1 if time permits
 MODELS=(
     "meta-llama/Llama-3.1-8B-Instruct|llama-3.1-8b"
-    "google/gemma-2-9b-it|gemma-2-9b"
 )
 
 JOBS=()

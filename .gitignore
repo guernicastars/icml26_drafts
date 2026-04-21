@@ -25,3 +25,9 @@ polymarket/dashboard/.env.local
 **/*.fls
 **/*.fdb_latexmk
 **/*.gz
+**.log
+**.bbl
+**.out
+**.json
+**.jsonl
+**.zip

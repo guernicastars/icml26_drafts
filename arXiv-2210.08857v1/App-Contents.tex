@@ -1,0 +1,71 @@
+%----------------------------------------------------------------------
+%%% APP: CONTENTS
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+%The remainder of this paper is organized as follows. In \cref{app:organization}, we list a glossary of all the basic concepts and notation that we will utilize throughout the paper.
+%In \cref{app:errata}, we expand the discussion for the related work in general-sum stochastic games and we describe all the typos and corrections in definitions or statements between the submission of main part and supplementary.
+%In \cref{app:marl}, we prove all the properties of the Markov Decision Process (MDP), the value function and its gradient for the multi-agent reinforcement learning process when the model of episodic random stopping is in run. While similar machinery have been considered for the infinite horizon with $\gamma$ discounting regime and a standard analogy has been described in the literature, we prove here explicitly for the sake of completeness.
+%In \cref{app:solutions}, we consider the different optimization solutions from variational perspective and their connection to Markov stationary Policy Nash Equilibria.
+%In \cref{app:reinforce}, we conclude our preliminary results with the statistical guarantees of \reinforce policy gradient estimator.
+%Finally, in \cref{app:asymptotic} we present the asymptotic convergence results for the variational stable points and\AG{I wrote we show  sos only for eager} establish the convergence rates for the ``eager'' and ``lazy'' stochastic policy gradient method for the second-order stationary points (See \cref{app:SOS}) and their deterministic counterparts (See \cref{app:deterministic}).
+
+\begin{table}[tbp]
+\label{tab:index}
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{cp{12cm}}
+\toprule
+\textsc{Notation}
+	&\textsc{Description}
+	\\ % <-- added & and content for each column
+\midrule
+$\rstate\in\states$
+	&States of the game
+	\\
+$\pure_\play\in\pures_\play$
+	& Actions of agent $\play\in\players$
+	\\
+%		\hline
+$\traj$
+	&Episode trajectory
+	\\
+%		\hline
+$\stopTime(\traj)$
+	&Episode stopping time
+	\\
+%		\hline
+$\stopPr$
+	&Minimum stopping probability
+	\\
+%		\hline
+$\realReward_{\play,\time}$
+	&Realized reward of $\play$-th player at time $\time$
+	\\
+%		\hline
+$\curr[\step]$
+	&Step size at episode $\run$
+	\\
+%		\hline
+$\expar_\run$
+	&Explicit exploration parameter at episode $\run$
+	\\
+%		\hline
+$\gvalue(\curr)$
+	&Policy gradients at policy $\curr$ of episode $\run$
+%	When we write $\gvalue_{\play,\pure_\play,\rstate}(\policy)$, we refer to the gradient value of agent $\play\in\players$ for the specific pure action $\pure_\play\in\pures_\play$ and state $\rstate\in\states$ evaluated in the policy $\policy$.
+	\\
+%		\hline
+$\signal_\run$
+	&Policy gradient proxy at episode $\run$.
+%	We use the same notation with $\gvalue_\run(\policy)$
+	\\
+%		\hline
+%$\dstate_\run$
+%	&Aggregate gradients at round $\run$
+%	\\
+\bottomrule
+\end{tabular}
+\caption{Refresher of the most common notations used in our paper.}
+\end{table}

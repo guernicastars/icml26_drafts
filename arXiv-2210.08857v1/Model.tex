@@ -1,0 +1,267 @@
+%----------------------------------------------------------------------
+%%% LEARNING
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+We now proceed to describe our general model for episodic learning in stochastic games.
+%In tune with the episodic framework described in the previous section, we will likewise
+To that end, we will consider a framework where agents follow a specific policy $\curr$ within each episode, and update it from one episode to the next with the objective of increasing their individual rewards.
+Formally, our approach will adhere to the following inter-episode sequence of events:
+\begin{enumerate}
+\item
+At the beginning of each episode $\run=\running$, every agent $\play\in\players$ chooses a policy $\policy_{\play,\run} \in \policies_{\play}$.
+\item
+Within the $\run$-th episode, each player executes their chosen policy $\policy_{\play,\run}$, inducing in this way an intra-episode trajectory of play $\traj_{\run} = (\rstate^{(\run)}_{\time}, \pure^{(\run)}_{\time}, \reward^{(\run)}_{\time})_{\time \leq \stopTime(\traj_{\run})}$.
+\item
+Once the episode terminates, agents update their policies and the process repeats.
+\end{enumerate}
+
+In terms of feedback, we will treat several models, depending on what type of information is available to the agents during play.
+More precisely, we will focus on the generic \ac{PG} template
+\begin{equation}
+\label{eq:PG}
+\tag{PG}
+\next
+	= \proj_{\policies}(\curr + \curr[\step] \curr[\signal])
+\end{equation}
+where:
+\begin{enumerate}
+%[(\itshape i\hspace*{1pt}\upshape)]
+\item
+$\curr = (\state_{\play,\run})_{\play\in\players} \in \policies$ denotes the player's policy profile at each episode $\run=\running$
+\item
+$\curr[\signal] = (\signal_{\play,\run})_{\play\in\players} \in \dspace$ is an estimate for the agents' inidividual policy gradients.
+\item
+$\proj_{\policies}\from \dspace \to \policies$ denotes the Euclidean projection to the agents' policy space $\policies$.
+\item
+$\curr[\step] > 0$ is the method's step-size,
+for which we will assume throughout that $\sum_{\run} \curr[\step] = \infty$;
+typically, \eqref{eq:PG} is run with a step-size of the form $\curr[\step] = \step/(\run + \runoff)^{\pexp}$ for some $\step>0$, $\runoff\geq0$ and $\pexp\geq0$.
+\end{enumerate}
+
+Regarding the gradient signal $\curr[\signal]$, we will decompose it as
+\begin{equation}
+\label{eq:signal}
+\curr[\signal]
+	= \vecfield(\curr) + \curr[\noise] + \curr[\bias]
+\end{equation}
+where
+\begin{equation}
+\label{eq:bias-noise}
+\curr[\noise]
+	= \curr[\signal] - \exof{\curr[\signal] \given \curr[\filter]}
+	\quad
+	\text{and}
+	\quad
+\curr[\bias]
+	= \exof{\curr[\signal] \given \curr[\filter]} - \vecfield(\curr).
+\end{equation}
+In the above, we treat $\curr$, $\run=\running$, as a stochastic process on some complete probability space $\probspace$, and we write $\curr[\filter] \defeq \filter(\init,\dotsc,\curr) \subseteq \filter$ for the history (adapted filtration) of $\curr$ up to \textendash\ and including \textendash\ stage $\run$.
+By definition, $\exof{\curr[\noise] \given \curr[\filter]} = 0$ and $\curr[\bias]$ is $\curr[\filter]$-measurable, so $\curr[\noise]$ can be intepreted as a random, zero-mean error relative to $\vecfield(\curr)$, whereas $\curr[\bias]$ captures all systematic (non-zero-mean) errors.
+To make this precise, we will further assume that $\curr[\bias]$ and  $\curr[\noise]$  are bounded as
+\begin{equation}
+\label{eq:errorbounds}
+\exof{\dnorm{\curr[\bias]} \given \curr[\filter]}
+	\leq \curr[\bbound]
+	\qquad
+	\text{ and }
+	\qquad
+\exof{\dnorm{\curr[\noise]}^{2} \given \curr[\filter]}
+	\leq \curr[\sdev]^{2}
+%	\qquad
+%	\text{and}
+%	\qquad
+%\dnorm{\curr[\signal]}
+%	\leq \curr[\sbound]
+\end{equation}
+where the sequences $\curr[\bbound]$ and $\curr[\sdev]$ %and $\curr[\sbound]$ 
+, $\run=\running$, are to be construed as deterministic upper bounds on the bias, fluctuations, and magnitude of the gradient signal $\curr[\signal]$.
+
+Depending on these bounds, a gradient signal with $\curr[\bbound]=0$ will be called \emph{unbiased},
+%and a signal with $\lim_{\run\to\infty}\curr[\bbound] = 0$ will be called \emph{asymptotically unbiased};
+%finally,
+and an unbiased signal with $\curr[\sdev] = 0$  will be called \emph{perfect}.
+More generally, we will assume that the above statistics are bounded as
+\begin{equation}
+\label{eq:schedule}
+\curr[\bbound]
+	= \bigoh(1/\run^{\bexp})
+	\qquad
+	\text{and}
+	\qquad
+\curr[\sdev]
+	= \bigoh(\run^{\sexp})
+\end{equation}
+for some $\bexp,\sexp>0$ which depend on the specific model under consideration.
+For concreteness, we describe below three basic models that adhere to the above template for $\curr[\signal]$ in order of decreasing information requirements:
+
+
+\begin{model}
+[Full gradient information]
+\label{mod:full}
+The first model we will consider assumes that agents observe their \emph{full policy gradients}, \ie
+\begin{equation}
+\label{eq:signal-full}
+\curr[\signal]
+	= \gvalue(\curr)
+\end{equation}
+implying in particular that $\curr[\noise] = \curr[\bias] = 0$.
+%(so we can formally take $\bexp = \infty$ and $\sexp=-\infty$).
+This model is fully deterministic across episodes (though intra-episode play remains stochastic).
+In particular, it tacitly assumes that agents know the game (and can observe their opponents' policies) so as to calculate the full gradients of their individual value functions $\rvalue_{\play,\stateDist}$, \cf \cite{zhang2021gradient,agarwal2021theory,LOPP22} and references therein.
+\endenv
+\end{model}
+
+
+\begin{model}
+[Learning with stochastic gradients]
+\label{mod:stoch}
+A relaxation of the above model which is particularly relevant for applications to deep reinforcement learning concerns the case where the player have access to stochastic policy gradients \cite{zhang2020global}, \ie unbiased gradient estimates of the form
+\begin{equation}
+\label{eq:signal-stoch}
+\curr[\signal]
+	= \gvalue(\curr)
+	+ \curr[\noise]
+\end{equation}
+with $\exof{\curr[\noise] \given \curr[\filter]} = 0$ (so we can formally take $\bexp = \infty$ and $\sexp = 0$ in \cref{eq:schedule}
+ above).
+%This case is considered in \cite{zhang2020global}.
+\endenv
+\end{model}
+
+
+%----------------------------------------------------------------------
+%% Reinforce/Greedy algo begins here
+
+\begin{figure*}[t]
+\begin{minipage}{0.49\textwidth}
+\begin{algorithm}[H]
+\caption{\reinforce}
+\label{alg:reinforce}
+\begin{algorithmic}[1]
+	\State 
+	\textbf{Input:} $\estpolicy \in \policies, \traj = (\rstate_{\time}, \pure_{\time}, \reward_{\time})_{\time \le \stopTime(\traj)} \in\mathcal{T}$\vskip 3pt
+	\For{$\play = 1,\hdots, \nPlayers$}\vskip 3pt
+	\State 
+		$\rewards_\play\parens{\traj} \leftarrow \sum_{\time=\tstart}^{\stopTime\parens{\traj}}\reward_{\play,\time}$\vskip 3pt
+	\State 
+		$\logtrick_\play\parens{\traj} \leftarrow \sum_{\time=\tstart}^{\stopTime\parens{\traj}} \nabla_{\play} \parens*{\log\estpolicy_\play\parens{\action_{\play,\time}|\rstate_\time}}$\vskip 3pt
+	\State $\logvalue_\play \leftarrow \rewards_\play\parens{\traj}\cdot\logtrick_\play\parens{\traj}$\vskip 3pt
+	\EndFor\vskip 3pt
+	\State
+	\Return $\braces{\logvalue_\play}_{\play\in\players}$
+	\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+\hfill
+\begin{minipage}{0.49\textwidth}
+\begin{algorithm}[H]
+\caption{\greedy}
+\label{alg:greedy}
+\begin{algorithmic}[1]
+	\State
+	\textbf{Input:} $\policy_{\start}, \{\step_{\run}\}_{\run \in \N}, \{\expar_{\run}\}_{\run \in \N}$\vskip 3pt
+	\For{$\run = \start,\afterstart,\dots$}\vskip 3pt
+	\State
+	$\estpolicy_{\run}\leftarrow (1-\expar_\run) \policy_{\run} + \frac{\expar_\run}{\abs{\pures}}$\vskip 3pt
+	\State
+	Sample $\traj_{\run} \sim \MDP(\estpolicy_{\run}|\rstate_\tstart)$\vskip 3pt
+	\State
+	$\logvalue_{\run} \leftarrow \reinforce(\estpolicy_{\run},\traj_{\run})$\vskip 3pt
+	\State
+	$\policy_{\run+1} \leftarrow \proj_{\policies}\parens*{\policy_{\run} + \step_{\run}\logvalue_{\run}}$\vskip 3pt
+\EndFor \vskip 5pt
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+\end{figure*}
+
+%% Reinforce/Greedy algo ends here
+%----------------------------------------------------------------------
+
+
+\begin{model}
+[Value-based learning]
+\label{mod:value}
+The last model we will consider concerns the case where agents only have access to their instantaneous rewards and need to reconstruct their individual gradients based on this information.
+A widely used method to achieve this is via the \reinforce subroutine, which we describe in pseudocode form in \cref{alg:reinforce}.
+In words, when employing \reinforce, each agent $\play\in\play$ commits to a sampling policy $\hat\policy_{\play}\in\policies_{\play}$ and executes it in an episode of the stochastic game in play.
+Then, at the end of the episode, players gather the total reward $\rewards_\play\parens{\traj} \leftarrow \sum_{\time=\tstart}^{\stopTime\parens{\traj}}\reward_{\play,\time}$ associated to the intra-episode trajectory of play $\traj$, and they estimate their policy gradients via the so-called ``log-trick''  \cite{williams1992simple} as
+\begin{equation}
+\label{eq:logtrick}
+\logvalue_\play
+	= \rewards_\play\parens{\traj}
+		\cdot \sum\nolimits_{\time=\tstart}^{\stopTime\parens{\traj}} \nabla_{\play}
+			\parens*{\log\estpolicy_\play\parens{\action_{\play,\time}|\rstate_\time}}.
+\end{equation}
+\Cref{lem:reinforce} below provides the vital statistics of the \reinforce estimator:
+
+\begin{restatable}{lemma}{ReinforceLemma}
+\label{lem:reinforce}
+Suppose that each agent $\play\in\players$ follows a stationary policy $\policy_{\play} \in \policies_{\play}$.
+Then:
+\begin{subequations}
+\label{eq:reinforce}
+\begin{flalign}
+\quad
+\text{\itshape a\upshape)}
+	\quad
+	&\ex_{\traj \sim \MDP}\bracks*{\reinforce(\policy)}
+		= \gvalue(\policy)
+		&
+	\\
+\quad
+\text{\itshape b\upshape)}
+	\quad
+	&\ex_{\traj \sim \MDP} \bracks*{\norm{\reinforce_\play(\policy)-\gvalue_\play(\policy)}^2}
+		\leq \dfrac{24\nPures_{\play}}{\kappa_\play \stopPr^4}
+		&
+\end{flalign}
+\end{subequations}
+where $\kappa_\play = \min_{\rstate\in\states,\pure_{\play}\in\pures_{\play}} \policy_\play(\pure_\play \vert \rstate)$.
+\end{restatable}
+
+Therefore, if \reinforce is executed at $\hat\policy \gets \curr$ at each episode $\run=\running$, we will have
+\begin{equation}
+\exof{\hat\gvalue_{\play,\run}}
+%	= \nabla_{\play} \rvalue_{\play,\rstate}(\hat\policy)
+	= \gvalue_{\play}(\curr)
+	\qquad
+	\text{and}
+	\qquad
+\exof{\dnorm{\noise_{\play,\run}}^{2} \given \curr[\filter]}
+	\leq \dfrac{24\nPures_{\play}}{\stopPr^4\min_{\rstate\in\states,\pure_{\play} \in \pures_\play}\policy_{\play,\run}(\pure_\play \vert \rstate)}.
+\end{equation}
+In particular, this means that we will always have $\curr[\bbound] = 0$ for the bias of the estimator, but its variance could be unbounded if $\curr$ gets close to the boundary of $\policies$.
+To avoid this, \reinforce can be paired with an explicit exploration step that modifies the sampling policy of the $\run$-th episode to
+\begin{equation}
+\estpolicy_{\play,\run}
+	= (1-\expar_{\run}) \policy_{\play,\run}
+		+ \expar_{\run}\unif_{\pures_{\play}}
+		\quad
+		\text{\revise{for all $\rstate\in\states$}}
+\end{equation}
+\ie $\estpolicy_{\play,\run}$ is the mixture between $\policy_{\play,\run}$ and the uniform distribution $\unif_{\pures_{\play}}$ over $\pures_{\play}$.
+The resulting algorithm is known as \greedy;
+for a pseudocode representation, see \cref{alg:greedy}.
+
+Importantly, by calling \reinforce at $\curr[\estpolicy]$ instead of $\curr[\policy]$, $\curr[\signal]$ becomes biased (because of the difference between $\curr[\estpolicy]$ and $\curr$), but its variance is bounded;
+in particular, by invoking \cref{lem:reinforce}, we have
+\begin{equation}
+\exof{\dnorm{\bias_{\play,\run}} \given \curr[\filter]}
+%	\leq \curr[\bbound]
+	\leq G\curr[\expar]
+	\qquad
+	\text{and}
+	\qquad
+\exof{\dnorm{\noise_{\play,\run}}^{2} \given \curr[\filter]}
+%	\leq \curr[\sdev]^{2}
+	\leq \frac{24\nPures_{\play}^2}{\expar_{\run}\stopPr^{4}}
+\end{equation}
+where $G$ is a constant that depends on the smoothness of $\rvalue$ and the cardinalities of $\pures$ and $\states$.%
+\footnote{Specifically, from  \cref{lem:smoothness} we know that $\norm{v_i(\hat{\pi}_n) - v_i(\pi_n)} \leq 3\sqrt{\nPures}/\zeta^3 \cdot \sum_{\playalt}\sqrt{\nPures_{\playalt}} \cdot \norm{\hat{\pi}_{j,n}-\pi_{j,n}}$. Moreover,  $|\pi_{i,n}(\pure \mid s)-\hat{\pi}_{i,n}(\pure \mid s)| \leq \varepsilon_n$ for all $\rstate\in\states, \pure \in \mathcal{A}_i$, so $\norm{\pi_{i,n} - \hat{\pi}_{i,n}} \leq \sqrt{\nStates\nPures_{\play}} \varepsilon_n$.
+Combining the above, it follows that we can take $G=3\nPlayers\nPures^{3/2}\sqrt{\nStates} \big/ \zeta^3$.}
+In this way, \cref{alg:greedy} can be seen as a special case of \eqref{eq:PG} with $\curr[\bbound] = \bigoh(\curr[\expar])$ and $\curr[\sdev]^{2} = \bigoh(1/\curr[\expar])$.
+\endenv
+\end{model}

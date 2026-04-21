@@ -1,0 +1,48 @@
+%----------------------------------------------------------------------
+%%% APP: ERRATA
+%----------------------------------------------------------------------
+% !TEX root = ./Main.tex
+
+
+When preparing the supplementary material of our paper, we noticed a number of typographic errors and omissions in the main paper that could possibly cause confusion.
+We clarify those below:
+\begin{itemize}
+\item
+L48:
+The reference pointers should point to \citet{Per13} and \citet{LPX20}.
+\item
+L157:
+\eqref{eq:NP} should read \eqref{eq:FOS}
+\item
+L166:
+Only the one-way implication is relevant;
+\cref{prop:var} was amended accordingly.
+\item
+L188:
+The text should read $\curr[\step] = \step/(\run + \runoff)^{\pexp}$ for some $\step>0$, $\runoff\geq0$ and $\pexp\geq0$.
+\item
+L246:
+The text of \cref{thm:stable} was amended to explicitly include the above clarification.
+\item
+L251\textendash L252:
+the relation ``$1-\pexp<\rexp/2<\pexp-1/2$'' should read ``$1-\pexp < \rexp < 2\pexp-1$''.
+% The statement of \cref{cor:stable} has been amended to reflect this change.
+%\item
+%Corollary 1: Take cases for Model 1\&2 and Model 3
+% \item
+% Maybe change $\expar_\run = \expar/\run^{\rexp}$ to $\expar_\run = \expar/(\run+\runoff)^\rexp$ in all Corollaries
+% \PM{Whatever you think looks best / simpler!}
+% %\item
+% %Theorem 1: We added $\step_\run$ in the statement, and also this about ``(or $\runoff$ large enough)''. 
+% \item
+% Corollary 1: Change $\step_\run = \step/\run^{\pexp}$ to $\step_\run = \step/(\run+\runoff)^{\pexp}$, and also decide whether we will include the ``$+\runoff$'' in the $\expar_\run$ definition (in all the Corollaries).
+% \PM{Whatever you think looks best!}
+\item L250, L283:
+``$\curr[\mix] = \mix/\run^{\rexp}$'' should read  ``$\curr[\mix] = \mix/(\run+\runoff)^{\rexp}$'' and ``$\curr[\mix] = \mix/(\run+\runoff)^{\pexp/2}$'' respectively.
+\item
+L331, \cref{eq:lazy}:
+``$\nhd$'' should read ``$\dbasin$''
+\item L125, the \st{minimax} \emph{mismatch coefficient} can be defined either as $\mismatch\defeq\max_{\policy,\policy'\in\policies}\braces[\big]{\supnorm{\visitMeas{\stateDist}{\policy}/\visitMeas{\stateDist}{\policy'}} }$ or, more simply, as $\mismatch\defeq\max_{\policy,\in\policies}\braces[\big]{\tfrac{1}{\stopPr}\supnorm{\visitDistr{\stateDist}{\policy}/\stateDist} }$.
+
+\end{itemize}
+The errata and omissions identified above have all been corrected in the file at hand.
