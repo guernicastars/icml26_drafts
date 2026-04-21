@@ -24,6 +24,7 @@ def main():
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--save_freq", type=int, default=100)
+    parser.add_argument("--threshold", type=float, default=1500.0)
     args = parser.parse_args()
     
     run_dir = os.path.join(args.out_dir, f"seed_{args.seed}")
@@ -42,11 +43,12 @@ def main():
     opt_0 = optim.Adam(pi_0.parameters(), lr=3e-4) 
     opt_1 = optim.Adam(pi_1.parameters(), lr=3e-4) 
     
-    restarter = GlobalRestartManager(patience=10, threshold=1500) 
+    restarter = GlobalRestartManager(patience=20, threshold=args.threshold) 
     
     log_rewards, log_restarts = [], []
 
-    print(f"[Seed {args.seed}] Start HalfCheetah on {device}...")
+    print(f"[Seed {args.seed}] Starting MAMuJoCo HalfCheetah...")
+    print(f"Target Threshold: {args.threshold} | Device: {device}")
     start_time = time.time()
     
     for ep in range(args.episodes):
@@ -100,9 +102,13 @@ def main():
             opt_0 = optim.Adam(pi_0.parameters(), lr=3e-4) 
             opt_1 = optim.Adam(pi_1.parameters(), lr=3e-4)
 
-        # Always trace metrics
+        # Log with Flush to avoid "Small File" buffer issues
         with open(os.path.join(run_dir, "logs", "metrics.csv"), "a") as f:
-            f.write(f"{ep},{ep_rew},{restarter.restart_count},{time.time()-start_time}\n")
+            f.write(f"{ep},{ep_rew:.2f},{restarter.restart_count},{time.time()-start_time:.2f}\n")
+            f.flush()
+
+        if ep % 10 == 0:
+            print(f"[Seed {args.seed}] Ep {ep} | Reward: {ep_rew:.2f} | Restarts: {restarter.restart_count}")
 
         # Sparse Checkpoints
         if ep % args.save_freq == 0:
