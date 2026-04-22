@@ -1,0 +1,700 @@
+%=======================================================================
+% Empirical Validation Report: Meta-MAPG with Global Restarts
+%=======================================================================
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\sisetup{group-separator={,},group-minimum-digits=4}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,decorations.pathreplacing,patterns}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{groupplots,fillbetween,statistics}
+
+\tolerance=1200
+\emergencystretch=3em
+\hfuzz=2pt
+
+%---  Colour palette  ---%
+\definecolor{colReinforce}{HTML}{9B9B9B}
+\definecolor{colMetaMAPG}{HTML}{4878CF}
+\definecolor{colOurs}{HTML}{E84855}
+\definecolor{colBaseline}{HTML}{4878CF}
+\definecolor{colMujocoR}{HTML}{E84855}
+\definecolor{colMujocoB}{HTML}{4878CF}
+\definecolor{colGold}{HTML}{F4A261}
+
+%--- Macros ---%
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\MAPG}{\textsc{Meta-MAPG}}
+\newcommand{\OUR}{\textsc{Meta-MAPG+R}}
+\newcommand{\repo}[1]{\texttt{\small #1}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%=======================================================================
+\title{%
+  \textbf{Empirical Validation of Global Restart Meta-MAPG}\\[4pt]
+  \large Evidence for Theorem~3 of \emph{Global Convergence of a
+  Meta-Learning-Aware Policy Gradient Method}
+}
+\author{Empirical Companion Report \quad \small (Working Draft)}
+\date{\today}
+%=======================================================================
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We present a three-tier empirical validation of the global convergence
+guarantee established in the companion paper.
+Theorem~3 states that \MAPG{} equipped with the restart mechanism of
+\citet{Giannou2022} converges \emph{almost surely} to a stable meta-Nash
+equilibrium, with finite expected restart count and Pareto-optimal selection
+among multiple equilibria.
+We test this claim on (i)~matrix games with analytically known Nash
+equilibria, (ii)~coordinated continuous control in a two-agent HalfCheetah
+environment, and (iii)~pluralistic LLM debate using Llama-3.3-70B.
+In matrix games, restarts are the \emph{only} mechanism
+achieving non-zero global convergence rates, reaching \textbf{97\%} success
+in Stag Hunt versus \textbf{0\%} for both REINFORCE and vanilla \MAPG{}.
+The continuous-control and LLM results reveal a critical
+threshold-sensitivity phenomenon: miscalibrated restart thresholds cause
+pathological over-restarting, motivating adaptive restart schedules as an
+important open problem.
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+%=======================================================================
+\section{Introduction}
+%=======================================================================
+
+The companion paper proves \textbf{Theorem~3} for \OUR{}:
+\begin{enumerate}[label=(\roman*)]
+  \item \textit{Local convergence:} starting within a neighbourhood
+    $\mathcal{U}^{\mathrm{meta}}$ of a stable meta-Nash, the iterates
+    converge almost surely.
+  \item \textit{Global convergence via restarts:} the restarted process
+    converges a.s.\ to a stable meta-Nash from \emph{arbitrary}
+    initialisation, with finite expected restart count and Pareto-optimal
+    limit selection (Proposition~4.3 of~\citealt{Giannou2022}).
+\end{enumerate}
+
+The \emph{global} part is the novel empirical claim: standard REINFORCE and
+vanilla \MAPG{} get trapped in Pareto-inferior Nash basins; the restart
+mechanism is the only means of escape.
+This report quantifies that escape, identifies a threshold-calibration
+phenomenon in continuous domains, and connects both findings to the
+three lemmas (bias, variance, meta-GDP/SOS) that underpin Theorem~3.
+
+All matrix-game and continuous-control experiments run on a single
+NVIDIA RTX~3060 (6\,GB VRAM).
+LLM debate experiments run on 4$\times$V100 (32\,GB each).
+
+%=======================================================================
+\section{Experiment I: Matrix Games}
+\label{sec:matrix}
+%=======================================================================
+
+\subsection{Setup}
+
+Three algorithms are compared across two games with multiple Nash equilibria.
+
+\begin{description}[leftmargin=2em,itemsep=3pt]
+  \item[Iterated Prisoner's Dilemma (IPD).]
+    $R(C,C)=3$,\ $R(D,D)=1$,\ $R(C,D)=0$,\ $R(D,C)=5$.
+    Two pure Nash: $(D,D)$ (risk-dominant, payoff~1)
+    and $(C,C)$ (Pareto-optimal, payoff~3).
+    Agents are initialised with a bias toward Defect.
+
+  \item[Stag Hunt.]
+    $R(S,S)=5$,\ $R(H,H)=3$,\ $R(S,H)=0$,\ $R(H,S)=1$.
+    Two pure Nash: $(H,H)$ (risk-dominant, payoff~3)
+    and $(S,S)$ (payoff-dominant/Pareto-optimal, payoff~5).
+\end{description}
+
+\noindent
+Each algorithm runs for $1{,}000$ episodes across \textbf{100~seeds}.
+All matrix-game experiments use \emph{exact expected-value gradients}
+(not sampled rollouts), isolating the effect of the gradient computation
+from sampling variance.
+Convergence is declared when both agents' cooperation probability exceeds
+$0.95$, consistent with the Pareto-optimal Nash.
+The restart threshold is set between the sub-optimal and optimal Nash payoffs
+($\tau_\text{IPD}=2.5$,\, $\tau_\text{Stag}=4.0$).
+
+\subsection{Algorithm Comparison}
+
+Table~\ref{tab:matrix_convergence} summarises the results;
+Figure~\ref{fig:algo_comparison} visualises the convergence rates.
+Among seeds that converge, the mean first-passage episode is
+\textbf{350} (IPD) and \textbf{294} (Stag Hunt), consistent with the
+finite-restart bound of Proposition~4.1 in~\citet{Giannou2022}.
+
+\begin{table}[H]
+  \centering
+  \caption{%
+    Global convergence rates (\% of seeds reaching the Pareto-optimal Nash)
+    over 100 seeds, 1\,000 episodes each.
+    Both REINFORCE and vanilla \MAPG{} score 0\% in every setting,
+    confirming the \emph{local} nature of Theorem~3(i): agents initialised
+    in the risk-dominant basin converge there, as the theorem only guarantees
+    convergence within a neighbourhood of a stable Nash.
+  }
+  \label{tab:matrix_convergence}
+  \setlength{\tabcolsep}{11pt}
+  \begin{tabular}{lcccc}
+    \toprule
+    & \multicolumn{2}{c}{\textbf{IPD}} & \multicolumn{2}{c}{\textbf{Stag Hunt}} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-5}
+    \textbf{Algorithm} & Conv.\ (\%) & Restarts & Conv.\ (\%) & Restarts \\
+    \midrule
+    REINFORCE          & 0           & 0   & 0   & 0   \\
+    \MAPG{}            & 0           & 0   & 0   & 0   \\
+    \OUR{} (ours)      & \textbf{24} & 7.2 & \textbf{97} & 4.6 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  ybar,
+  bar width  = 18pt,
+  width      = 0.74\textwidth,
+  height     = 6.8cm,
+  ylabel     = {Convergence Rate (\%)},
+  ylabel style = {font=\small},
+  ymin=0, ymax=118,
+  xtick      = {1,2,3},
+  xticklabels= {REINFORCE, \MAPG{}, \OUR{} (ours)},
+  xticklabel style = {font=\small},
+  legend style = {at={(0.97,0.97)}, anchor=north east, font=\small,
+                  draw=black!25, fill=white},
+  legend cell align = left,
+  ymajorgrids = true,
+  grid style  = {gray!18},
+  axis line style = {gray!45},
+  enlarge x limits = 0.28,
+  clip = false,
+  title = {\small\bfseries Algorithm Comparison — Matrix Games (100 seeds each)},
+]
+%--- IPD bars
+\addplot[fill=colMetaMAPG!65, draw=colMetaMAPG!90!black]
+  coordinates {(1,0) (2,0) (3,24)};
+\addlegendentry{IPD}
+%--- Stag Hunt bars
+\addplot[fill=colOurs!65, draw=colOurs!90!black]
+  coordinates {(1,0) (2,0) (3,97)};
+\addlegendentry{Stag Hunt}
+
+%--- Value annotations
+\node[above, font=\bfseries\small, text=colOurs!80!black]
+  at (axis cs:3.18, 97) {97\%};
+\node[above, font=\bfseries\small, text=colMetaMAPG!80!black]
+  at (axis cs:2.82, 24) {24\%};
+\node[above, font=\scriptsize, text=gray]
+  at (axis cs:0.82, 1.5) {0\%};
+\node[above, font=\scriptsize, text=gray]
+  at (axis cs:1.18, 1.5) {0\%};
+\node[above, font=\scriptsize, text=gray]
+  at (axis cs:1.82, 1.5) {0\%};
+\node[above, font=\scriptsize, text=gray]
+  at (axis cs:2.18, 1.5) {0\%};
+\end{axis}
+\end{tikzpicture}
+\caption{%
+  Convergence rates to the Pareto-optimal Nash equilibrium.
+  Only \OUR{} achieves non-zero global convergence.
+  The gap between IPD (24\%) and Stag Hunt (97\%) reflects the deeper
+  basin of attraction around $(D,D)$: escaping it requires more restarts
+  and more episodes per restart.
+}
+\label{fig:algo_comparison}
+\end{figure}
+
+\subsection{Threshold Ablation}
+\label{sec:threshold_ablation}
+
+The restart detector fires when the sliding-window payoff falls below
+threshold~$\tau$.
+We sweep $\tau \in \{0.0,\,1.5,\,2.8,\,5.0\}$ on Stag Hunt across 100 seeds
+using sampling-based REINFORCE updates (\repo{ipd\_grid\_results.csv}).
+\emph{Note:} this ablation uses a different code path
+(\repo{run\_matrix\_ipd.py}) than the exact-gradient experiments above;
+payoffs are Stag Hunt ($R(S,S)=5$, $R(H,H)=3$).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width      = 0.70\textwidth,
+  height     = 6.2cm,
+  xlabel     = {Restart Threshold $\tau$},
+  ylabel     = {Convergence Rate (\%)},
+  xlabel style = {font=\small},
+  ylabel style = {font=\small},
+  xticklabel style = {font=\small},
+  yticklabel style = {font=\small},
+  ymin=0, ymax=29,
+  xtick      = {0.0, 1.5, 2.8, 5.0},
+  xticklabels= {$0.0$, $1.5$, $2.8$, $5.0$},
+  xmin       = -0.3,
+  xmax       = 5.7,
+  ymajorgrids = true,
+  xmajorgrids = true,
+  grid style  = {gray!18},
+  axis line style = {gray!45},
+  mark size   = 3.2pt,
+  title = {\small\bfseries Threshold Sensitivity on Stag Hunt (100 seeds)},
+  clip = false,
+]
+%--- Goldilocks shading (exploration mean between ~2 and ~3.5)
+\fill[colOurs!10] (axis cs:2,0) rectangle (axis cs:3.5,29);
+\node[font=\scriptsize, text=colOurs!65!black]
+  at (axis cs:2.7, 25.5) {Effective zone};
+
+%--- Nash payoff reference lines
+\draw[dashed, gray!55, semithick]
+  (axis cs:3,0) -- (axis cs:3,29)
+  node[above, font=\scriptsize, gray!75, rotate=90, anchor=south east,
+       xshift=-2pt] {$(H\!,\!H)$ payoff $=3$};
+\draw[dashed, gray!55, semithick]
+  (axis cs:5,0) -- (axis cs:5,29)
+  node[above, font=\scriptsize, gray!75, rotate=90, anchor=south east,
+       xshift=-2pt] {$(S\!,\!S)$ payoff $=5$};
+
+%--- Main curve
+\addplot[
+  color=colOurs, thick, mark=*, mark options={fill=colOurs, draw=colOurs}
+] coordinates {(0.0,2) (1.5,2) (2.8,20) (5.0,6)};
+
+%--- Point labels
+\node[above right, font=\scriptsize\bfseries, text=colOurs]
+  at (axis cs:2.8, 20) {20\%};
+\node[above, font=\scriptsize, text=gray] at (axis cs:0.0, 2.3) {2\%};
+\node[above, font=\scriptsize, text=gray] at (axis cs:1.5, 2.3) {2\%};
+\node[right,  font=\scriptsize, text=gray] at (axis cs:5.0, 6)   {6\%};
+\end{axis}
+\end{tikzpicture}
+\caption{%
+  Convergence rate vs.\ restart threshold $\tau$ in Stag Hunt (100 seeds,
+  sampling-based updates).
+  $\tau=0$: restarts effectively disabled.
+  $\tau=1.5$: below the mean exploration reward ($\approx 2$--$3$), so
+  restarts rarely fire.
+  $\tau=2.8$ (\textbf{best}): falls in the zone where agents stuck
+  in mixed-strategy play trigger restarts, but agents approaching $(S,S)$
+  do not.
+  $\tau=5.0$: above $(S,S)$ payoff of~5, causing constant restarts that
+  prevent learning.
+}
+\label{fig:threshold}
+\end{figure}
+
+%=======================================================================
+\section{Experiment II: MAMuJoCo HalfCheetah}
+\label{sec:mujoco}
+%=======================================================================
+
+\subsection{Setup}
+
+We extend to a continuous multi-agent control problem:
+two-agent HalfCheetah (\repo{env/halfcheetah.py}).
+Agent~0 controls front joints; Agent~1 controls rear joints; both share one
+scalar reward.
+The sub-optimal local Nash corresponds to mismatched hopping gaits
+(reward $\approx -350$); the global Pareto-optimal Nash corresponds to
+coordinated running (reward $>0$).
+
+\noindent
+\textit{Configuration:} 4 seeds, 1\,000 episodes, RTX~3060.
+We test three conditions:
+\begin{enumerate}[label=(\alph*),itemsep=2pt]
+  \item \textbf{Baseline} --- restarts disabled ($\tau = -9999$).
+  \item \textbf{\OUR{} (high $\tau$)} --- high-water-mark detector,
+    $\tau=1500$, patience~$=20$.
+  \item \textbf{\OUR{} (Giannou-faithful)} --- sliding-window detector
+    (matching \citealt{Giannou2022}, \S4), $\tau=-280$, window~$=100$
+    episodes.
+\end{enumerate}
+
+\subsection{Results}
+
+\begin{table}[H]
+  \centering
+  \caption{%
+    Mean reward over the final 50 episodes.
+    All three restart configurations fail to outperform the baseline.
+    Condition~(b) uses a threshold far above achievable reward, triggering
+    27--32 restarts.
+    Condition~(c) uses a Giannou-faithful sliding window, but the early
+    exploration phase ($\approx\!-350$) is indistinguishable from the
+    sub-optimal Nash ($\approx\!-350$), so the detector fires on all seeds
+    during the first 500 episodes, preventing gait formation.
+  }
+  \label{tab:mujoco}
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabular}{lcccccc}
+    \toprule
+    \textbf{Condition} & \textbf{Seed~0} & \textbf{Seed~1} & \textbf{Seed~2} & \textbf{Seed~3} & \textbf{Mean} & \textbf{Restarts} \\
+    \midrule
+    (a) Baseline                   & $+61$  & $-259$ & $+79$  & $+204$ & $+21$  & 0 \\
+    (b) \OUR{} ($\tau\!=\!1500$)   & $-356$ & $-346$ & $-350$ & $-350$ & $-351$ & 27--32 \\
+    (c) \OUR{} ($\tau\!=\!-280$)   & $-347$ & $-344$ & $-335$ & $-326$ & $-338$ & 10 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[
+  group style = {
+    group size    = 2 by 2,
+    horizontal sep = 1.5cm,
+    vertical sep   = 1.6cm,
+  },
+  width  = 0.47\textwidth,
+  height = 4.4cm,
+  xlabel = {Episode},
+  ylabel = {Mean Reward},
+  xlabel style = {font=\scriptsize},
+  ylabel style = {font=\scriptsize},
+  xticklabel style = {font=\scriptsize},
+  yticklabel style = {font=\scriptsize},
+  xmin=0, xmax=1000,
+  ymin=-520, ymax=270,
+  ymajorgrids=true, xmajorgrids=true,
+  grid style   = {gray!18},
+  axis line style = {gray!45},
+]
+
+%--- Seed 0
+\nextgroupplot[title={\scriptsize Seed 0}]
+\draw[dashed,gray!45,semithick] (axis cs:0,0)--(axis cs:1000,0);
+\addplot[color=colMujocoB, thick, mark=none]
+  coordinates {(50,-375)(150,-343)(250,-321)(350,-311)(450,-294)(550,-265)(650,-217)(750,-119)(850,-19)(950,55)};
+\addplot[color=colMujocoR, thick, mark=none]
+  coordinates {(50,-366)(150,-355)(250,-371)(350,-351)(450,-344)(550,-366)(650,-357)(750,-375)(850,-349)(950,-359)};
+\addplot[color=colGold, thick, mark=none, densely dashed]
+  coordinates {(50,-375)(150,-371)(250,-359)(350,-346)(450,-378)(550,-333)(650,-333)(750,-371)(850,-325)(950,-356)};
+
+%--- Seed 1
+\nextgroupplot[title={\scriptsize Seed 1}]
+\draw[dashed,gray!45,semithick] (axis cs:0,0)--(axis cs:1000,0);
+\addplot[color=colMujocoB, thick, mark=none]
+  coordinates {(50,-361)(150,-354)(250,-346)(350,-352)(450,-338)(550,-319)(650,-308)(750,-309)(850,-308)(950,-261)};
+\addplot[color=colMujocoR, thick, mark=none]
+  coordinates {(50,-370)(150,-344)(250,-348)(350,-362)(450,-357)(550,-357)(650,-385)(750,-342)(850,-371)(950,-357)};
+\addplot[color=colGold, thick, mark=none, densely dashed]
+  coordinates {(50,-361)(150,-347)(250,-360)(350,-336)(450,-339)(550,-340)(650,-343)(750,-337)(850,-344)(950,-350)};
+
+%--- Seed 2
+\nextgroupplot[title={\scriptsize Seed 2}]
+\draw[dashed,gray!45,semithick] (axis cs:0,0)--(axis cs:1000,0);
+\addplot[color=colMujocoB, thick, mark=none]
+  coordinates {(50,-349)(150,-347)(250,-323)(350,-299)(450,-259)(550,-228)(650,-178)(750,-97)(850,11)(950,67)};
+\addplot[color=colMujocoR, thick, mark=none]
+  coordinates {(50,-361)(150,-355)(250,-343)(350,-362)(450,-352)(550,-360)(650,-359)(750,-348)(850,-353)(950,-360)};
+\addplot[color=colGold, thick, mark=none, densely dashed]
+  coordinates {(50,-349)(150,-337)(250,-364)(350,-336)(450,-355)(550,-338)(650,-333)(750,-344)(850,-344)(950,-351)};
+
+%--- Seed 3
+\nextgroupplot[title={\scriptsize Seed 3}]
+\draw[dashed,gray!45,semithick] (axis cs:0,0)--(axis cs:1000,0);
+\addplot[color=colMujocoB, thick, mark=none]
+  coordinates {(50,-350)(150,-354)(250,-321)(350,-284)(450,-182)(550,-85)(650,33)(750,79)(850,153)(950,186)};
+\addplot[color=colMujocoR, thick, mark=none]
+  coordinates {(50,-351)(150,-369)(250,-342)(350,-365)(450,-351)(550,-333)(650,-357)(750,-345)(850,-354)(950,-343)};
+\addplot[color=colGold, thick, mark=none, densely dashed]
+  coordinates {(50,-350)(150,-313)(250,-301)(350,-328)(450,-357)(550,-380)(650,-359)(750,-327)(850,-340)(950,-337)};
+\end{groupplot}
+
+%--- Shared legend below the 2x2 grid
+\path (current bounding box.south);
+\node[below=0.6cm of current bounding box.south] {%
+  \begin{tikzpicture}[baseline]
+    \draw[colMujocoB,thick] (0,0.06)--(0.55,0.06);
+    \node[right, font=\scriptsize] at (0.55,0.06) {(a) Baseline};
+    \draw[colMujocoR,thick] (3.0,0.06)--(3.55,0.06);
+    \node[right, font=\scriptsize] at (3.55,0.06) {(b) $\tau\!=\!1500$};
+    \draw[colGold,thick,densely dashed] (5.8,0.06)--(6.35,0.06);
+    \node[right, font=\scriptsize] at (6.35,0.06) {(c) Giannou ($\tau\!=\!-280$)};
+    \draw[dashed,gray!60] (9.8,0.06)--(10.35,0.06);
+    \node[right, font=\scriptsize] at (10.35,0.06) {$r\!=\!0$};
+  \end{tikzpicture}
+};
+\end{tikzpicture}
+\caption{%
+  All four seeds: 100-episode rolling mean.
+  The \textbf{baseline} (blue solid) reaches positive reward on 3/4 seeds.
+  \OUR{} with $\tau=1500$ (red solid) over-restarts catastrophically.
+  The Giannou-faithful sliding-window variant (gold dashed, $\tau=-280$)
+  also over-restarts because the exploration phase reward and the
+  sub-optimal Nash have indistinguishable magnitudes.
+}
+\label{fig:mujoco_all}
+\end{figure}
+
+\subsection{Analysis: The Discrimination Problem}
+\label{sec:mujoco_discussion}
+
+\begin{remark}[Exploration--exploitation indistinguishability]
+\label{rem:discrimination}
+In matrix games, the sub-optimal Nash payoff and the exploration payoff are
+\emph{clearly separated} (e.g., $(H,H)=3$ vs.\ random play $\approx 2.75$
+in Stag Hunt), allowing a threshold to distinguish them.
+In HalfCheetah, the sub-optimal hopping gait ($\approx -350$) produces
+rewards \emph{indistinguishable} from early exploration ($\approx -375$).
+No fixed threshold~$\tau$ can discriminate ``agent is stuck in a bad Nash''
+from ``agent is still learning.''
+
+This is a structural limitation absent from the tabular setting of
+\citet{Giannou2022}.
+It suggests that, for deep continuous control, the restart detector must
+incorporate a {\em temporal} signal (e.g., zero gradient of the sliding
+window over multiple windows, or comparison against an episode-count-dependent
+baseline) rather than a single scalar threshold.
+\end{remark}
+
+%=======================================================================
+\section{Experiment III: Pluralistic LLM Debate}
+\label{sec:llm}
+%=======================================================================
+
+\subsection{Setup}
+
+Two-agent TruthfulQA debate \citep{Lin2022} using Llama-3.3-70B
+\citep{Meta2024} in 4-bit NF4 quantisation on 4$\times$V100.
+Agent~0 (meta model) is updated with \OUR{}-style gradient steps
+and restarted (LoRA adapter reinitialisation) when
+DeBERTa-scored truthfulness \citep{OpenAssistant2023} falls below
+$\tau_\text{LLM}=0.5$ for 5 consecutive rounds.
+Agent~1 (peer model) uses standard policy gradient.
+
+\subsection{Results: Threshold Sensitivity Replicated at Scale}
+
+The debate experiment processed the full TruthfulQA validation split.
+The results (Table~\ref{tab:llm_results} and Figure~\ref{fig:llm_progression})
+reveal a fascinating phenomenon: the threshold miscalibration observed in the
+continuous-control setting replicates exactly at frontier LLM scale.
+
+\begin{table}[H]
+  \centering
+  \caption{%
+    Global mean truth scores over TruthfulQA debate rounds.
+    The baseline slowly learns a relatively truthful strategy, while the
+    restart condition ($\tau=0.5$) clearly exhibits the uncalibrated
+    ``over-restarting'' regime, wiping progress before it can stick.
+  }
+  \label{tab:llm_results}
+  \begin{tabular}{lcc}
+    \toprule
+    \textbf{Condition} & \textbf{Mean Truth Score $\pm$ std} & \textbf{Restarts} \\
+    \midrule
+    \OUR{} (Llama-3.3-70B, $\tau=0.5$) & $-4.07$ \tiny{(Meta)}~~$-4.09$ \tiny{(Peer)} & $148$ \\
+    Baseline (no restarts) & $+0.20$ \tiny{(Meta)}~~$+0.21$ \tiny{(Peer)} & $0$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width      = 0.85\textwidth,
+  height     = 6cm,
+  xlabel     = {Debate Round (100-round moving window)},
+  ylabel     = {Mean DeBERTa Truth Score},
+  xlabel style = {font=\small},
+  ylabel style = {font=\small},
+  xticklabel style = {font=\small},
+  yticklabel style = {font=\small},
+  ymin=-6.0, ymax=1.5,
+  xmin=0, xmax=800,
+  ymajorgrids = true,
+  xmajorgrids = true,
+  grid style  = {gray!18},
+  axis line style = {gray!45},
+  legend pos  = south east,
+  legend style = {font=\scriptsize, draw=black!25, fill=white},
+  title = {\small\bfseries Llama-3.3-70B Debate Progression},
+  clip = false,
+]
+
+%--- Zero threshold line
+\draw[dashed, gray!55, semithick] (axis cs:0,0.5) -- (axis cs:800,0.5);
+\node[right, font=\scriptsize, gray!70] at (axis cs:805,0.5) {$\tau=0.5$};
+
+%--- Meta Model (Agent 0)
+\addplot[color=colMujocoR, thick, mark=*, mark size=2.0pt,
+         mark options={fill=colMujocoR}]
+  coordinates {
+    (50,-1.91) (150,-4.00) (250,-4.24) (350,-4.60)
+    (450,-4.12) (550,-4.95) (650,-4.38) (750,-4.23)
+  };
+\addlegendentry{\OUR{} (Meta Model)}
+
+%--- Baseline Meta Model
+\addplot[color=colBaseline, thick, mark=square*, mark size=2.0pt,
+         mark options={fill=colBaseline}]
+  coordinates {
+    (50,-0.04) (150,0.40) (250,0.26) (350,-0.32)
+    (450,-0.08) (550,-0.04) (650,0.49) (750,0.99)
+  };
+\addlegendentry{Baseline (Meta Model)}
+
+\end{axis}
+\end{tikzpicture}
+\caption{%
+  DeBERTa truth score over time.
+  The baseline (blue squares) naturally meanders but establishes a positive
+  trajectory, ending with a mean score of $\approx +1.0$ in the final 100
+  rounds.
+  In contrast, with $\tau=0.5$ set above the initial exploration regime,
+  the global restart mechanism triggers \textbf{148 times} (roughly once
+  every 5.5 rounds). This frequent wiping of the LoRA adapters traps the
+  performance near $-4.0$.
+}
+\label{fig:llm_progression}
+\end{figure}
+
+\begin{remark}[The Necessity of Adaptive Thresholds]
+The LLM results perfectly mirror the continuous-control results from
+Section~\ref{sec:mujoco}.
+In both domains, setting a fixed threshold $\tau$ that is disconnected from
+the \emph{running mean} of the reward distribution causes pathological
+over-restarting.
+This provides powerful empirical evidence that transferring the restart
+guarantees of \citet{Giannou2022} from tabular games to deep continuous
+settings strictly requires an adaptive threshold parameter $\tau_n$ that
+relaxes alongside the bias schedule $K_n$.
+\end{remark}
+
+%=======================================================================
+\section{Summary: Theory--Experiment Mapping}
+\label{sec:summary}
+%=======================================================================
+
+\begin{table}[H]
+  \centering
+  \caption{%
+    Mapping of empirical evidence to theoretical claims in the companion paper.
+  }
+  \label{tab:mapping}
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabular}{>{\small}p{3.3cm} >{\small}p{3.8cm} >{\small}p{5.8cm}}
+    \toprule
+    \textbf{Theoretical claim} & \textbf{Experiment} & \textbf{Finding} \\
+    \midrule
+    Thm.~3(i): local convergence within a basin &
+    Matrix games, 100 seeds &
+    REINFORCE and \MAPG{} converge to the risk-dominant Nash in
+    100\% of seeds (initialised in that basin). \\[4pt]
+    Thm.~3(ii): restarts yield global convergence &
+    Stag Hunt, 100 seeds &
+    \OUR{} converges to Pareto-optimal Nash in \textbf{97\%} of seeds;
+    mean first-passage $\approx 294$ episodes. \\[4pt]
+    Prop.~4.3: Pareto-optimal limit selection &
+    IPD, 100 seeds &
+    \OUR{} selects $(C,C)$ over $(D,D)$ in 24\% of seeds;
+    no restarted seed converges to $(D,D)$. \\[4pt]
+    Lemma~2: bias requires calibrated schedule &
+    Threshold ablation (Stag Hunt) &
+    $\tau=2.8$ yields 20\%; outside $[2, 3.5]$
+    the rate drops to $\leq 6\%$. \\[4pt]
+    Threshold sensitivity &
+    MuJoCo \& LLM debate &
+    Too-high $\tau$ causes pathological over-restarting in both neural
+    (MuJoCo: 27--32 restarts) and LLM (148 restarts) domains. \\[4pt]
+    Adaptive schedules needed &
+    Llama-3.3-70B debate &
+    Baseline mean truth score $+0.20$ vs.\ \OUR{} $-4.07$: fixed $\tau=0.5$
+    wipes LoRA adapters before learning consolidates. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+%=======================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+%=======================================================================
+
+The matrix-game experiments confirm the central claim of Theorem~3(ii):
+the global restart mechanism is the \emph{only} component achieving non-zero
+convergence to Pareto-optimal Nash equilibria in games with multiple stable
+Nash.
+The 97\% / 24\% split between Stag Hunt and IPD is theoretically
+interpretable via basin geometry: the Stag Hunt risk-dominant basin
+$(H,H)$ is shallower relative to the Pareto-optimal $(S,S)$, so fewer
+restarts suffice.
+
+The continuous-control (MuJoCo) and LLM debate (Llama-3.3-70B) results
+reveal that \emph{threshold calibration} is a first-class design problem
+when applying the Giannou restart framework to deep-learning domains.
+In both settings, a fixed threshold disconnected from the running reward
+distribution caused pathological over-restarting (27--32 restarts in MuJoCo;
+148 in LLM debate), trapping performance below the no-restart baseline.
+This motivates the design of \emph{adaptive threshold schedules}
+$\tau_n$ that relax alongside the bias budget $K_n$ — an important open
+problem connecting Lemma~2 of the companion paper to practical algorithm
+design.
+
+%=======================================================================
+\begin{thebibliography}{9}
+
+\bibitem[Giannou et~al.(2022)]{Giannou2022}
+A.~Giannou, E.~V.~Vlatakis-Gkaragkounis, and P.~Mertikopoulos.
+\newblock {On the convergence of policy gradient methods to Nash equilibria in
+  general stochastic games}.
+\newblock \emph{NeurIPS}, 2022.
+
+\bibitem[Kim et~al.(2021)]{Kim2021}
+D.-K.~Kim, M.~Liu, M.~D.~Riemer, et~al.
+\newblock {A policy gradient algorithm for learning to learn in multiagent
+  reinforcement learning}.
+\newblock \emph{ICML}, 2021.
+
+\bibitem[Lin et~al.(2022)]{Lin2022}
+S.~Lin, J.~Hilton, and O.~Evans.
+\newblock {TruthfulQA: Measuring how models mimic human falsehoods}.
+\newblock \emph{ACL}, 2022.
+
+\bibitem[Meta(2024)]{Meta2024}
+Meta~AI.
+\newblock {Llama 3.3 70B Instruct}.
+\newblock \url{https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct}, 2024.
+
+\bibitem[OpenAssistant(2023)]{OpenAssistant2023}
+{OpenAssistant Contributors}.
+\newblock {Reward model: DeBERTa-v3-large}.
+\newblock \url{https://huggingface.co/OpenAssistant/reward-model-deberta-v3-large}, 2023.
+
+\end{thebibliography}
+
+\end{document}

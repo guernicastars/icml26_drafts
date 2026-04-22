@@ -25,6 +25,7 @@ def main():
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--save_freq", type=int, default=100)
     parser.add_argument("--threshold", type=float, default=1500.0)
+    parser.add_argument("--patience", type=int, default=20)
     args = parser.parse_args()
     
     run_dir = os.path.join(args.out_dir, f"seed_{args.seed}")
@@ -43,7 +44,7 @@ def main():
     opt_0 = optim.Adam(pi_0.parameters(), lr=3e-4) 
     opt_1 = optim.Adam(pi_1.parameters(), lr=3e-4) 
     
-    restarter = GlobalRestartManager(patience=20, threshold=args.threshold) 
+    restarter = GlobalRestartManager(patience=args.patience, threshold=args.threshold) 
     
     log_rewards, log_restarts = [], []
 

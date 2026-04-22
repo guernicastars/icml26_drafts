@@ -1,0 +1,70 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\bibstyle{plainnat}
+\citation{Giannou2022}
+\citation{Giannou2022}
+\citation{Giannou2022}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{2}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Experiment I: Matrix Games}{2}{section.2}\protected@file@percent }
+\newlabel{sec:matrix}{{2}{2}{Experiment I: Matrix Games}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Setup}{2}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Algorithm Comparison}{2}{subsection.2.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Global convergence rates (\% of seeds reaching the Pareto-optimal Nash) over 100 seeds, 1\,000 episodes each. Both REINFORCE and vanilla \textsc  {Meta-MAPG}{} score 0\% in every setting, confirming the \emph  {local} nature of Theorem\nobreakspace  {}3(i): agents initialised in the risk-dominant basin converge there, as the theorem only guarantees convergence within a neighbourhood of a stable Nash. \relax }}{3}{table.caption.2}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:matrix_convergence}{{1}{3}{Global convergence rates (\% of seeds reaching the Pareto-optimal Nash) over 100 seeds, 1\,000 episodes each. Both REINFORCE and vanilla \MAPG {} score 0\% in every setting, confirming the \emph {local} nature of Theorem~3(i): agents initialised in the risk-dominant basin converge there, as the theorem only guarantees convergence within a neighbourhood of a stable Nash. \relax }{table.caption.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Convergence rates to the Pareto-optimal Nash equilibrium. Only \textsc  {Meta-MAPG+R}{} achieves non-zero global convergence. The gap between IPD (24\%) and Stag Hunt (97\%) reflects the deeper basin of attraction around $(D,D)$: escaping it requires more restarts and more episodes per restart. \relax }}{3}{figure.caption.3}\protected@file@percent }
+\newlabel{fig:algo_comparison}{{1}{3}{Convergence rates to the Pareto-optimal Nash equilibrium. Only \OUR {} achieves non-zero global convergence. The gap between IPD (24\%) and Stag Hunt (97\%) reflects the deeper basin of attraction around $(D,D)$: escaping it requires more restarts and more episodes per restart. \relax }{figure.caption.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Threshold Ablation}{3}{subsection.2.3}\protected@file@percent }
+\newlabel{sec:threshold_ablation}{{2.3}{3}{Threshold Ablation}{subsection.2.3}{}}
+\citation{Giannou2022}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Convergence rate vs.\ restart threshold $\tau $ in Stag Hunt (100 seeds, sampling-based updates). $\tau =0$: restarts effectively disabled. $\tau =1.5$: below the mean exploration reward ($\approx 2$--$3$), so restarts rarely fire. $\tau =2.8$ (\textbf  {best}): falls in the zone where agents stuck in mixed-strategy play trigger restarts, but agents approaching $(S,S)$ do not. $\tau =5.0$: above $(S,S)$ payoff of\nobreakspace  {}5, causing constant restarts that prevent learning. \relax }}{4}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:threshold}{{2}{4}{Convergence rate vs.\ restart threshold $\tau $ in Stag Hunt (100 seeds, sampling-based updates). $\tau =0$: restarts effectively disabled. $\tau =1.5$: below the mean exploration reward ($\approx 2$--$3$), so restarts rarely fire. $\tau =2.8$ (\textbf {best}): falls in the zone where agents stuck in mixed-strategy play trigger restarts, but agents approaching $(S,S)$ do not. $\tau =5.0$: above $(S,S)$ payoff of~5, causing constant restarts that prevent learning. \relax }{figure.caption.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Experiment II: MAMuJoCo HalfCheetah}{4}{section.3}\protected@file@percent }
+\newlabel{sec:mujoco}{{3}{4}{Experiment II: MAMuJoCo HalfCheetah}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Setup}{4}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Results}{4}{subsection.3.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Mean reward over the final 50 episodes. All three restart configurations fail to outperform the baseline. Condition\nobreakspace  {}(b) uses a threshold far above achievable reward, triggering 27--32 restarts. Condition\nobreakspace  {}(c) uses a Giannou-faithful sliding window, but the early exploration phase ($\approx \!-350$) is indistinguishable from the sub-optimal Nash ($\approx \!-350$), so the detector fires on all seeds during the first 500 episodes, preventing gait formation. \relax }}{4}{table.caption.5}\protected@file@percent }
+\newlabel{tab:mujoco}{{2}{4}{Mean reward over the final 50 episodes. All three restart configurations fail to outperform the baseline. Condition~(b) uses a threshold far above achievable reward, triggering 27--32 restarts. Condition~(c) uses a Giannou-faithful sliding window, but the early exploration phase ($\approx \!-350$) is indistinguishable from the sub-optimal Nash ($\approx \!-350$), so the detector fires on all seeds during the first 500 episodes, preventing gait formation. \relax }{table.caption.5}{}}
+\citation{Giannou2022}
+\citation{Lin2022}
+\citation{Meta2024}
+\citation{OpenAssistant2023}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces All four seeds: 100-episode rolling mean. The \textbf  {baseline} (blue solid) reaches positive reward on 3/4 seeds. \textsc  {Meta-MAPG+R}{} with $\tau =1500$ (red solid) over-restarts catastrophically. The Giannou-faithful sliding-window variant (gold dashed, $\tau =-280$) also over-restarts because the exploration phase reward and the sub-optimal Nash have indistinguishable magnitudes. \relax }}{5}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:mujoco_all}{{3}{5}{All four seeds: 100-episode rolling mean. The \textbf {baseline} (blue solid) reaches positive reward on 3/4 seeds. \OUR {} with $\tau =1500$ (red solid) over-restarts catastrophically. The Giannou-faithful sliding-window variant (gold dashed, $\tau =-280$) also over-restarts because the exploration phase reward and the sub-optimal Nash have indistinguishable magnitudes. \relax }{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Analysis: The Discrimination Problem}{5}{subsection.3.3}\protected@file@percent }
+\newlabel{sec:mujoco_discussion}{{3.3}{5}{Analysis: The Discrimination Problem}{subsection.3.3}{}}
+\newlabel{rem:discrimination}{{1}{5}{Exploration--exploitation indistinguishability}{theorem.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experiment III: Pluralistic LLM Debate}{5}{section.4}\protected@file@percent }
+\newlabel{sec:llm}{{4}{5}{Experiment III: Pluralistic LLM Debate}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Setup}{5}{subsection.4.1}\protected@file@percent }
+\citation{Giannou2022}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Results: Threshold Sensitivity Replicated at Scale}{6}{subsection.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Global mean truth scores over TruthfulQA debate rounds. The baseline slowly learns a relatively truthful strategy, while the restart condition ($\tau =0.5$) clearly exhibits the uncalibrated ``over-restarting'' regime, wiping progress before it can stick. \relax }}{6}{table.caption.7}\protected@file@percent }
+\newlabel{tab:llm_results}{{3}{6}{Global mean truth scores over TruthfulQA debate rounds. The baseline slowly learns a relatively truthful strategy, while the restart condition ($\tau =0.5$) clearly exhibits the uncalibrated ``over-restarting'' regime, wiping progress before it can stick. \relax }{table.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces DeBERTa truth score over time. The baseline (blue squares) naturally meanders but establishes a positive trajectory, ending with a mean score of $\approx +1.0$ in the final 100 rounds. In contrast, with $\tau =0.5$ set above the initial exploration regime, the global restart mechanism triggers \textbf  {148 times} (roughly once every 5.5 rounds). This frequent wiping of the LoRA adapters traps the performance near $-4.0$. \relax }}{6}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:llm_progression}{{4}{6}{DeBERTa truth score over time. The baseline (blue squares) naturally meanders but establishes a positive trajectory, ending with a mean score of $\approx +1.0$ in the final 100 rounds. In contrast, with $\tau =0.5$ set above the initial exploration regime, the global restart mechanism triggers \textbf {148 times} (roughly once every 5.5 rounds). This frequent wiping of the LoRA adapters traps the performance near $-4.0$. \relax }{figure.caption.8}{}}
+\bibcite{Giannou2022}{{1}{2022}{{Giannou et~al.}}{{}}}
+\bibcite{Kim2021}{{2}{2021}{{Kim et~al.}}{{}}}
+\bibcite{Lin2022}{{3}{2022}{{Lin et~al.}}{{}}}
+\bibcite{Meta2024}{{4}{2024}{{Meta}}{{}}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Summary: Theory--Experiment Mapping}{7}{section.5}\protected@file@percent }
+\newlabel{sec:summary}{{5}{7}{Summary: Theory--Experiment Mapping}{section.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Mapping of empirical evidence to theoretical claims in the companion paper. \relax }}{7}{table.caption.9}\protected@file@percent }
+\newlabel{tab:mapping}{{4}{7}{Mapping of empirical evidence to theoretical claims in the companion paper. \relax }{table.caption.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusion}{7}{section.6}\protected@file@percent }
+\newlabel{sec:conclusion}{{6}{7}{Conclusion}{section.6}{}}
+\bibcite{OpenAssistant2023}{{5}{2023}{{OpenAssistant}}{{}}}
+\gdef \@abspage@last{8}
