@@ -9,6 +9,13 @@ dist/
 # *.pdf
 .DS_Store
 pytest-cache-files-*
+
+# ML training artifacts — checkpoints and model weights
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+**/checkpoints/
 dissertation/overleaf/%OUTDIR%/
 dissertation/overleaf/build/
 dissertation/overleaf/*.aux
