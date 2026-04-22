@@ -38,3 +38,10 @@ polymarket/dashboard/.env.local
 **.json
 **.jsonl
 **.zip
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
