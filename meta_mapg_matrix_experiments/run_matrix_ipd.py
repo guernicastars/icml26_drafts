@@ -93,7 +93,7 @@ def main():
     os.makedirs(args.out_dir, exist_ok=True)
     
     # Grid search over restart thresholds
-    thresholds = [0.0, 1.5, 2.8, 5.0]
+    thresholds = [0.0, 1.0, 2.0, 2.5, 2.8, 3.0, 3.2, 3.5, 3.8, 4.0, 4.5, 5.0, 6.0]
     seeds = range(100)
     
     tasks = list(itertools.product(seeds, thresholds))

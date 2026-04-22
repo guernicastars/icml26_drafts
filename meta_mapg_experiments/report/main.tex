@@ -242,7 +242,7 @@ finite-restart bound of Proposition~4.1 in~\citet{Giannou2022}.
 
 The restart detector fires when the sliding-window payoff falls below
 threshold~$\tau$.
-We sweep $\tau \in \{0.0,\,1.5,\,2.8,\,5.0\}$ on Stag Hunt across 100 seeds
+We sweep $\tau \in [0.0, 6.0]$ on Stag Hunt across 100 seeds
 using sampling-based REINFORCE updates (\repo{ipd\_grid\_results.csv}).
 \emph{Note:} this ablation uses a different code path
 (\repo{run\_matrix\_ipd.py}) than the exact-gradient experiments above;
@@ -261,8 +261,8 @@ payoffs are Stag Hunt ($R(S,S)=5$, $R(H,H)=3$).
   xticklabel style = {font=\small},
   yticklabel style = {font=\small},
   ymin=0, ymax=29,
-  xtick      = {0.0, 1.5, 2.8, 5.0},
-  xticklabels= {$0.0$, $1.5$, $2.8$, $5.0$},
+  xtick      = {0, 1, 2, 3, 4, 5, 6},
+  xticklabels= {$0$, $1$, $2$, $3$, $4$, $5$, $6$},
   xmin       = -0.3,
   xmax       = 5.7,
   ymajorgrids = true,
@@ -291,26 +291,22 @@ payoffs are Stag Hunt ($R(S,S)=5$, $R(H,H)=3$).
 %--- Main curve
 \addplot[
   color=colOurs, thick, mark=*, mark options={fill=colOurs, draw=colOurs}
-] coordinates {(0.0,2) (1.5,2) (2.8,20) (5.0,6)};
+] coordinates {(0.0,2) (1.0,2) (2.0,3) (2.5,9) (2.8,20) (3.0,21) (3.2,21) (3.5,19) (3.8,15) (4.0,13) (4.5,6) (5.0,6) (6.0,6)};
 
 %--- Point labels
-\node[above right, font=\scriptsize\bfseries, text=colOurs]
-  at (axis cs:2.8, 20) {20\%};
-\node[above, font=\scriptsize, text=gray] at (axis cs:0.0, 2.3) {2\%};
-\node[above, font=\scriptsize, text=gray] at (axis cs:1.5, 2.3) {2\%};
-\node[right,  font=\scriptsize, text=gray] at (axis cs:5.0, 6)   {6\%};
+\node[above, font=\scriptsize\bfseries, text=colOurs]
+  at (axis cs:3.1, 21.5) {21\%};
 \end{axis}
 \end{tikzpicture}
 \caption{%
   Convergence rate vs.\ restart threshold $\tau$ in Stag Hunt (100 seeds,
   sampling-based updates).
-  $\tau=0$: restarts effectively disabled.
-  $\tau=1.5$: below the mean exploration reward ($\approx 2$--$3$), so
+  $\tau \le 2.0$: below the mean exploration reward ($\approx 2$--$3$), so
   restarts rarely fire.
-  $\tau=2.8$ (\textbf{best}): falls in the zone where agents stuck
-  in mixed-strategy play trigger restarts, but agents approaching $(S,S)$
-  do not.
-  $\tau=5.0$: above $(S,S)$ payoff of~5, causing constant restarts that
+  $\tau \in [2.5, 3.5]$ (\textbf{effective zone}): falls in the gap where agents stuck
+  in sub-optimal mixed play $(H,H)$ trigger restarts, but agents escaping towards $(S,S)$
+  do not. The peak is at $\tau=3.0$ (21\%).
+  $\tau \ge 4.5$: approaches $(S,S)$ payoff of~5, causing excessive restarts that
   prevent learning.
 }
 \label{fig:threshold}
@@ -626,8 +622,8 @@ relaxes alongside the bias schedule $K_n$.
     no restarted seed converges to $(D,D)$. \\[4pt]
     Lemma~2: bias requires calibrated schedule &
     Threshold ablation (Stag Hunt) &
-    $\tau=2.8$ yields 20\%; outside $[2, 3.5]$
-    the rate drops to $\leq 6\%$. \\[4pt]
+    $\tau=3.0$ yields 21\%; outside $[2.5, 3.5]$
+    the rate drops to $\le 9\%$. \\[4pt]
     Threshold sensitivity &
     MuJoCo \& LLM debate &
     Too-high $\tau$ causes pathological over-restarting in both neural
