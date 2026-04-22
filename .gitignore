@@ -45,3 +45,6 @@ polymarket/dashboard/.env.local
 *.toc
 *.fls
 *.fdb_latexmk
+results_server/
+**csv
+**.toc

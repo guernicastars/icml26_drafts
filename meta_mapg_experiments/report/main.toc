@@ -2,13 +2,11 @@
 \contentsline {section}{\numberline {2}Experiment I: Matrix Games}{2}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Setup}{2}{subsection.2.1}%
 \contentsline {subsection}{\numberline {2.2}Algorithm Comparison}{2}{subsection.2.2}%
-\contentsline {subsection}{\numberline {2.3}Threshold Ablation}{3}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.3}Variance Validation (Lemma\nobreakspace {}2)}{3}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Threshold Ablation}{4}{subsection.2.4}%
 \contentsline {section}{\numberline {3}Experiment II: MAMuJoCo HalfCheetah}{4}{section.3}%
 \contentsline {subsection}{\numberline {3.1}Setup}{4}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Results}{4}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.2}Results}{5}{subsection.3.2}%
 \contentsline {subsection}{\numberline {3.3}Analysis: The Discrimination Problem}{5}{subsection.3.3}%
-\contentsline {section}{\numberline {4}Experiment III: Pluralistic LLM Debate}{5}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Setup}{5}{subsection.4.1}%
-\contentsline {subsection}{\numberline {4.2}Results: Threshold Sensitivity Replicated at Scale}{6}{subsection.4.2}%
-\contentsline {section}{\numberline {5}Summary: Theory--Experiment Mapping}{7}{section.5}%
-\contentsline {section}{\numberline {6}Conclusion}{7}{section.6}%
+\contentsline {section}{\numberline {4}Summary: Theory--Experiment Mapping}{6}{section.4}%
+\contentsline {section}{\numberline {5}Conclusion}{6}{section.5}%

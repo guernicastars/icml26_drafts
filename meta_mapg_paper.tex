@@ -1,0 +1,460 @@
+% =====================================================================
+%  Global Convergence of Opponent-Learning-Aware Policy Gradients
+%  ICML workshop submission draft.
+%  Compiles cleanly with pdflatex (no external .sty required).
+% =====================================================================
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,amsfonts,mathtools}
+\usepackage{bm}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{natbib}
+
+% ---------- theorem environments ----------
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ---------- macros ----------
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\meta}{\mathrm{meta}}
+\newcommand{\Mmeta}{\mathcal{M}^{\meta}}
+\newcommand{\Vmeta}{V^{\meta}}
+\newcommand{\vmeta}{\widetilde{v}^{\meta}}
+\newcommand{\MAPG}{\text{M-MAPG}}
+\newcommand{\Esub}[2]{\mathbb{E}_{#1}\!\left[#2\right]}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\given}{\,\vert\,}
+\newcommand{\defeq}{\coloneqq}
+\newcommand{\sym}{\mathrm{sym}}
+
+\title{\vspace{-1.2em}\large
+  Global Convergence of Opponent-Learning-Aware Policy Gradients \\
+  in General Stochastic Games}
+\author{Anonymous Authors}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2.2em}
+
+% =====================================================================
+\begin{abstract}
+\noindent
+Policy gradient is one of the few multi-agent reinforcement learning
+algorithms with a formal convergence theory: \citet{giannou2022convergence}
+recently established almost-sure trajectory convergence to stable Nash
+equilibria in general finite stochastic games.  Yet their analysis
+applies only to \emph{opponent-unaware} updates, in which each player
+treats its counterparts as stationary.  In practice, the most successful
+multi-agent variants---LOLA \citep{foerster2018lola}, DiCE, and
+Meta-MAPG \citep{kim2021meta}---are \emph{opponent-learning aware}:
+they differentiate through the other agents' learning steps.  These
+methods have no formal convergence theory in general stochastic games.
+We close this gap.  We show that the Meta-MAPG estimator of
+\citet{kim2021meta} verifies \emph{exactly} the bias/variance
+summability conditions required by the Giannou template, and that the
+variational stability of a base-game Nash lifts to the induced
+meta-game under a transparent curvature-dominance condition.  Combined
+with a bounded random-restart mechanism, this yields the first
+almost-sure \emph{global} convergence result for an
+opponent-learning-aware policy gradient method in general stochastic
+games, together with a Pareto-undominated equilibrium selection
+property.  Beyond the headline theorem we give two structural
+deepenings: a \emph{spectral reinforcement} proposition, which
+quantifies how the peer-learning gradient enlarges the local basin of
+attraction, and a game-theoretic reading of the
+curvature-dominance condition that identifies a sharp, actionable
+boundary for when the theory applies.
+\end{abstract}
+
+% =====================================================================
+\section{Introduction}
+\label{sec:intro}
+
+Multi-agent reinforcement learning (MARL) confronts learners with a
+fundamentally non-stationary environment: each agent's optimal policy
+depends on the current policies of the others, which are themselves
+being updated.  The simplest response is to ignore this coupling and
+apply a single-agent policy gradient method independently for each
+agent, a strategy which in general displays cycling, chaotic, or
+divergent behaviour even in simple games
+\citep{mazumdar2020policy,letcher2019stable}.  Two lines of work have
+sought to understand and to remedy this.
+
+On the \emph{theoretical} side, \citet{giannou2022convergence}
+established the first measure-theoretic trajectory convergence of
+independent policy gradient to stable Nash equilibria in
+\emph{general} finite stochastic games.  Their argument is phrased at
+the level of a generic stochastic-approximation recursion
+$\pi_{n+1}=\pi_n+\gamma_n \hat{v}_n$ with step size $\gamma_n=\gamma/(n+m)^p$,
+$p\in(1/2,1]$: any estimator $\hat{v}_n$ whose bias decays as
+$O(n^{-\ell_b})$ and whose conditional variance decays as
+$O(n^{-2\ell_\sigma})$, with $p+\ell_b>1$ and $p-\ell_\sigma>1/2$,
+converges to any variationally stable Nash with probability at least
+$1-\delta$ from a suitable neighbourhood.  Crucially, the argument is
+\emph{agnostic to how $\hat{v}_n$ is constructed}: the rate schedule and
+summability conditions are the only interface with the estimator.
+
+On the \emph{practical} side, a parallel line of work---LOLA
+\citep{foerster2018lola}, stable opponent shaping
+\citep{letcher2019stable}, DiCE, and most recently
+Meta-MAPG \citep{kim2021meta}---has argued that ignoring opponent
+learning is precisely what destabilises naive multi-agent policy
+gradient, and that explicitly differentiating through the opponents'
+gradient updates produces qualitatively better dynamics.
+\citet{kim2021meta} crystallised the idea by treating the multi-agent
+interaction as a \emph{meta-game}: each outer-loop policy update takes
+into account the inner-loop learning trajectories of all agents, and
+the gradient of the resulting meta-value function decomposes into
+three interpretable score terms---\emph{Current Policy}, \emph{Own
+Learning}, and \emph{Peer Learning}.  The third term is the
+LOLA-style opponent-shaping correction.  Empirically, Meta-MAPG and
+its relatives outperform naive MAPG on iterated matrix games and
+stochastic social dilemmas \citep{foerster2018lola,kim2021meta}; but
+no existing result shows that any of these methods \emph{converge} in
+a general stochastic game.
+
+\paragraph{The gap.}
+Opponent-learning-aware policy gradient is, at present, a practitioner
+tool without a theory.  The two literatures have not met: the Giannou
+template requires an unbiased-in-the-limit estimator with controlled
+second moment, and the Meta-MAPG estimator has the \emph{form} of such
+an estimator, but the bookkeeping needed to verify the summability
+conditions in a stochastic game has not been carried out.  Closing
+this gap requires three ingredients: (i)~a sample-based estimator
+whose bias vanishes at a quantitative rate under stochastic
+inner-loop rollouts; (ii)~a \emph{lifting} argument that transfers
+variational stability from the base game to the induced meta-game
+through the inner-loop diffeomorphism; and (iii)~a mechanism to
+promote local convergence to global convergence in games with
+multiple stable Nash equilibria.
+
+\paragraph{Contributions.}
+This paper supplies all three, and obtains a clean end-to-end
+statement.
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
+\item \emph{First convergence guarantees for opponent-learning-aware
+      policy gradients in general stochastic games.}
+      Theorem~\ref{thm:main}(i) establishes that the sample-based
+      Meta-MAPG iterate converges almost surely to a stable meta-Nash
+      equilibrium from any initialisation in a local neighbourhood,
+      under an explicit step-size/rollout schedule.
+\item \emph{Almost-sure global convergence via restarts.}
+      Theorem~\ref{thm:main}(ii) shows that combining Meta-MAPG with
+      the bounded random-restart mechanism
+      of~\citet[\S4]{giannou2022convergence} yields almost-sure
+      convergence to a stable meta-Nash with a finite expected number
+      of restarts and Pareto-undominated selection among multiple
+      stable equilibria.
+\item \emph{Spectral reinforcement (Prop.~\ref{prop:spectral}).}
+      We open the black box of the three-term Meta-MAPG gradient and
+      show that the peer-learning term strictly enlarges the effective
+      basin of attraction around a stable Nash whenever the symmetric
+      part of the opponent-shaping Jacobian is negative definite.
+      The strength of the reinforcement is controlled by a single
+      spectral quantity $\mu_H$ computable from a Jacobian estimate.
+\item \emph{A sharp, actionable boundary (\S\ref{sec:curvature}).}
+      We give a game-theoretic reading of the
+      curvature-dominance condition $\tfrac{1}{2}V_{\max}L_F<c\,m_F^2$
+      and identify it as the precise theoretical boundary at which the
+      theory ceases to apply, highlighting a concrete failure mode in
+      deep nonlinear policies.
+\end{enumerate}
+
+\paragraph{Organisation.}
+Section~\ref{sec:setup} fixes notation and recalls the Meta-MAPG
+identity and the Giannou template.  Section~\ref{sec:main} states the
+main theorem; Section~\ref{sec:assumptions} collects and interprets
+the five assumptions.  Section~\ref{sec:proofs} proves the local
+convergence part in full: a bias bound (Lemma~\ref{lem:bias}), a
+variance bound (Lemma~\ref{lem:var}), and a variational-stability
+lifting lemma (Lemma~\ref{lem:lift}).  Section~\ref{sec:spectral}
+proves the spectral reinforcement proposition.
+Section~\ref{sec:restart} proves the restart-based global convergence
+part.  Section~\ref{sec:curvature} discusses the curvature-dominance
+boundary.  Section~\ref{sec:discussion} concludes with a workshop-style
+discussion of related work, limitations, and open directions.
+
+% =====================================================================
+\section{Setup}
+\label{sec:setup}
+
+\paragraph{Stochastic game.}
+Throughout $\mathcal{G}=(\N,\mathcal{S},\{\mathcal{A}^i,R^i\}_{i\in\N},P,\gamma,H)$
+is an $n$-player stochastic game with finite state space
+$\mathcal{S}$, finite joint action space $\mathcal{A}=\prod_i\mathcal{A}^i$,
+transition kernel $P(s'\given s,\bm a)$, bounded rewards
+$R^i:\mathcal{S}\times\mathcal{A}\to[-R_{\max},R_{\max}]$, discount
+$\gamma\in(0,1)$ and horizon $H<\infty$.  Each agent $i$ plays a
+smooth stochastic policy $\pi^i(\cdot\given s,\phi^i)$ parameterised
+by $\phi^i\in\Phi^i\subset\R^{d_i}$ with $\Phi^i$ compact and convex.
+We write $\bm\phi=(\phi^1,\dots,\phi^n)\in\Phi\defeq\prod_i\Phi^i$,
+$\Pi^i\defeq\Delta(\mathcal{A}^i)^{\mathcal{S}}$,
+$\Pi\defeq\prod_i\Pi^i$, $\Lambda^i(\phi^i)\defeq\pi^i(\cdot\given\cdot,\phi^i)$
+and $\Lambda=\prod_i\Lambda^i:\Phi\to\Pi$.  For a joint policy
+$\pi\in\Pi$ the discounted return of agent $i$ along a trajectory
+$\tau=(s_0,\bm a_0,\dots,s_H)$ is
+$G^i(\tau)=\sum_{t=0}^H\gamma^t R^i(s_t,\bm a_t)\in[-G_{\max},G_{\max}]$
+with $G_{\max}=R_{\max}(1-\gamma^{H+1})/(1-\gamma)$.  The trajectory
+density under joint policy $\pi(\bm\phi)$ is
+\[
+  p(\tau\given\bm\phi) = p(s_0)\prod_{t=0}^{H}\pi^i(a_t^i\given s_t,\phi^i)\pi(\bm a_t^{-i}\given s_t,\bm\phi^{-i})P(s_{t+1}\given s_t,\bm a_t),
+\]
+and the base value of agent $i$ is
+$V^i(\bm\phi)=\E_{\tau\sim p(\cdot\given\bm\phi)}[G^i(\tau)]$.  We
+write $v(\pi)=(\nabla_{\pi^i}V^i(\pi))_{i\in\N}$ for the stacked
+individual-payoff gradient field on $\Pi$.
+
+\paragraph{Inner-loop learning and meta-value.}
+Following \citet{kim2021meta} we assume each agent performs $L+1$
+rounds of an \emph{inner} stochastic policy gradient step,
+\begin{equation}
+  \phi^i_{\ell+1} = \phi^i_\ell + \alpha\,\hat g^i(\phi^i_\ell,\phi^{-i}_\ell),
+  \qquad \ell=0,\dots,L,
+  \label{eq:inner}
+\end{equation}
+with fixed $\alpha>0$ and $\hat g^i$ a stochastic unbiased estimator of
+$\nabla_{\phi^i}V^i$ formed from $K$ independent rollouts.  Writing
+$\bm\phi_{0:L+1}\defeq(\bm\phi_0,\dots,\bm\phi_{L+1})$ for the inner
+trajectory, the \emph{meta-value} of agent $i$ is
+\begin{equation}
+  V^i_{\bm\phi_{0:L+1}}(s_0,\phi^i_0)\;=\;\E\!\big[\,G^i(\tau_{\bm\phi_{L+1}})\,\big],
+  \label{eq:metaval}
+\end{equation}
+where the outer expectation is over the inner randomness and the
+trajectory $\tau_{\bm\phi_{L+1}}$ drawn from
+$p(\cdot\given\bm\phi_{L+1})$.  The \emph{meta-game} is
+$\Mmeta=(\N,\Phi,\{V^i_{\bm\phi_{0:L+1}}\}_i)$.
+
+\paragraph{Meta-MAPG identity \citep[Thm.~1]{kim2021meta}.}
+Under smoothness and interchange-of-differentiation,
+\begin{align}
+  \nabla_{\phi^i_0}V^i_{\bm\phi_{0:L+1}}(s_0,\phi^i_0)
+  &= \E\!\left[G^i(\tau_{\bm\phi_{L+1}})\cdot\Psi^i_L\right],
+  \label{eq:mapg-identity}\\
+  \Psi^i_L
+  &= \underbrace{\nabla_{\phi^i_0}\log\pi(\tau_{\bm\phi_0}\given\phi^i_0)}_{\text{Current Policy}}
+    +\underbrace{\sum_{\ell=0}^{L}\nabla_{\phi^i_0}\log\pi(\tau_{\bm\phi_{\ell+1}}\given\phi^i_{\ell+1})}_{\text{Own Learning}}
+    +\underbrace{\sum_{\ell=0}^{L}\nabla_{\phi^i_0}\log\pi(\tau_{\bm\phi_{\ell+1}}\given\bm\phi^{-i}_{\ell+1})}_{\text{Peer Learning}}.
+  \label{eq:three-term}
+\end{align}
+
+\paragraph{Sample-based Meta-MAPG estimator.}
+At outer iteration $n$ we sample $N_n$ independent inner rollouts
+$\{\tau^{(j)}_{\bm\phi_{0:L+1}}\}_{j=1}^{N_n}$, each generated by
+running~\eqref{eq:inner} for $L+1$ steps with $K_n$ rollouts per inner
+gradient.  The empirical Meta-MAPG estimator is
+\begin{equation}
+  \hat v^{\MAPG,i}_n \;=\; \frac{1}{N_n}\sum_{j=1}^{N_n}G^i\!\big(\tau^{(j)}_{\bm\phi_{L+1}}\big)\,\hat\Psi^{i,(j)}_L,
+  \label{eq:mapg-est}
+\end{equation}
+and we write $\hat v^{\MAPG}_n=(\hat v^{\MAPG,i}_n)_{i\in\N}$.
+
+\paragraph{Giannou template.}
+The stochastic-approximation recursion
+\begin{equation}
+  \pi_{n+1}=\pi_n+\gamma_n\hat v_n,\qquad \gamma_n=\frac{\gamma}{(n+m)^p},\ p\in(\tfrac12,1]
+  \label{eq:giannou}
+\end{equation}
+decomposes $\hat v_n=v(\pi_n)+b_n+U_n$ where $b_n=\E[\hat v_n\given\mathcal F_n]-v(\pi_n)$
+is the conditional bias and $U_n=\hat v_n-\E[\hat v_n\given\mathcal F_n]$
+is the centred noise.  The template requires
+\begin{equation}
+  \E[\|b_n\|\given\mathcal F_n]\le B_n=O(n^{-\ell_b}),\qquad
+  \E[\|U_n\|^2\given\mathcal F_n]\le M_n^2=O(n^{-2\ell_\sigma}),
+  \label{eq:gi-cond}
+\end{equation}
+with $p+\ell_b>1$ and $p-\ell_\sigma>1/2$, and local variational
+stability of the target.  \citet[Thm.~1]{giannou2022convergence}
+asserts, under these conditions, that
+$\Prob(\pi_n\to\pi^*\given\pi_1\in\mathcal{U})\ge 1-\delta$ for every
+$\delta>0$ on a neighbourhood $\mathcal{U}$ of the target, provided
+$\gamma$ is small or $m$ is large.
+
+% =====================================================================
+\section{Main Theorem}
+\label{sec:main}
+
+\begin{theorem}[Global convergence of Meta-MAPG]\label{thm:main}
+Suppose Assumptions~\ref{ass:chart}--\ref{ass:stability} hold.  Consider
+the outer-loop iterate
+$\bm\phi_0^{(n+1)}=\bm\phi_0^{(n)}+\gamma_n\hat v_n^{\MAPG}$ with
+schedule
+\begin{equation}
+  \gamma_n=\frac{\gamma}{(n+m)^p},\qquad p\in(\tfrac12,1],\qquad
+  N_n\ge c_N n^{2\ell_\sigma},\qquad K_n\ge c_K n^{2\ell_b},
+  \label{eq:rates}
+\end{equation}
+for some constants $c_N,c_K>0$ and exponents satisfying $p+\ell_b>1$
+and $p-\ell_\sigma>1/2$.  Let $\bm\phi_\meta^*\in\Phi$ satisfy
+$\Lambda(T_\alpha(\bm\phi_\meta^*))=\pi^*$, where $\pi^*$ is the stable
+Nash policy of Assumption~\ref{ass:stability}.  Then:
+\begin{enumerate}[leftmargin=1.4em,itemsep=2pt]
+\item \textbf{Local convergence.}  There exists a neighbourhood
+      $\mathcal U^\meta$ of $\bm\phi_\meta^*$ such that for every
+      $\delta>0$,
+      \[
+        \Prob\!\big(\bm\phi_0^{(n)}\to\bm\phi_\meta^*\,\big|\,\bm\phi_0^{(1)}\in\mathcal U^\meta\big)\;\ge\;1-\delta,
+      \]
+      provided $\gamma$ is sufficiently small (or $m$ sufficiently large) relative to $\delta$.
+\item \textbf{Global convergence via restart.}  If the bounded
+      random-restart mechanism of~\citet[\S4]{giannou2022convergence}
+      is applied to the outer loop, then the restarted process
+      converges almost surely to a stable meta-Nash equilibrium, the
+      expected number of restarts is finite, and when multiple stable
+      meta-Nash policies exist the selected limit is
+      Pareto-undominated.  If $\bm\phi_\meta^*$ is the unique stable
+      meta-Nash, the process converges to $\bm\phi_\meta^*$ almost
+      surely.
+\end{enumerate}
+\end{theorem}
+
+The remainder of the paper proves Theorem~\ref{thm:main} and develops
+its two structural deepenings.
+
+% =====================================================================
+\section{Assumptions and their verification}
+\label{sec:assumptions}
+
+We state and justify the five assumptions used in
+Theorem~\ref{thm:main}.  Each is either standard in the stochastic
+approximation literature or inherited from~\citet{giannou2022convergence}
+and~\citet{kim2021meta}; we make their verification explicit.
+
+\begin{assumption}[Policy chart and smoothness]\label{ass:chart}
+For every $i\in\N$, $\Phi^i\subset\R^{d_i}$ is compact and convex, and
+the parameterisation $\Lambda^i:\Phi^i\to\Pi^i$,
+$\Lambda^i(\phi^i)=\pi^i(\cdot\given\cdot,\phi^i)$, is $C^2$.  There
+exists a neighbourhood $\mathcal U_\phi^i$ of $\phi^{i,*}$ and a
+neighbourhood $\mathcal U_\pi^i$ of $\pi^{i,*}$ on which
+$\Lambda^i:\mathcal U_\phi^i\to\mathcal U_\pi^i$ is a $C^2$
+diffeomorphism with
+\[
+  m_\Lambda I\preceq D\Lambda(\bm\phi)^\top D\Lambda(\bm\phi)\preceq M_\Lambda I,\qquad
+  \|D^2\Lambda(\bm\phi)\|_{\mathrm{op}}\le H_\Lambda\qquad(0<m_\Lambda\le M_\Lambda<\infty,\ H_\Lambda<\infty),
+\]
+on $\mathcal U_\phi=\prod_i\mathcal U_\phi^i$, and the log-policy
+$(s,a,\phi)\mapsto\log\pi(a\given s,\phi)$ is $C^2$ in $\phi$ with
+$\sup_{s,a,\phi}\|\nabla_\phi\log\pi\|\le G$ and
+$\sup_{s,a,\phi}\|\nabla_\phi^2\log\pi\|_{\mathrm{op}}\le L$.
+\end{assumption}
+
+\emph{Verification.}  Compactness is a standard regulariser---in
+practice one clips the parameters.  The chart property holds for any
+tabular softmax, any Gaussian policy with non-degenerate covariance,
+and any overparameterised smooth network on a compact domain;
+cf.~\citep{agarwal2021theory}.  The score bound $G$ is the standard
+REINFORCE Lipschitz constant; $L$ is the Hessian bound used in any
+second-order treatment of policy gradient.
+
+\begin{assumption}[Inner-loop gradient oracle]\label{ass:oracle}
+The inner estimator $\hat g^i$ in~\eqref{eq:inner} is conditionally
+unbiased, $\E[\hat g^i(\bm\phi)\given\mathcal F]=\nabla_{\phi^i}V^i(\bm\phi)$,
+and has uniformly bounded second moment
+$\E[\|\hat g^i(\bm\phi)\|^2\given\mathcal F]\le\sigma_{\mathrm{in}}^2$
+whenever it is formed from $K\ge 1$ i.i.d.\ rollouts.
+\end{assumption}
+
+\emph{Verification.}  The standard REINFORCE estimator satisfies this
+with $\sigma_{\mathrm{in}}^2=G_{\max}^2(H+1)^2G^2$; see
+\citep[Ch.~13]{sutton2018reinforcement}.  Using $K$ rollouts scales the
+variance by $1/K$ but unbiasedness is preserved.
+
+\begin{assumption}[Deterministic inner-loop regularity]\label{ass:inner}
+Let $g(\bm\phi)\defeq\E[\hat g(\bm\phi)]$ denote the population inner-gradient
+field.  On a neighbourhood $\mathcal U_\phi$ of $\bm\phi_\meta^*$, $g$ is
+$C^2$ with
+$\|Dg(\bm\phi)\|_{\mathrm{op}}\le L_g$ and
+$\|D^2g(\bm\phi)\|_{\mathrm{op}}\le H_g$.
+There exists $\alpha_0>0$ such that for every $\alpha\in(0,\alpha_0]$
+the deterministic inner map $\Psi_\alpha(\bm\phi)\defeq\bm\phi+\alpha g(\bm\phi)$
+is a $C^2$ diffeomorphism of $\mathcal U_\phi$ onto its image.  For fixed
+depth $L$, define $T_\alpha\defeq\Psi_\alpha^{L+1}$; then on
+$\mathcal U_\phi$ there exist $c_1,c_2,c_3>0$ such that
+\[
+  1-c_1\alpha\le\sigma_{\min}(D\Psi_\alpha)\le\sigma_{\max}(D\Psi_\alpha)\le 1+c_1\alpha,\quad
+  1-c_2\alpha\le\sigma_{\min}(DT_\alpha)\le\sigma_{\max}(DT_\alpha)\le 1+c_2\alpha,
+\]
+and $\|D^2T_\alpha\|_{\mathrm{op}}\le c_3\alpha$.
+\end{assumption}
+
+\emph{Verification.}  This is the inverse-function-theorem regime:
+$\Psi_\alpha=\mathrm{id}+O(\alpha)$, so $\Psi_\alpha$ is a diffeomorphism for
+all $\alpha$ small enough.  The singular-value bounds follow from
+$D\Psi_\alpha=I+\alpha Dg$ and $\|Dg\|\le L_g$.  The second-derivative
+bound $\|D^2T_\alpha\|_{\mathrm{op}}=O(\alpha)$ follows from the chain
+rule applied to the $L+1$-fold composition, whose first-order Taylor
+expansion is $T_\alpha=\mathrm{id}+\alpha(L+1)g+O(\alpha^2)$; the remainder
+is $O(\alpha)$ because $T_\alpha$ differs from the identity by a term
+scaling with $\alpha$.
+
+\begin{assumption}[Quantitative curvature control]\label{ass:curvature}
+Let $F\defeq\Lambda\circ T_\alpha$.  On a neighbourhood $\mathcal U_\phi$
+of $\bm\phi_\meta^*$, $F$ is a $C^2$ diffeomorphism onto its image with
+\[
+  \sigma_{\min}(DF(\bm\phi))\ge m_F,\qquad \|D^2F(\bm\phi)\|_{\mathrm{op}}\le L_F,
+\]
+for constants $m_F,L_F>0$.  Moreover, if $V_{\max}$ is any constant
+with $\|v(\pi)\|\le V_{\max}$ on $F(\mathcal U_\phi)$, then
+\begin{equation}
+  \tfrac{1}{2}V_{\max}L_F\;<\;c\,m_F^2,
+  \label{eq:cur-dom}
+\end{equation}
+where $c>0$ is the variational-stability constant of
+Assumption~\ref{ass:stability}.
+\end{assumption}
+
+\emph{Verification.}  The first part follows from
+Assumptions~\ref{ass:chart} and~\ref{ass:inner}: $DF=D\Lambda\cdot DT_\alpha$
+has $\sigma_{\min}\ge m_\Lambda^{1/2}(1-c_2\alpha)$ and
+$\|D^2F\|_{\mathrm{op}}\le H_\Lambda(1+c_2\alpha)^2+M_\Lambda c_3\alpha$
+by the chain and product rules, both finite.  The
+curvature-dominance condition~\eqref{eq:cur-dom} is a quantitative
+coupling between the inner-loop stability $m_F$, its curvature $L_F$,
+the base gradient scale $V_{\max}$, and the base stability constant
+$c$.  Section~\ref{sec:curvature} is devoted to interpreting when this
+condition holds.
+
+\begin{assumption}[Variational stability of the base Nash]\label{ass:stability}
+There exists a Nash policy $\pi^*$ of $\mathcal G$, a neighbourhood
+$\mathcal U^*\subset\Pi$ of $\pi^*$, and a constant $c>0$ such that
+\begin{equation}
+  \langle v(\pi),\pi-\pi^*\rangle\le -c\|\pi-\pi^*\|^2\qquad\forall\pi\in\mathcal U^*\setminus\{\pi^*\}.
+  \label{eq:vs}
+\end{equation}
+\end{assumption}
+
+\emph{Verification.}  This is precisely~\citet[Def.~2]{giannou2022convergence}:
+$\pi^*$ is (locally) generalised-diagonally-positive
+(GDP)/second-order-stable (SOS).  \citet[Appx.~A]{giannou2022convergence}
+show that any isolated Nash equilibrium with nondegenerate Hessian
+along the inactive constraints is variationally stable; empirically,
+most ``natural'' equilibria in strategic interactions satisfy
+\eqref{eq:vs}.  Under~\eqref{eq:vs} and $v(\pi^*)=0$ (first-order
+optimality; see Remark~\ref{rem:firstorder}), a first-order Taylor
+expansion gives $\sym(Dv(\pi^*))\preceq -cI$.
+
+\begin{remark}[First-order optimality at a variationally stable
+Nash]\label{rem:firstorder}
+For any sequence $\pi_k\to\pi^*$ inside $\mathcal U^*$,
+dividing~\eqref{eq:vs} by $\|\pi_k-\pi^*\|$ and taking $k\to\infty$
+gives $v(\pi^*)\cdot(\pi_k-\pi^*)/\|\pi_k-\pi^*\|\to 0$ for every
+unit direction; i.e.\ $v(\pi^*)=0$.  Expanding
+$v(\pi)=Dv(\pi^*)(\pi-\pi^*)+O(\|\pi-\pi^*\|^2)$
+in~\eqref{eq:vs} and taking $\pi\to\pi^*$ yields
+$\sym(Dv(\pi^*))\preceq -c I$.
+\end{remark}
+
