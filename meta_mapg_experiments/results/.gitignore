@@ -1,0 +1,7 @@
+# Ignore all training artifacts inside results/
+*
+
+# But keep this file and .gitkeep markers
+!.gitignore
+!.gitkeep
+!**/.gitkeep
