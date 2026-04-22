@@ -94,24 +94,22 @@ def sample_rollout(logits0, logits1, payoffs):
     return a0, a1, r0, r1
 
 
-def inner_pg_step(logits1, payoffs, K, alpha):
+def inner_pg_step(logits0, logits1, payoffs, K, alpha):
     """
     One stochastic inner PG step for agent 1 using K rollouts.
+    Uses agent 0's ACTUAL policy (softmax(logits0)) for reward computation.
     Returns updated logits1 (detached).
     """
     l1 = logits1.clone().detach().requires_grad_(True)
-    # Need fixed l0 for inner update; use uniform as reference (not needed for agent1 update)
-    # Agent 1's gradient uses samples of its own action
+    p0 = torch.softmax(logits0.detach(), dim=0)  # Use real agent-0 distribution
     log_probs = []
     rewards = []
     for _ in range(K):
         a1 = sample_action(l1)
-        # Agent 0's action irrelevant for agent 1's marginal PG step here;
-        # we treat agent 0's distribution as fixed external for the inner step.
-        # Use expected reward over agent 0's current policy (passed via closure — simplified).
+        # Agent 1's expected reward under agent 0's ACTUAL policy
         r1 = sum(
-            0.5 * payoffs[a0, a1, 1].item() for a0 in range(2)
-        )  # uniform a0 approximation for inner step
+            p0[a0].item() * payoffs[a0, a1, 1].item() for a0 in range(2)
+        )
         log_probs.append(log_prob_action(l1, a1))
         rewards.append(r1)
     loss = -sum(lp * r for lp, r in zip(log_probs, rewards)) / K
@@ -122,13 +120,13 @@ def inner_pg_step(logits1, payoffs, K, alpha):
 def stochastic_inner_chain(logits0, logits1, payoffs, L, K, alpha):
     """
     Run L stochastic inner steps for agent 1, given fixed logits0.
-    Returns list of (logits1_l, a1_samples, r_samples) at each step.
+    Returns list of logits1 at each step (length L+1).
     """
     l1_trajectory = [logits1.detach().clone()]
     for _ in range(L):
-        l1_next = inner_pg_step(l1_trajectory[-1], payoffs, K, alpha)
+        l1_next = inner_pg_step(logits0, l1_trajectory[-1], payoffs, K, alpha)
         l1_trajectory.append(l1_next)
-    return l1_trajectory  # length L+1
+    return l1_trajectory
 
 
 # ─── Meta-MAPG estimator (Eq.4, Kim et al. 2021) ─────────────────────────────
@@ -399,85 +397,55 @@ def measure_bias_variance(game_name, L, alpha, K_values, N_values, n_trials=200,
 
 # ─── Assumption 5 constants ───────────────────────────────────────────────────
 
-def compute_assumption5_constants(game_name, L, alpha):
+def compute_assumption5_constants(game_name, L, alpha, phi_values=None):
     """
-    At converged Stag Hunt policy (S,S) ≈ logits [2, -2]:
-    Compute m_F (min singular value of DF), L_F (curvature bound), V_max.
+    Compute m_F, L_F, V_max, curvature dominance at multiple policy scales.
+    Works in the CORRECT REDUCED PARAMETER SPACE for 2-action games,
+    because the full softmax Jacobian R^2 -> Simplex_1 is always rank-1
+    and thus structurally has m_Lambda = 0.
+    Reduced param: phi_reduced = phi[0] - phi[1].
+    p_coop = 1 / (1 + exp(-phi_reduced)).
     """
     payoffs = GAMES[game_name]
-    # Near-converged policy
-    logits0 = torch.tensor([2.0, -2.0], dtype=torch.float32, requires_grad=True)
-    logits1 = torch.tensor([2.0, -2.0], dtype=torch.float32, requires_grad=True)
+    if phi_values is None:
+        phi_values = np.linspace(0.0, 2.5, 11)
 
-    # Compute F = Lambda(T_alpha(phi)) Jacobian numerically
-    eps = 1e-3
-    F_cols = []
-    base_probs = torch.softmax(logits0, dim=0).detach()
+    all_results = []
+    for phi_scale in phi_values:
+        l0 = torch.tensor([phi_scale, -phi_scale], dtype=torch.float32, requires_grad=True)
+        l1 = torch.tensor([phi_scale, -phi_scale], dtype=torch.float32, requires_grad=True)
+        
+        p0 = torch.softmax(l0, dim=0)
+        p_coop = p0[0].item()
+        
+        # In the reduced 1D space, F(phi_reduced0) = p_coop0.
+        # The inner loop for agent 1 doesn't change agent 0's parameter.
+        # So m_F = dp/d(phi_reduced) = p_coop * (1 - p_coop)
+        m_F = p_coop * (1 - p_coop)
+        
+        # V_max: gradient norm of agent 0's value w.r.t its reduced parameter
+        p1 = torch.softmax(l1, dim=0).detach()
+        v0 = sum(p0[a0] * p1[a1] * payoffs[a0, a1, 0] for a0 in range(2) for a1 in range(2))
+        
+        # d v0 / d(phi_reduced0)
+        dp0_dphi = torch.tensor([m_F, -m_F])
+        g_v0 = sum(dp0_dphi[a0] * p1[a1] * payoffs[a0, a1, 0] for a0 in range(2) for a1 in range(2))
+        V_max = abs(g_v0.item())
+        
+        # L_F: second derivative of logistic function = p(1-p)(1-2p)
+        L_F = abs(p_coop * (1 - p_coop) * (1 - 2 * p_coop))
+        
+        lhs = 0.5 * V_max * L_F
+        mF2 = m_F ** 2
+        
+        result = {
+            "phi_scale": phi_scale, "p_coop": p_coop,
+            "m_F": m_F, "M_F": m_F, "L_F": L_F, "V_max": V_max,
+            "lhs": lhs, "note": "need c*m_F^2 > lhs"
+        }
+        all_results.append(result)
 
-    for i in range(2):
-        l0_plus = logits0.clone().detach()
-        l0_plus[i] += eps
-        # Deterministic inner chain (L steps)
-        l1_det = logits1.detach().clone()
-        for _ in range(L):
-            l1_det_req = l1_det.requires_grad_(True)
-            p0 = torch.softmax(l0_plus, dim=0)
-            p1 = torch.softmax(l1_det_req, dim=0)
-            v1 = sum(p0[a0] * p1[a1] * payoffs[a0, a1, 1] for a0 in range(2) for a1 in range(2))
-            g1 = torch.autograd.grad(v1, l1_det_req)[0]
-            l1_det = (l1_det_req + alpha * g1).detach()
-        p_plus = torch.softmax(l0_plus, dim=0).detach()
-
-        l0_minus = logits0.clone().detach()
-        l0_minus[i] -= eps
-        l1_det = logits1.detach().clone()
-        for _ in range(L):
-            l1_det_req = l1_det.requires_grad_(True)
-            p0 = torch.softmax(l0_minus, dim=0)
-            p1 = torch.softmax(l1_det_req, dim=0)
-            v1 = sum(p0[a0] * p1[a1] * payoffs[a0, a1, 1] for a0 in range(2) for a1 in range(2))
-            g1 = torch.autograd.grad(v1, l1_det_req)[0]
-            l1_det = (l1_det_req + alpha * g1).detach()
-        p_minus = torch.softmax(l0_minus, dim=0).detach()
-
-        F_cols.append((p_plus - p_minus) / (2 * eps))
-
-    DF = torch.stack(F_cols, dim=1)  # 2x2 Jacobian
-    svd = torch.linalg.svdvals(DF)
-    m_F = svd.min().item()
-    M_F = svd.max().item()
-
-    # V_max: max payoff gradient norm at this policy
-    l0r = logits0.clone().requires_grad_(True)
-    l1r = logits1.clone().detach()
-    p0 = torch.softmax(l0r, dim=0)
-    p1 = torch.softmax(l1r, dim=0)
-    v0 = sum(p0[a0] * p1[a1] * payoffs[a0, a1, 0] for a0 in range(2) for a1 in range(2))
-    v_grad = torch.autograd.grad(v0, l0r)[0].detach()
-    V_max = v_grad.norm().item()
-
-    # L_F: rough curvature — use finite differences of DF in each direction
-    eps2 = 1e-2
-    DF_perturbed_col = []
-    for i in range(2):
-        l0_p = logits0.clone().detach()
-        l0_p[i] += eps2
-        F_cols_p = []
-        for j in range(2):
-            lp = l0_p.clone()
-            lp[j] += eps
-            p_plus = torch.softmax(lp, dim=0).detach()
-            lm = l0_p.clone()
-            lm[j] -= eps
-            p_minus = torch.softmax(lm, dim=0).detach()
-            F_cols_p.append((p_plus - p_minus) / (2 * eps))
-        DF_p = torch.stack(F_cols_p, dim=1)
-        DF_perturbed_col.append((DF_p - DF).norm().item() / eps2)
-    L_F = max(DF_perturbed_col)
-
-    return {"m_F": m_F, "M_F": M_F, "L_F": L_F, "V_max": V_max,
-            "curvature_dominance_lhs": 0.5 * V_max * L_F,
-            "note": "c*m_F^2 must exceed lhs for Assumption 5 to hold"}
+    return all_results
 
 
 # ─── Parallel wrapper ─────────────────────────────────────────────────────────
@@ -594,16 +562,18 @@ def main():
         for r in var_res:
             print(f"  var(N={r['N']:4d})  = {r['variance']:.6f}")
 
-    # Assumption 5 constants
+    # Assumption 5 constants (sweep over policy scales)
     if not args.skip_assumption5:
-        print("\n=== Assumption 5 Constants (StagHunt, converged policy) ===")
-        consts = compute_assumption5_constants("StagHunt", L=args.L, alpha=0.1)
-        for k, v in consts.items():
-            print(f"  {k}: {v}")
+        print("\n=== Assumption 5 Constants (StagHunt, policy sweep) ===")
+        results_a5 = compute_assumption5_constants("StagHunt", L=args.L, alpha=0.1)
+        print(f"  {'phi':>6s}  {'p_coop':>6s}  {'m_F':>12s}  {'L_F':>10s}  {'V_max':>8s}  {'lhs':>10s}")
+        for r in results_a5:
+            print(f"  {r['phi_scale']:6.2f}  {r['p_coop']:6.3f}  {r['m_F']:12.6e}  {r['L_F']:10.6f}  {r['V_max']:8.5f}  {r['lhs']:10.6e}")
         with open(os.path.join(args.out_dir, "assumption5.csv"), "w", newline="") as f:
             writer = csv.writer(f)
-            for k, v in consts.items():
-                writer.writerow([k, v])
+            writer.writerow(["phi_scale", "p_coop", "m_F", "M_F", "L_F", "V_max", "lhs"])
+            for r in results_a5:
+                writer.writerow([r["phi_scale"], r["p_coop"], r["m_F"], r["M_F"], r["L_F"], r["V_max"], r["lhs"]])
 
 
 if __name__ == "__main__":

@@ -2,11 +2,13 @@
 \contentsline {section}{\numberline {2}Experiment I: Matrix Games}{2}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Setup}{2}{subsection.2.1}%
 \contentsline {subsection}{\numberline {2.2}Algorithm Comparison}{2}{subsection.2.2}%
-\contentsline {subsection}{\numberline {2.3}Variance Validation (Lemma\nobreakspace {}2)}{3}{subsection.2.3}%
-\contentsline {subsection}{\numberline {2.4}Threshold Ablation}{4}{subsection.2.4}%
-\contentsline {section}{\numberline {3}Experiment II: MAMuJoCo HalfCheetah}{4}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Setup}{4}{subsection.3.1}%
+\contentsline {subsection}{\numberline {2.3}Basin of Attraction and Spectral Reinforcement (Proposition\nobreakspace {}3)}{3}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.4}Estimator Bias and Variance (Lemmas 1 \& 2)}{3}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Curvature Dominance Boundary (Assumption 4 \& Section 8)}{4}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Threshold Ablation}{4}{subsection.2.6}%
+\contentsline {section}{\numberline {3}Experiment II: MAMuJoCo HalfCheetah}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Setup}{5}{subsection.3.1}%
 \contentsline {subsection}{\numberline {3.2}Results}{5}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Analysis: The Discrimination Problem}{5}{subsection.3.3}%
-\contentsline {section}{\numberline {4}Summary: Theory--Experiment Mapping}{6}{section.4}%
-\contentsline {section}{\numberline {5}Conclusion}{6}{section.5}%
+\contentsline {subsection}{\numberline {3.3}Analysis: The Discrimination Problem}{6}{subsection.3.3}%
+\contentsline {section}{\numberline {4}Summary: Theory--Experiment Mapping}{7}{section.4}%
+\contentsline {section}{\numberline {5}Conclusion}{7}{section.5}%
