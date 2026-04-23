@@ -48,3 +48,6 @@ polymarket/dashboard/.env.local
 results_server/
 **csv
 **.toc
+**.blg
+.codex
+artifacts/**
